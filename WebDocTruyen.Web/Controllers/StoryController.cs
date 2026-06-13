@@ -46,7 +46,7 @@ namespace WebDocTruyen.Web.Controllers
                 : await _storyService.SearchAsync(keyword);
 
             if (genreIds?.Any() == true)
-                stories = stories.Where(s => s.Genres.Any(g => genreIds.Contains(g.GenreId)));
+                stories = stories.Where(s => genreIds.All(id => s.Genres.Any(g => g.GenreId == id)));
             if (!string.IsNullOrEmpty(status))
                 stories = stories.Where(s => s.Status == status);
 

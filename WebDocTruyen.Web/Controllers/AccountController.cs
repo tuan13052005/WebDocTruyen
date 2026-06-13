@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using WebDocTruyen.Application.Mapper;
 using WebDocTruyen.Domain.Entities;
 using WebDocTruyen.Domain.Interfaces;
 
@@ -153,7 +154,7 @@ namespace WebDocTruyen.Web.Controllers
             var email = User.FindFirst(ClaimTypes.Email)?.Value;
             var user = _userRepo.GetByEmail(email!);
             if (user == null) return RedirectToAction("Login");
-            return View(user);
+            return View(UserMapper.ToDto(user));
         }
 
         // ── Settings ───────────────────────────────────────────────────────
@@ -164,13 +165,13 @@ namespace WebDocTruyen.Web.Controllers
             var email = User.FindFirst(ClaimTypes.Email)?.Value;
             var user = _userRepo.GetByEmail(email!);
             if (user == null) return RedirectToAction("Login");
-            return View(user);
+            return View(UserMapper.ToProfileDto(user));
         }
 
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Settings(User updatedUser)
+        public async Task<IActionResult> Settings(WebDocTruyen.Application.DTOs.User.UserProfileDto updatedUser)
         {
             var email = User.FindFirst(ClaimTypes.Email)?.Value;
             var user = _userRepo.GetByEmail(email!);
@@ -194,7 +195,7 @@ namespace WebDocTruyen.Web.Controllers
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
             ViewBag.Success = "Cập nhật thành công!";
-            return View(user);
+            return View(UserMapper.ToProfileDto(user));
         }
 
         // ── Change Password ────────────────────────────────────────────────

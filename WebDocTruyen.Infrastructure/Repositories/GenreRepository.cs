@@ -10,7 +10,7 @@ using WebDocTruyen.Infrastructure.Persistence;
 
 namespace WebDocTruyen.Infrastructure.Repositories
 {
-    public class GenreRepository : IGenreRepository 
+    public class GenreRepository : IGenreRepository
     {
         private readonly AppDbContext _context;
 
@@ -21,12 +21,16 @@ namespace WebDocTruyen.Infrastructure.Repositories
 
         public async Task<IEnumerable<Genre>> GetAllGenreAsync()
         {
-            return await _context.Genres.ToListAsync();
+            return await _context.Genres
+                .Include(g => g.StoryGenres)
+                .ToListAsync();
         }
 
         public async Task<Genre?> GetByIdGenreAsync(int id)
         {
-            return await _context.Genres.FirstOrDefaultAsync(g => g.GenreId == id);
+            return await _context.Genres
+                .Include(g => g.StoryGenres)
+                .FirstOrDefaultAsync(g => g.GenreId == id);
         }
 
         public void Add(Genre genre)

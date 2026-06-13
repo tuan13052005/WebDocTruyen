@@ -4,17 +4,17 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 
     var selectedGenres = ViewBag.GenreIds as List<int> ?? new List<int>();
-    int currentPage  = (int)(ViewBag.Page      ?? 1);
-    int pageSize     = (int)(ViewBag.PageSize   ?? 12);
+    int currentPage = (int)(ViewBag.Page ?? 1);
+    int pageSize = (int)(ViewBag.PageSize ?? 12);
     int totalStories = (int)(ViewBag.TotalStories ?? 0);
-    int totalPages   = (int)Math.Ceiling((double)totalStories / Math.Max(pageSize, 1));
+    int totalPages = (int)Math.Ceiling((double)totalStories / Math.Max(pageSize, 1));
 
     string kw = ViewBag.Keyword ?? "";
-    string st = ViewBag.Status  ?? "";
-    string sr = ViewBag.Sort    ?? "";
+    string st = ViewBag.Status ?? "";
+    string sr = ViewBag.Sort ?? "";
 
     int pStart = Math.Max(1, currentPage - 3);
-    int pEnd   = Math.Min(totalPages, pStart + 6);
+    int pEnd = Math.Min(totalPages, pStart + 6);
     pStart = Math.Max(1, pEnd - 6);
     string genreQs = string.Join("&", selectedGenres.Select(id => $"genreIds={id}"));
 }
@@ -58,11 +58,46 @@
                         <div class="mb-3">
                             <label class="form-label fw-semibold small text-muted">SẮP XẾP</label>
                             <select name="sort" class="form-select form-select-sm">
-                                @if (sr == "")        { <option value="" selected>Mới nhất</option> }       else { <option value="">Mới nhất</option> }
-                                @if (sr == "updated") { <option value="updated" selected>Cập nhật gần đây</option> } else { <option value="updated">Cập nhật gần đây</option> }
-                                @if (sr == "chapter") { <option value="chapter" selected>Nhiều chapter</option> }    else { <option value="chapter">Nhiều chapter</option> }
-                                @if (sr == "follow")  { <option value="follow" selected>Nhiều theo dõi</option> }     else { <option value="follow">Nhiều theo dõi</option> }
-                                @if (sr == "rating")  { <option value="rating" selected>Đánh giá cao</option> }       else { <option value="rating">Đánh giá cao</option> }
+                                @if (sr == "")
+                                {
+                                    <option value="" selected>Mới nhất</option>
+                                }
+                                else
+                                {
+                                    <option value="">Mới nhất</option>
+                                }
+                                @if (sr == "updated")
+                                {
+                                    <option value="updated" selected>Cập nhật gần đây</option>
+                                }
+                                else
+                                {
+                                    <option value="updated">Cập nhật gần đây</option>
+                                }
+                                @if (sr == "chapter")
+                                {
+                                    <option value="chapter" selected>Nhiều chapter</option>
+                                }
+                                else
+                                {
+                                    <option value="chapter">Nhiều chapter</option>
+                                }
+                                @if (sr == "follow")
+                                {
+                                    <option value="follow" selected>Nhiều theo dõi</option>
+                                }
+                                else
+                                {
+                                    <option value="follow">Nhiều theo dõi</option>
+                                }
+                                @if (sr == "rating")
+                                {
+                                    <option value="rating" selected>Đánh giá cao</option>
+                                }
+                                else
+                                {
+                                    <option value="rating">Đánh giá cao</option>
+                                }
                             </select>
                         </div>
 
@@ -71,7 +106,7 @@
                             <div class="mb-3">
                                 <label class="form-label fw-semibold small text-muted">THỂ LOẠI</label>
                                 <div style="max-height:200px; overflow-y:auto;" class="border rounded p-2">
-                                    @foreach (var g in (IEnumerable<WebDocTruyen.Domain.Entities.Genre>)ViewBag.Genres)
+                                    @foreach (var g in (IEnumerable<WebDocTruyen.Application.DTOs.Genre.GenreDto>)ViewBag.Genres)
                                     {
                                         <div class="form-check">
                                             <input class="form-check-input" type="checkbox"
@@ -87,9 +122,30 @@
                         <div class="mb-3">
                             <label class="form-label fw-semibold small text-muted">SỐ TRUYỆN/TRANG</label>
                             <select name="pageSize" class="form-select form-select-sm">
-                                @if (pageSize == 12) { <option value="12" selected>12 truyện</option> } else { <option value="12">12 truyện</option> }
-                                @if (pageSize == 24) { <option value="24" selected>24 truyện</option> } else { <option value="24">24 truyện</option> }
-                                @if (pageSize == 48) { <option value="48" selected>48 truyện</option> } else { <option value="48">48 truyện</option> }
+                                @if (pageSize == 12)
+                                {
+                                    <option value="12" selected>12 truyện</option>
+                                }
+                                else
+                                {
+                                    <option value="12">12 truyện</option>
+                                }
+                                @if (pageSize == 24)
+                                {
+                                    <option value="24" selected>24 truyện</option>
+                                }
+                                else
+                                {
+                                    <option value="24">24 truyện</option>
+                                }
+                                @if (pageSize == 48)
+                                {
+                                    <option value="48" selected>48 truyện</option>
+                                }
+                                else
+                                {
+                                    <option value="48">48 truyện</option>
+                                }
                             </select>
                         </div>
 
@@ -194,6 +250,12 @@
 </div>
 
 <style>
-.story-card { transition: transform .15s, box-shadow .15s; }
-.story-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,.12) !important; }
+    .story-card {
+        transition: transform .15s, box-shadow .15s;
+    }
+
+        .story-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,.12) !important;
+        }
 </style>
