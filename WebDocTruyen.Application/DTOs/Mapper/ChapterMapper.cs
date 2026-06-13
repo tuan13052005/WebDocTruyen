@@ -3,7 +3,7 @@ using WebDocTruyen.Application.DTOs.Comment;
 using WebDocTruyen.Application.DTOs.Story;
 using WebDocTruyen.Domain.Entities;
 
-namespace WebDocTruyen.Application.Mappers
+namespace WebDocTruyen.Application.Mapper
 {
     public static class ChapterMapper
     {

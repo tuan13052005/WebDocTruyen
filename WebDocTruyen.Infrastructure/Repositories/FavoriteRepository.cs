@@ -31,9 +31,11 @@ namespace WebDocTruyen.Infrastructure.Repositories
         public async Task<int> CountAsync(int storyId) =>
             await _ctx.Favorites.CountAsync(f => f.StoryId == storyId);
 
-        public Task<IEnumerable<Favorite>> GetByUserIdAsync(int userId)
-        {
-            throw new NotImplementedException();
-        }
+        public async Task<IEnumerable<Favorite>> GetByUserIdAsync(int userId) =>
+            await _ctx.Favorites
+                .Include(f => f.Story)
+                    .ThenInclude(s => s.Chapters)
+                .Where(f => f.UserId == userId)
+                .ToListAsync();
     }
 }

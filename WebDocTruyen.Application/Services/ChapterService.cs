@@ -1,7 +1,7 @@
 ﻿using WebDocTruyen.Application.DTOs.Chapter;
 using WebDocTruyen.Application.DTOs.Story;
 using WebDocTruyen.Application.Interfaces;
-using WebDocTruyen.Application.Mappers;
+using WebDocTruyen.Application.Mapper;
 using WebDocTruyen.Domain.Entities;
 using WebDocTruyen.Domain.Interfaces;
 

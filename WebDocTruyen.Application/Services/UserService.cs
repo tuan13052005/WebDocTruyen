@@ -1,7 +1,7 @@
 ﻿using BCrypt.Net;
 using WebDocTruyen.Application.DTOs.User;
 using WebDocTruyen.Application.Interfaces;
-using WebDocTruyen.Application.Mappers;
+using WebDocTruyen.Application.Mapper;
 using WebDocTruyen.Domain.Entities;
 using WebDocTruyen.Domain.Interfaces;
 

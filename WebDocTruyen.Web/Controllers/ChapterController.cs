@@ -67,7 +67,7 @@ namespace WebDocTruyen.Web.Controllers
         }
 
         [HttpPost, Authorize(Roles = "Editor"), ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddChapter(int storyId, ChapterFormDto dto)
+        public async Task<IActionResult> AddChapter(int storyId, ChapterFormDto dto, List<IFormFile> imageFiles)
         {
             dto.StoryId = storyId;
             if (!ModelState.IsValid) return View(dto);
@@ -75,7 +75,28 @@ namespace WebDocTruyen.Web.Controllers
             try
             {
                 int chapterId = await _chapterService.CreateAsync(storyId, dto, CurrentUserId);
-                TempData["Success"] = $"Thêm Chapter {dto.ChapterNumber} thành công!";
+
+                if (imageFiles != null && imageFiles.Any())
+                {
+                    var files = imageFiles.OrderBy(f => f.FileName)
+                        .Select(f => (f.OpenReadStream(), f.FileName, f.Length))
+                        .ToList();
+
+                    try
+                    {
+                        int count = await _chapterService.UploadImagesAsync(chapterId, CurrentUserId, files);
+                        TempData["Success"] = $"Thêm Chapter {dto.ChapterNumber} thành công! Đã upload {count} ảnh.";
+                    }
+                    finally
+                    {
+                        foreach (var (stream, _, _) in files) stream.Dispose();
+                    }
+                }
+                else
+                {
+                    TempData["Success"] = $"Thêm Chapter {dto.ChapterNumber} thành công!";
+                }
+
                 return RedirectToAction(nameof(ManageImages), new { chapterId });
             }
             catch (UnauthorizedAccessException) { return Forbid(); }

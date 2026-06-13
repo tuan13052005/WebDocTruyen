@@ -2,7 +2,7 @@
 using WebDocTruyen.Application.DTOs.Rating;
 using WebDocTruyen.Domain.Entities;
 
-namespace WebDocTruyen.Application.Mappers
+namespace WebDocTruyen.Application.Mapper
 {
     public static class FavoriteMapper
     {

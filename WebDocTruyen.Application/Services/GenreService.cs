@@ -1,6 +1,6 @@
 ﻿using WebDocTruyen.Application.DTOs.Genre;
 using WebDocTruyen.Application.Interfaces;
-using WebDocTruyen.Application.Mappers;
+using WebDocTruyen.Application.Mapper;
 using WebDocTruyen.Domain.Entities;
 using WebDocTruyen.Domain.Interfaces;
 

@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using WebDocTruyen.Application.Mapper;
 using WebDocTruyen.Application.Services;
+using WebDocTruyen.Domain.Interfaces;
 
 namespace WebDocTruyen.Web.Controllers
 {
@@ -9,28 +11,38 @@ namespace WebDocTruyen.Web.Controllers
     public class EditorController : Controller
     {
         private readonly StoryService _storyService;
-        public EditorController(StoryService storyService) { _storyService = storyService; }
+        private readonly IStoryRepository _storyRepo;
+
+        public EditorController(StoryService storyService, IStoryRepository storyRepo)
+        {
+            _storyService = storyService;
+            _storyRepo = storyRepo;
+        }
 
         private int CurrentUserId => int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 
         public async Task<IActionResult> Dashboard()
         {
-            var all = await _storyService.GetAllStoriesAsync();
-            var stories = all.Where(s => s.ChapterCount >= 0).ToList(); // tất cả của mình — xem bên dưới
-            // Note: StoryDto không có CreatedBy, cần query riêng qua storyRepo nếu cần lọc theo editor
-            // Tạm thời giữ ViewBag thống kê cơ bản
-            ViewBag.TotalStories = stories.Count;
-            ViewBag.TotalOngoingStories = stories.Count(s => s.Status == "ongoing");
-            ViewBag.TotalCompletedStories = stories.Count(s => s.Status == "completed");
-            ViewBag.LatestStory = stories.OrderByDescending(s => s.CreatedAt).FirstOrDefault();
-            ViewBag.RecentStories = stories.OrderByDescending(s => s.CreatedAt).Take(5).ToList();
+            var all = await _storyRepo.GetAllAsync();
+            var myStories = all.Where(s => s.CreatedBy == CurrentUserId)
+                                .Select(StoryMapper.ToDto)
+                                .ToList();
+
+            ViewBag.TotalStories = myStories.Count;
+            ViewBag.TotalOngoingStories = myStories.Count(s => s.Status == "ongoing");
+            ViewBag.TotalCompletedStories = myStories.Count(s => s.Status == "completed");
+            ViewBag.LatestStory = myStories.OrderByDescending(s => s.CreatedAt).FirstOrDefault();
+            ViewBag.RecentStories = myStories.OrderByDescending(s => s.CreatedAt).Take(5).ToList();
             return View();
         }
 
+        // ManageStories: chỉ hiển thị các truyện do editor hiện tại tạo
         public async Task<IActionResult> ManageStories(string? keyword, string? status, int page = 1, int pageSize = 10)
         {
-            var all = await _storyService.GetAllStoriesAsync();
-            var stories = all.AsEnumerable();
+            var all = await _storyRepo.GetAllAsync();
+            var stories = all.Where(s => s.CreatedBy == CurrentUserId)
+                              .Select(StoryMapper.ToDto)
+                              .AsEnumerable();
 
             if (!string.IsNullOrEmpty(keyword))
                 stories = stories.Where(s => s.Title.Contains(keyword, StringComparison.OrdinalIgnoreCase)

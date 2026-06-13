@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using WebDocTruyen.Application.DTOs.Story;
-using WebDocTruyen.Application.Mappers;
+using WebDocTruyen.Application.Mapper;
 using WebDocTruyen.Application.Services;
 using WebDocTruyen.Domain.Entities;
 using WebDocTruyen.Domain.Interfaces;

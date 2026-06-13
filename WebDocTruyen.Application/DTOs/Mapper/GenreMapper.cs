@@ -1,7 +1,7 @@
 ﻿using WebDocTruyen.Application.DTOs.Genre;
 using WebDocTruyen.Domain.Entities;
 
-namespace WebDocTruyen.Application.Mappers
+namespace WebDocTruyen.Application.Mapper
 {
     public static class GenreMapper
     {

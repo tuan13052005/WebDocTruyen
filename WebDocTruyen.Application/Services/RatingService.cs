@@ -1,6 +1,6 @@
 ﻿using WebDocTruyen.Application.DTOs.Rating;
 using WebDocTruyen.Application.Interfaces;
-using WebDocTruyen.Application.Mappers;
+using WebDocTruyen.Application.Mapper;
 using WebDocTruyen.Domain.Entities;
 using WebDocTruyen.Domain.Interfaces;
 

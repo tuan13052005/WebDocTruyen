@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebDocTruyen.Application.DTOs.Genre;
-using WebDocTruyen.Application.Mappers;
+using WebDocTruyen.Application.Mapper;
 using WebDocTruyen.Application.Services;
 using WebDocTruyen.Domain.Entities;
 using WebDocTruyen.Domain.Interfaces;

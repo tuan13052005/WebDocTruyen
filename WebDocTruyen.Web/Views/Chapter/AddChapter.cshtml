@@ -1,15 +1,14 @@
-﻿@model WebDocTruyen.Domain.Entities.Chapter
+﻿@model WebDocTruyen.Application.DTOs.Chapter.ChapterFormDto
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "Thêm Chapter";
-    var story = ViewBag.Story as WebDocTruyen.Domain.Entities.Story;
 }
 
 <div class="container mt-4" style="max-width:600px;">
     <h2>➕ Thêm Chapter mới</h2>
-    @if (story != null)
+    @if (!string.IsNullOrEmpty(Model.StoryTitle))
     {
-        <p class="text-muted">Truyện: <strong>@story.Title</strong></p>
+        <p class="text-muted">Truyện: <strong>@Model.StoryTitle</strong></p>
     }
 
     @if (!ViewData.ModelState.IsValid)
@@ -22,9 +21,9 @@
         </div>
     }
 
-    <form asp-action="AddChapter" asp-controller="Chapter" method="post">
+    <form asp-action="AddChapter" asp-controller="Chapter" method="post" enctype="multipart/form-data">
         @Html.AntiForgeryToken()
-        <input type="hidden" name="storyId" value="@story?.StoryId" />
+        <input type="hidden" name="storyId" value="@Model.StoryId" />
 
         <div class="mb-3">
             <label class="form-label">Số Chapter <span class="text-danger">*</span></label>
@@ -35,10 +34,39 @@
             <input asp-for="Title" class="form-control" placeholder="VD: Khởi đầu..." />
         </div>
 
+        <div class="mb-3">
+            <label class="form-label">Ảnh các trang <span class="text-muted small">(jpg/png/gif/webp, tối đa 10MB mỗi ảnh, có thể chọn nhiều - tuỳ chọn)</span></label>
+            <input type="file" name="imageFiles" class="form-control" multiple
+                   accept=".jpg,.jpeg,.png,.gif,.webp" id="imageInput" />
+            <div id="previewArea" class="d-flex flex-wrap gap-2 mt-2"></div>
+        </div>
+
         <div class="d-flex gap-2">
-            <button type="submit" class="btn btn-success">Lưu Chapter</button>
-            <a asp-action="ListChapters" asp-controller="Chapter" asp-route-id="@story?.StoryId"
+            <button type="submit" class="btn btn-success">💾 Lưu Chapter</button>
+            <a asp-action="ListChapters" asp-controller="Chapter" asp-route-id="@Model.StoryId"
                class="btn btn-secondary">← Quay lại</a>
         </div>
     </form>
 </div>
+
+@section Scripts {
+    <script>
+        document.getElementById('imageInput')?.addEventListener('change', function () {
+            const files = Array.from(this.files);
+            const preview = document.getElementById('previewArea');
+            preview.innerHTML = '';
+            files.forEach(f => {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    const div = document.createElement('div');
+                    div.style.cssText = 'position:relative;';
+                    div.innerHTML = `
+                        <img src="${e.target.result}" style="width:80px;height:80px;object-fit:cover;border-radius:6px;border:2px solid #dee2e6;" />
+                        <small class="d-block text-center text-muted" style="width:80px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${f.name}</small>`;
+                    preview.appendChild(div);
+                };
+                reader.readAsDataURL(f);
+            });
+        });
+    </script>
+}

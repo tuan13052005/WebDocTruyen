@@ -1,11 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Diagnostics;
 using System.Security.Claims;
-using WebDocTruyen.Application.DTOs.Genre;
-using WebDocTruyen.Application.DTOs.User;
-using WebDocTruyen.Application.Mappers;
+using WebDocTruyen.Application.Mapper;
 using WebDocTruyen.Application.Services;
 using WebDocTruyen.Domain.Entities;
 using WebDocTruyen.Domain.Interfaces;
