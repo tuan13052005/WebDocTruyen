@@ -15,7 +15,7 @@ namespace WebDocTruyen.Application.Services
         private readonly IFavoriteService _favoriteService;
 
         private static readonly string[] AllowedExt = { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
-        private const long MaxImageSize = 10 * 1024 * 1024; // 10MB
+        private const long MaxImageSize = 10 * 1024 * 1024; // 10 MB
 
         public ChapterService(
             IChapterRepository chapterRepo,
@@ -30,6 +30,7 @@ namespace WebDocTruyen.Application.Services
         }
 
         // ── Helpers ───────────────────────────────────────────────────────
+
         private async Task<bool> OwnsStoryAsync(int storyId, int currentUserId)
         {
             var story = await _storyRepo.GetByIdAsync(storyId);
@@ -40,7 +41,8 @@ namespace WebDocTruyen.Application.Services
             Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "stories",
                 storyId.ToString(), chapterNumber.ToString());
 
-        private static async Task<string> SaveImageFileAsync(Stream content, string fileName, int storyId, int chapterNumber)
+        private static async Task<string> SaveImageFileAsync(
+            Stream content, string fileName, int storyId, int chapterNumber)
         {
             var folder = ImageFolder(storyId, chapterNumber);
             Directory.CreateDirectory(folder);
@@ -50,7 +52,8 @@ namespace WebDocTruyen.Application.Services
             return $"/images/stories/{storyId}/{chapterNumber}/{fn}";
         }
 
-        // ── Danh sách chapter (ListChapters) ───────────────────────────────
+        // ── Danh sách chapter ─────────────────────────────────────────────
+
         public async Task<(List<ChapterSummaryDto> Items, int Total, StoryDto? Story)> GetListAsync(
             int storyId, int page, int pageSize)
         {
@@ -63,12 +66,13 @@ namespace WebDocTruyen.Application.Services
             page = Math.Clamp(page, 1, pages);
 
             var items = all.Skip((page - 1) * pageSize).Take(pageSize)
-                            .Select(ChapterMapper.ToSummary).ToList();
+                           .Select(ChapterMapper.ToSummary).ToList();
 
             return (items, total, StoryMapper.ToDto(story));
         }
 
-        // ── Trang đọc chapter ────────────────────────────────────────────
+        // ── Trang đọc chapter ─────────────────────────────────────────────
+
         public async Task<ChapterReadDto?> GetReadDtoAsync(int chapterId, int? currentUserId)
         {
             var chapter = await _chapterRepo.GetByIdWithImagesAsync(chapterId);
@@ -119,6 +123,7 @@ namespace WebDocTruyen.Application.Services
         }
 
         // ── Editor: CRUD chapter ──────────────────────────────────────────
+
         public async Task<ChapterFormDto?> GetFormDtoAsync(int chapterId)
         {
             var chapter = await _chapterRepo.GetByIdAsync(chapterId);
@@ -135,7 +140,12 @@ namespace WebDocTruyen.Application.Services
             if (await _chapterRepo.GetByStoryAndNumberAsync(storyId, dto.ChapterNumber) != null)
                 throw new InvalidOperationException($"Chapter {dto.ChapterNumber} đã tồn tại.");
 
-            var chapter = new Chapter { StoryId = storyId, ChapterNumber = dto.ChapterNumber, Title = dto.Title };
+            var chapter = new Chapter
+            {
+                StoryId = storyId,
+                ChapterNumber = dto.ChapterNumber,
+                Title = dto.Title
+            };
             await _chapterRepo.AddAsync(chapter);
             Directory.CreateDirectory(ImageFolder(storyId, chapter.ChapterNumber));
             return chapter.ChapterId;
@@ -194,6 +204,7 @@ namespace WebDocTruyen.Application.Services
         }
 
         // ── Editor: CRUD ảnh ──────────────────────────────────────────────
+
         public async Task<ChapterManageDto?> GetManageDtoAsync(int chapterId, int currentUserId)
         {
             var chapter = await _chapterRepo.GetByIdWithImagesAsync(chapterId);
@@ -208,7 +219,8 @@ namespace WebDocTruyen.Application.Services
         {
             var chapter = await _chapterRepo.GetByIdAsync(chapterId);
             if (chapter == null) throw new KeyNotFoundException();
-            if (!await OwnsStoryAsync(chapter.StoryId, currentUserId)) throw new UnauthorizedAccessException();
+            if (!await OwnsStoryAsync(chapter.StoryId, currentUserId))
+                throw new UnauthorizedAccessException();
 
             var existing = await _chapterRepo.GetImagesByChapterIdAsync(chapterId);
             int nextPage = existing.Any() ? existing.Max(i => i.PageNumber) + 1 : 1;
@@ -241,7 +253,8 @@ namespace WebDocTruyen.Application.Services
                     image.ImageUrl.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
                 if (File.Exists(oldFile)) File.Delete(oldFile);
 
-                image.ImageUrl = await SaveImageFileAsync(newImage.Value.Content, newImage.Value.FileName,
+                image.ImageUrl = await SaveImageFileAsync(
+                    newImage.Value.Content, newImage.Value.FileName,
                     chapter.StoryId, chapter.ChapterNumber);
             }
 
@@ -299,9 +312,14 @@ namespace WebDocTruyen.Application.Services
             return true;
         }
 
-        public Task<string?> GetImageDtoAsync(int imageId, int currentUserId)
+        /// <summary>Lấy thông tin ảnh nếu user có quyền (sở hữu truyện hoặc admin).</summary>
+        public async Task<ChapterImageDto?> GetImageDtoAsync(int imageId, int currentUserId)
         {
-            throw new NotImplementedException();
+            var image = await _chapterRepo.GetImageByIdAsync(imageId);
+            if (image == null) return null;
+            var chapter = await _chapterRepo.GetByIdAsync(image.ChapterId);
+            if (chapter == null || !await OwnsStoryAsync(chapter.StoryId, currentUserId)) return null;
+            return ChapterMapper.ToImageDto(image);
         }
     }
 }

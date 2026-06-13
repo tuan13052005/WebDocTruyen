@@ -1,7 +1,4 @@
 ﻿using WebDocTruyen.Application.DTOs.Comment;
-using WebDocTruyen.Application.DTOs.Favorite;
-using WebDocTruyen.Application.DTOs.Rating;
-using WebDocTruyen.Application.DTOs.Story;
 using WebDocTruyen.Application.Interfaces;
 using WebDocTruyen.Application.Mappers;
 using WebDocTruyen.Domain.Entities;
@@ -28,6 +25,12 @@ namespace WebDocTruyen.Application.Services
         {
             var comments = await _commentRepo.GetByChapterIdAsync(chapterId);
             return comments.Select(CommentMapper.ToDto).ToList();
+        }
+
+        public async Task<CommentDto?> GetByIdAsync(int commentId)
+        {
+            var comment = await _commentRepo.GetByIdAsync(commentId);
+            return comment == null ? null : CommentMapper.ToDto(comment);
         }
 
         public async Task<CommentDto> AddAsync(int storyId, int userId, string content, int? chapterId = null)
