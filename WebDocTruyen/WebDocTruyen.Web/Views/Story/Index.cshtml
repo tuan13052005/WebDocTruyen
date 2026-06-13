@@ -1,0 +1,290 @@
+﻿@model IEnumerable<WebDocTruyen.Domain.Entities.Story>
+@{
+    ViewData["Title"] = "Danh sách truyện";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var selectedGenres = ViewBag.GenreIds as List<int> ?? new List<int>();
+    int currentPage = (int)(ViewBag.Page ?? 1);
+    int pageSize = (int)(ViewBag.PageSize ?? 12);
+    int totalStories = (int)(ViewBag.TotalStories ?? 0);
+    int totalPages = (int)Math.Ceiling((double)totalStories / Math.Max(pageSize, 1));
+
+    // Query string dùng cho phân trang
+    string kw = ViewBag.Keyword ?? "";
+    string st = ViewBag.Status ?? "";
+    string sr = ViewBag.Sort ?? "";
+
+    // Tính dải trang
+    int pStart = Math.Max(1, currentPage - 3);
+    int pEnd = Math.Min(totalPages, pStart + 6);
+    pStart = Math.Max(1, pEnd - 6);
+    string genreQs = string.Join("&", selectedGenres.Select(id => $"genreIds={id}"));
+}
+
+<div class="container mt-4">
+    <div class="row">
+
+        <!-- ── Sidebar bộ lọc ─────────────────────────────────────────── -->
+        <div class="col-lg-3 col-md-4 mb-4">
+            <div class="card shadow-sm sticky-top" style="top:70px;">
+                <div class="card-header bg-primary text-white fw-semibold">🔍 Tìm kiếm & Lọc</div>
+                <div class="card-body">
+                    <form asp-action="Index" method="get" id="filterForm">
+
+                        <!-- Từ khoá -->
+                        <div class="mb-3">
+                            <input type="text" name="keyword" value="@ViewBag.Keyword"
+                                   class="form-control" placeholder="Tên truyện, tác giả..." />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small text-muted">TRẠNG THÁI</label>
+                            <select name="status" class="form-select form-select-sm">
+                                <option value="">Tất cả</option>
+                                @if (st == "ongoing")
+                                {
+                                    <option value="ongoing" selected>🔄 Đang ra</option>
+                                    <option value="completed">✅ Hoàn thành</option>
+                                }
+                                else if (st == "completed")
+                                {
+                                    <option value="ongoing">🔄 Đang ra</option>
+                                    <option value="completed" selected>✅ Hoàn thành</option>
+                                }
+                                else
+                                {
+                                    <option value="ongoing">🔄 Đang ra</option>
+                                    <option value="completed">✅ Hoàn thành</option>
+                                }
+                            </select>
+                        </div>
+
+                        <!-- Sắp xếp -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small text-muted">SẮP XẾP</label>
+                            <select name="sort" class="form-select form-select-sm">
+                                @if (sr == "")
+                                {
+                                    <option value="" selected>Mới nhất</option>
+                                }
+                                else
+                                {
+                                    <option value="">Mới nhất</option>
+                                }
+
+                                @if (sr == "updated")
+                                {
+                                    <option value="updated" selected>Cập nhật gần đây</option>
+                                }
+                                else
+                                {
+                                    <option value="updated">Cập nhật gần đây</option>
+                                }
+
+                                @if (sr == "chapter")
+                                {
+                                    <option value="chapter" selected>Nhiều chapter</option>
+                                }
+                                else
+                                {
+                                    <option value="chapter">Nhiều chapter</option>
+                                }
+
+                                @if (sr == "comment")
+                                {
+                                    <option value="comment" selected>Nhiều bình luận</option>
+                                }
+                                else
+                                {
+                                    <option value="comment">Nhiều bình luận</option>
+                                }
+
+                                @if (sr == "follow")
+                                {
+                                    <option value="follow" selected>Nhiều theo dõi</option>
+                                }
+                                else
+                                {
+                                    <option value="follow">Nhiều theo dõi</option>
+                                }
+                            </select>
+                        </div>
+
+                        <!-- Thể loại -->
+                        @if (ViewBag.Genres != null)
+                        {
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold small text-muted">THỂ LOẠI</label>
+                                <div style="max-height:200px; overflow-y:auto;" class="border rounded p-2">
+                                    @foreach (var g in (IEnumerable<WebDocTruyen.Domain.Entities.Genre>)ViewBag.Genres)
+                                    {
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox"
+                                                   name="genreIds" value="@g.GenreId" id="g@(g.GenreId)"
+                                                   @(selectedGenres.Contains(g.GenreId) ? "checked" : "") />
+                                            <label class="form-check-label small" for="g@(g.GenreId)">@g.Name</label>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+
+                        <!-- Số truyện mỗi trang -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small text-muted">SỐ TRUYỆN/TRANG</label>
+                            <select name="pageSize" class="form-select form-select-sm">
+                                @if (pageSize == 12)
+                                {
+                                    <option value="12" selected>12 truyện</option>
+                                }
+                                else
+                                {
+                                    <option value="12">12 truyện</option>
+                                }
+
+                                @if (pageSize == 24)
+                                {
+                                    <option value="24" selected>24 truyện</option>
+                                }
+                                else
+                                {
+                                    <option value="24">24 truyện</option>
+                                }
+
+                                @if (pageSize == 48)
+                                {
+                                    <option value="48" selected>48 truyện</option>
+                                }
+                                else
+                                {
+                                    <option value="48">48 truyện</option>
+                                }
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">🔍 Lọc</button>
+                        <a asp-action="Index" class="btn btn-outline-secondary w-100 mt-2 btn-sm">↺ Reset</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Danh sách truyện ───────────────────────────────────────── -->
+        <div class="col-lg-9 col-md-8">
+
+            <!-- Header kết quả -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">
+                    📚 Danh sách truyện
+                    <span class="badge bg-secondary">@totalStories</span>
+                </h5>
+                @if (!string.IsNullOrEmpty(kw))
+                {
+                    <span class="text-muted small">
+                        Kết quả cho: <strong>"@kw"</strong>
+                    </span>
+                }
+            </div>
+
+            @if (Model == null || !Model.Any())
+            {
+                <div class="alert alert-info text-center py-5">
+                    <div style="font-size:3rem;">📭</div>
+                    <p class="mb-0">Không tìm thấy truyện nào.</p>
+                </div>
+            }
+            else
+            {
+                <!-- Grid truyện -->
+                <div class="row row-cols-2 row-cols-sm-3 row-cols-lg-4 g-3">
+                    @foreach (var s in Model)
+                    {
+                        <div class="col">
+                            <div class="card h-100 shadow-sm story-card">
+                                <div class="position-relative">
+                                    <img src="@(string.IsNullOrEmpty(s.CoverImage) ? "/images/default.jpg" : s.CoverImage)"
+                                         class="card-img-top"
+                                         alt="@s.Title"
+                                         style="height:200px; object-fit:cover;"
+                                         onerror="this.src='/images/default.jpg'" />
+                                    <span class="position-absolute top-0 end-0 m-1 badge @(s.Status == "completed" ? "bg-success" : "bg-warning text-dark")"
+                                          style="font-size:.65rem;">
+                                        @(s.Status == "completed" ? "Hoàn thành" : "Đang ra")
+                                    </span>
+                                    <span class="position-absolute bottom-0 start-0 m-1 badge bg-dark"
+                                          style="font-size:.65rem;">
+                                        @(s.Chapters?.Count() ?? 0) ch.
+                                    </span>
+                                </div>
+                                <div class="card-body p-2 d-flex flex-column">
+                                    <h6 class="card-title mb-1 text-truncate fw-semibold" title="@s.Title">@s.Title</h6>
+                                    <p class="card-text text-muted small mb-2 text-truncate">@s.Author</p>
+                                    <div class="mb-2">
+                                        @foreach (var sg in s.StoryGenres.Take(2))
+                                        {
+                                            <span class="badge bg-light text-secondary border me-1" style="font-size:.65rem;">
+                                                @sg.Genre?.Name
+                                            </span>
+                                        }
+                                    </div>
+                                    <a asp-action="Details" asp-route-id="@s.StoryId"
+                                       class="btn btn-primary btn-sm mt-auto stretched-link">Chi tiết</a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- ── Phân trang ─────────────────────────────────────── -->
+                @if (totalPages > 1)
+                {
+                    <nav class="mt-4">
+                        <ul class="pagination justify-content-center flex-wrap">
+
+                            <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                                <a class="page-link"
+                                   href="?page=1&pageSize=@pageSize&keyword=@kw&status=@st&sort=@sr&@genreQs">«</a>
+                            </li>
+                            <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                                <a class="page-link"
+                                   href="?page=@(currentPage - 1)&pageSize=@pageSize&keyword=@kw&status=@st&sort=@sr&@genreQs">‹</a>
+                            </li>
+
+                            @for (int p = pStart; p <= pEnd; p++)
+                            {
+                                <li class="page-item @(p == currentPage ? "active" : "")">
+                                    <a class="page-link"
+                                       href="?page=@p&pageSize=@pageSize&keyword=@kw&status=@st&sort=@sr&@genreQs">@p</a>
+                                </li>
+                            }
+
+                            <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                                <a class="page-link"
+                                   href="?page=@(currentPage + 1)&pageSize=@pageSize&keyword=@kw&status=@st&sort=@sr&@genreQs">›</a>
+                            </li>
+                            <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                                <a class="page-link"
+                                   href="?page=@totalPages&pageSize=@pageSize&keyword=@kw&status=@st&sort=@sr&@genreQs">»</a>
+                            </li>
+
+                        </ul>
+                        <p class="text-center text-muted small">
+                            Trang @currentPage / @totalPages · @totalStories truyện
+                        </p>
+                    </nav>
+                }
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .story-card {
+        transition: transform .15s, box-shadow .15s;
+    }
+
+        .story-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,.12) !important;
+        }
+</style>

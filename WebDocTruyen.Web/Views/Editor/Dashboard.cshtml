@@ -1,0 +1,85 @@
+﻿@{
+    ViewData["Title"] = "Bảng điều khiển Editor";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var latestStory = ViewBag.LatestStory as WebDocTruyen.Application.DTOs.Story.StoryDto;
+    var recentStories = ViewBag.RecentStories as List<WebDocTruyen.Application.DTOs.Story.StoryDto> ?? new();
+}
+
+<div class="container mt-4">
+    <h2 class="mb-4">✏️ Bảng điều khiển Editor</h2>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card text-white bg-primary shadow-sm">
+                <div class="card-body">
+                    <h6>Tổng số truyện</h6>
+                    <h2 class="mb-0">@ViewBag.TotalStories</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-warning shadow-sm">
+                <div class="card-body">
+                    <h6>Đang ra</h6>
+                    <h2 class="mb-0">@ViewBag.TotalOngoingStories</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-success shadow-sm">
+                <div class="card-body">
+                    <h6>Hoàn thành</h6>
+                    <h2 class="mb-0">@ViewBag.TotalCompletedStories</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (latestStory != null)
+    {
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-dark text-white">📌 Truyện mới nhất của bạn</div>
+            <div class="card-body d-flex gap-3">
+                <img src="@latestStory.CoverImage" style="width:80px;height:110px;object-fit:cover;" class="rounded" />
+                <div>
+                    <h5>@latestStory.Title</h5>
+                    <p class="text-muted mb-1">@latestStory.Author</p>
+                    <a asp-controller="Story" asp-action="Details" asp-route-id="@latestStory.Id" class="btn btn-sm btn-primary">Xem</a>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-dark text-white">📚 Truyện gần đây</div>
+        <table class="table table-striped mb-0">
+            <thead><tr><th>Tiêu đề</th><th>Trạng thái</th><th>Chapter</th><th>Ngày tạo</th></tr></thead>
+            <tbody>
+                @foreach (var s in recentStories)
+                {
+                    <tr>
+                        <td>@s.Title</td>
+                        <td>
+                            @if (s.Status == "completed")
+                            {
+                                <span class="badge bg-success">Hoàn thành</span>
+                            }
+                            else
+                            {
+
+                                <span class="badge bg-warning text-dark">Đang ra</span>
+                            }
+                        </td>
+                        <td>@s.ChapterCount</td>
+                        <td>@s.CreatedAt.ToString("dd/MM/yyyy")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="mt-3 d-flex gap-2">
+        <a asp-action="Create" asp-controller="Story" class="btn btn-success">➕ Thêm truyện mới</a>
+        <a asp-action="ManageStories" class="btn btn-primary">📋 Quản lý truyện</a>
+    </div>
+</div>

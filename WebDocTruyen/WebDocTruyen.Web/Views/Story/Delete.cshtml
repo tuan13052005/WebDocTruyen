@@ -1,0 +1,13 @@
+﻿@model WebDocTruyen.Domain.Entities.Story
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Xóa truyện</h2>
+<p>Bạn có chắc muốn xóa <strong>@Model.Title</strong>?</p>
+
+<form asp-action="Delete" method="post">
+    <input type="hidden" asp-for="StoryId" />
+    <button type="submit" class="btn btn-danger">Xóa</button>
+    <a asp-action="Index" class="btn btn-secondary">Hủy</a>
+</form>

@@ -1,0 +1,135 @@
+﻿@model IEnumerable<WebDocTruyen.Domain.Entities.Genre>
+@{
+    ViewData["Title"] = "Quản lý thể loại";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var role = Context.Session.GetString("Role");
+}
+
+<h2 class="mb-4">Quản lý thể loại</h2>
+
+@if (role == "Admin")
+{
+    <!-- Nút mở modal thêm -->
+    <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#createModal">
+        <i class="bi bi-plus-circle"></i> Thêm thể loại
+    </button>
+}
+
+<table class="table table-hover table-bordered shadow-sm rounded">
+    <thead class="bg-primary text-white">
+        <tr>
+            <th style="width:30%">Tên</th>
+            <th style="width:50%">Mô tả</th>
+            @if (role == "Admin")
+            {
+                <th style="width:20%">Hành động</th>
+            }
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var g in Model)
+        {
+            <tr>
+                <td>
+                    <a asp-action="ByGenre" asp-route-id="@g.GenreId"
+                       class="text-decoration-none fw-bold text-primary">
+                        @g.Name
+                    </a>
+                </td>
+                <td>@g.Description</td>
+                @if (role == "Admin")
+                {
+                    <td>
+                        <!-- Nút sửa mở modal -->
+                        <button class="btn btn-sm btn-warning me-1" data-bs-toggle="modal" data-bs-target="#editModal-@g.GenreId">
+                            <i class="bi bi-pencil"></i> Sửa
+                        </button>
+                        <!-- Nút xóa mở modal -->
+                        <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal-@g.GenreId">
+                            <i class="bi bi-trash"></i> Xóa
+                        </button>
+                    </td>
+                }
+            </tr>
+
+            <!-- Modal sửa -->
+            <div class="modal fade" id="editModal-@g.GenreId" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <form asp-action="Edit" method="post">
+                            <div class="modal-header bg-warning text-dark">
+                                <h5 class="modal-title">Sửa thể loại</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <input type="hidden" name="GenreId" value="@g.GenreId" />
+                                <div class="mb-3">
+                                    <label class="form-label">Tên thể loại</label>
+                                    <input type="text" name="Name" value="@g.Name" class="form-control" required />
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Mô tả</label>
+                                    <textarea name="Description" class="form-control">@g.Description</textarea>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="submit" class="btn btn-success">Lưu</button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal xóa -->
+            <div class="modal fade" id="deleteModal-@g.GenreId" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <form asp-action="DeleteConfirmed" method="post">
+                            <div class="modal-header bg-danger text-white">
+                                <h5 class="modal-title">Xóa thể loại</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p>Bạn có chắc muốn xóa <strong>@g.Name</strong>?</p>
+                                <input type="hidden" name="id" value="@g.GenreId" />
+                            </div>
+                            <div class="modal-footer">
+                                <button type="submit" class="btn btn-danger">Xóa</button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        }
+    </tbody>
+</table>
+
+<!-- Modal thêm -->
+<div class="modal fade" id="createModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="Create" method="post">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">Thêm thể loại mới</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Tên thể loại</label>
+                        <input name="Name" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mô tả</label>
+                        <textarea name="Description" class="form-control"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Lưu</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,26 @@
+﻿@model WebDocTruyen.Domain.Entities.User
+@{
+    ViewData["Title"] = "Cài đặt";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-5" style="max-width:600px;">
+    <h2 class="mb-4 text-center">⚙️ Cài đặt tài khoản</h2>
+
+    @if (ViewBag.Success != null)
+    {
+        <div class="alert alert-success">@ViewBag.Success</div>
+    }
+
+    <form asp-action="Settings" method="post">
+        <div class="mb-3">
+            <label>Tên đăng nhập</label>
+            <input type="text" class="form-control" name="Username" value="@Model.Username" required />
+        </div>
+        <div class="mb-3">
+            <label>Email</label>
+            <input type="email" class="form-control" name="Email" value="@Model.Email" required />
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Lưu thay đổi</button>
+    </form>
+</div>

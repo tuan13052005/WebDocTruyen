@@ -1,0 +1,43 @@
+﻿@model List<WebDocTruyen.Application.DTOs.Genre.GenreDto>
+@{
+    ViewData["Title"] = "Thể loại";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    bool isAdmin = User.IsInRole("Admin");
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">🏷️ Danh sách thể loại</h2>
+        @if (isAdmin)
+        {
+            <a asp-action="Create" class="btn btn-success">➕ Thêm thể loại</a>
+        }
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+
+    <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 g-3">
+        @foreach (var g in Model)
+        {
+            <div class="col">
+                <div class="card h-100 shadow-sm text-center">
+                    <div class="card-body">
+                        <h5 class="card-title mb-1">@g.Name</h5>
+                        <p class="text-muted small mb-2">@g.StoryCount truyện</p>
+                        <a asp-action="ByGenre" asp-route-id="@g.GenreId" class="btn btn-sm btn-primary">Xem truyện</a>
+                        @if (isAdmin)
+                        {
+                            <div class="mt-2 d-flex gap-1 justify-content-center">
+                                <a asp-action="Edit" asp-route-id="@g.GenreId" class="btn btn-sm btn-outline-warning">✏️</a>
+                                <a asp-action="Delete" asp-route-id="@g.GenreId" class="btn btn-sm btn-outline-danger">🗑️</a>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

@@ -1,0 +1,102 @@
+﻿<div class="container mt-4">
+    <h2 class="mb-4 text-center">📊 Bảng điều khiển Admin</h2>
+
+    <!-- Cards thống kê -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">👥 Tổng số người dùng</h5>
+                    <p class="display-6">@ViewBag.TotalUsers</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">🛡️ Admin</h5>
+                    <p class="display-6">@ViewBag.TotalAdmins</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">✍️ Editor</h5>
+                    <p class="display-6">@ViewBag.TotalEditors</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">📖 User</h5>
+                    <p class="display-6">@ViewBag.TotalNormalUsers</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Thống kê truyện & chương -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">📚 Tổng số truyện</h5>
+                    <p class="display-6">@ViewBag.TotalStories</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">📑 Tổng số chương</h5>
+                    <p class="display-6">@ViewBag.TotalChapters</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Người dùng đăng nhập gần nhất -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+            Người dùng đăng nhập gần nhất
+        </div>
+        <div class="card-body">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>LastLogin</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in ViewBag.RecentUsers as IEnumerable<WebDocTruyen.Domain.Entities.User>)
+                    {
+                        <tr>
+                            <td>@user.Username</td>
+                            <td>@user.Email</td>
+                            <td>@user.Role</td>
+                            <td>@user.LastLogin</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Nút truy cập nhanh -->
+    <div class="row">
+        <div class="col-md-4 mb-2">
+            <a href="/Admin/ManageUsers" class="btn btn-warning w-100">⚙️ Quản lý người dùng</a>
+        </div>
+        <div class="col-md-4 mb-2">
+            <a href="/Admin/ManageStories" class="btn btn-info w-100">📚 Quản lý truyện</a>
+        </div>
+        <div class="col-md-4 mb-2">
+            <a href="/Account/Logout" class="btn btn-danger w-100">🚪 Đăng xuất</a>
+        </div>
+    </div>
+</div>

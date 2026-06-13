@@ -1,0 +1,124 @@
+﻿@model IEnumerable<WebDocTruyen.Domain.Entities.Story>
+@{
+    ViewData["Title"] = "Quản lý truyện";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string kw = ViewBag.Keyword ?? "";
+    string st = ViewBag.Status ?? "";
+    string baseUrl = ViewBag.BaseUrl ?? Url.Action("ManageStories")!;
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="mb-0">
+            📚 Quản lý truyện
+            <span class="badge bg-secondary fs-6">@ViewBag.TotalItems</span>
+        </h2>
+        <a asp-action="Create" asp-controller="Story" class="btn btn-success">➕ Thêm truyện mới</a>
+    </div>
+
+    <!-- Tìm kiếm -->
+    <form asp-action="ManageStories" method="get" class="row g-2 mb-3">
+        <div class="col-md-5">
+            <input type="text" name="keyword" value="@kw"
+                   class="form-control" placeholder="🔍 Tìm tiêu đề, tác giả..." />
+        </div>
+        <div class="col-md-3">
+            <select name="status" class="form-select">
+                <option value="">-- Trạng thái --</option>
+                @if (st == "ongoing")
+                {
+                    <option value="ongoing" selected>🔄 Đang ra</option>
+                }
+                else
+                {
+                    <option value="ongoing">🔄 Đang ra</option>
+                }
+                @if (st == "completed")
+                {
+                    <option value="completed" selected>✅ Hoàn thành</option>
+                }
+                else
+                {
+                    <option value="completed">✅ Hoàn thành</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-2">
+            <select name="pageSize" class="form-select">
+                @foreach (var s in new[] { 10, 15, 25 })
+                {
+                    if ((int)ViewBag.PageSize == s)
+                    {
+                        <option value="@s" selected>@s / trang</option>
+                    }
+                    else
+                    {
+                        <option value="@s">@s / trang</option>
+                    }
+                }
+            </select>
+        </div>
+        <div class="col-md-1"><button type="submit" class="btn btn-primary w-100">Lọc</button></div>
+        <div class="col-md-1"><a asp-action="ManageStories" class="btn btn-outline-secondary w-100">↺</a></div>
+    </form>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">Chưa có truyện nào. Hãy thêm truyện đầu tiên!</div>
+    }
+    else
+    {
+        <table class="table table-striped table-hover shadow-sm align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Tiêu đề</th>
+                    <th>Tác giả</th>
+                    <th>Trạng thái</th>
+                    <th>Chapter</th>
+                    <th>Ngày tạo</th>
+                    <th>Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var story in Model)
+                {
+                    <tr>
+                        <td>@story.StoryId</td>
+                        <td class="fw-semibold">@story.Title</td>
+                        <td>@story.Author</td>
+                        <td>
+                            @if (story.Status == "completed")
+                            {
+                                <span class="badge bg-success">Hoàn thành</span>
+                            }
+                            else
+                            {
+
+                                <span class="badge bg-warning text-dark">Đang ra</span>
+                            }
+                        </td>
+                        <td class="text-center">@story.Chapters.Count</td>
+                        <td>@story.CreatedAt.ToString("dd/MM/yyyy")</td>
+                        <td class="d-flex gap-1 flex-wrap">
+                            <a asp-action="Edit" asp-controller="Story" asp-route-id="@story.StoryId" class="btn btn-sm btn-warning">✏️</a>
+                            <a asp-action="Delete" asp-controller="Story" asp-route-id="@story.StoryId" class="btn btn-sm btn-danger">🗑️</a>
+                            <a asp-action="AddChapter" asp-controller="Chapter" asp-route-storyId="@story.StoryId" class="btn btn-sm btn-success">➕</a>
+                            <a asp-action="ListChapters" asp-controller="Chapter" asp-route-id="@story.StoryId" class="btn btn-sm btn-primary">📋</a>
+                            <a asp-action="Details" asp-controller="Story" asp-route-id="@story.StoryId" class="btn btn-sm btn-info">👁️</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        @await Html.PartialAsync("_Pagination", new ViewDataDictionary(ViewData)
+        {
+        ["CurrentPage"] = ViewBag.CurrentPage,
+        ["TotalPages"] = ViewBag.TotalPages,
+        ["TotalItems"] = ViewBag.TotalItems,
+        ["PageSize"] = ViewBag.PageSize,
+        ["BaseUrl"] = baseUrl,
+        })
+        }
+</div>

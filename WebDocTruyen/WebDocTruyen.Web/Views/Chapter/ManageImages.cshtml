@@ -1,0 +1,267 @@
+﻿@model WebDocTruyen.Domain.Entities.Chapter
+@using System.Security.Claims
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = $"Quản lý ảnh - Chapter {Model.ChapterNumber}";
+    var story = Model.Story;
+    var images = Model.ChapterImages.OrderBy(i => i.PageNumber).ToList();
+}
+
+<div class="container mt-4">
+
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Story" asp-action="Index">Truyện</a></li>
+            @if (story != null)
+            {
+                <li class="breadcrumb-item">
+                    <a asp-controller="Chapter" asp-action="ListChapters" asp-route-id="@story.StoryId">@story.Title</a>
+                </li>
+            }
+            <li class="breadcrumb-item active">Chapter @Model.ChapterNumber</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h3 class="mb-0">🖼️ Quản lý ảnh — Chapter @Model.ChapterNumber</h3>
+            @if (!string.IsNullOrEmpty(Model.Title))
+            {
+                <p class="text-muted mb-0">@Model.Title</p>
+            }
+        </div>
+        <div class="d-flex gap-2">
+            <span class="badge bg-secondary fs-6">@images.Count trang</span>
+            @if (images.Any())
+            {
+                <form asp-action="DeleteAllImages" method="post" class="d-inline"
+                      onsubmit="return confirm('Xóa toàn bộ @images.Count ảnh?');">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="chapterId" value="@Model.ChapterId" />
+                    <button type="submit" class="btn btn-outline-danger btn-sm">🗑️ Xóa tất cả</button>
+                </form>
+            }
+        </div>
+    </div>
+
+    <!-- ── Upload ảnh ─────────────────────────────────────────────────── -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-success text-white fw-semibold">
+            ⬆️ Upload ảnh mới
+        </div>
+        <div class="card-body">
+            <form asp-action="UploadImages" method="post" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="chapterId" value="@Model.ChapterId" />
+
+                <div class="mb-3">
+                    <label class="form-label">Chọn ảnh <span class="text-muted small">(jpg/png/gif/webp, tối đa 10MB mỗi ảnh, có thể chọn nhiều)</span></label>
+                    <input type="file" name="imageFiles" class="form-control" multiple
+                           accept=".jpg,.jpeg,.png,.gif,.webp" id="imageInput" />
+                </div>
+
+                <!-- Preview trước khi upload -->
+                <div id="previewArea" class="d-flex flex-wrap gap-2 mb-3"></div>
+
+                <button type="submit" class="btn btn-success" id="uploadBtn" disabled>
+                    ⬆️ Upload (<span id="fileCount">0</span> ảnh)
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ── Danh sách ảnh (kéo thả để sắp xếp) ───────────────────────── -->
+    @if (!images.Any())
+    {
+        <div class="alert alert-info">
+            Chapter này chưa có ảnh nào. Hãy upload ảnh phía trên!
+        </div>
+    }
+    else
+    {
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="mb-0">📋 Danh sách trang (@images.Count ảnh)</h5>
+            <div class="d-flex gap-2 align-items-center">
+                <span class="text-muted small"><i class="bi bi-grip-vertical"></i> Kéo thả để sắp xếp lại thứ tự</span>
+                <button id="saveOrderBtn" class="btn btn-primary btn-sm d-none">
+                    💾 Lưu thứ tự
+                </button>
+            </div>
+        </div>
+
+        <div id="imageGrid" class="row row-cols-2 row-cols-md-4 row-cols-lg-6 g-3 mb-4">
+            @foreach (var img in images)
+            {
+                <div class="col image-item" data-id="@img.ImageId">
+                    <div class="card h-100 shadow-sm position-relative">
+                        <!-- Số trang badge -->
+                        <span class="badge bg-dark position-absolute top-0 start-0 m-1 page-badge">
+                            Trang @img.PageNumber
+                        </span>
+                        <!-- Handle kéo thả -->
+                        <div class="drag-handle position-absolute top-0 end-0 m-1 text-white"
+                             style="cursor:grab; background:rgba(0,0,0,.5); border-radius:4px; padding:2px 5px;">
+                            <i class="bi bi-grip-vertical"></i>
+                        </div>
+
+                        <img src="@img.ImageUrl" class="card-img-top"
+                             alt="Trang @img.PageNumber"
+                             style="height:180px; object-fit:contain; background:#f8f9fa; cursor:pointer;"
+                             onclick="openLightbox('@img.ImageUrl', @img.PageNumber)" />
+
+                        <div class="card-footer p-1 d-flex gap-1 justify-content-center">
+                            <!-- Sửa -->
+                            <a asp-action="EditImage" asp-route-imageId="@img.ImageId"
+                               class="btn btn-warning btn-sm" title="Sửa trang này">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <!-- Xóa -->
+                            <form asp-action="DeleteImage" method="post"
+                                  onsubmit="return confirm('Xóa trang @img.PageNumber?');" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="imageId" value="@img.ImageId" />
+                                <button type="submit" class="btn btn-danger btn-sm" title="Xóa trang này">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <!-- Nút điều hướng -->
+    <div class="d-flex gap-2 mt-3">
+        <a asp-action="ListChapters" asp-controller="Chapter"
+           asp-route-id="@(story?.StoryId ?? Model.StoryId)"
+           class="btn btn-outline-secondary">← Về danh sách chapter</a>
+        <a asp-action="EditChapter" asp-route-id="@Model.ChapterId"
+           class="btn btn-outline-primary">✏️ Sửa thông tin chapter</a>
+    </div>
+</div>
+
+<!-- Lightbox xem ảnh lớn -->
+<div id="lightbox" class="d-none position-fixed top-0 start-0 w-100 h-100"
+     style="background:rgba(0,0,0,.85); z-index:9999; cursor:zoom-out;"
+     onclick="closeLightbox()">
+    <div class="d-flex align-items-center justify-content-center h-100">
+        <div class="text-center">
+            <img id="lightboxImg" src="" style="max-height:90vh; max-width:90vw; border-radius:4px;" />
+            <p id="lightboxCaption" class="text-white mt-2 fs-5"></p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- SortableJS từ CDN để kéo thả -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+    <script>
+        // ── Preview ảnh trước khi upload ──────────────────────────────────
+        document.getElementById('imageInput').addEventListener('change', function () {
+            const files = Array.from(this.files);
+            const preview = document.getElementById('previewArea');
+            const btn = document.getElementById('uploadBtn');
+            const countSpan = document.getElementById('fileCount');
+
+            preview.innerHTML = '';
+            files.forEach(f => {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    const div = document.createElement('div');
+                    div.style.cssText = 'position:relative;';
+                    div.innerHTML = `
+                        <img src="${e.target.result}"
+                             style="width:80px;height:80px;object-fit:cover;border-radius:6px;border:2px solid #dee2e6;" />
+                        <small class="d-block text-center text-muted" style="width:80px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">
+                            ${f.name}
+                        </small>`;
+                    preview.appendChild(div);
+                };
+                reader.readAsDataURL(f);
+            });
+
+            countSpan.textContent = files.length;
+            btn.disabled = files.length === 0;
+        });
+
+        // ── Kéo thả sắp xếp thứ tự ───────────────────────────────────────
+        const grid = document.getElementById('imageGrid');
+        let orderChanged = false;
+
+        if (grid) {
+            Sortable.create(grid, {
+                animation: 200,
+                ghostClass: 'sortable-ghost',
+                handle: '.drag-handle',
+                onEnd: function () {
+                    orderChanged = true;
+                    document.getElementById('saveOrderBtn').classList.remove('d-none');
+
+                    // Cập nhật badge số trang trực quan
+                    grid.querySelectorAll('.image-item').forEach((el, idx) => {
+                        el.querySelector('.page-badge').textContent = `Trang ${idx + 1}`;
+                    });
+                }
+            });
+        }
+
+        // ── Lưu thứ tự mới (gửi AJAX) ────────────────────────────────────
+        document.getElementById('saveOrderBtn')?.addEventListener('click', async function () {
+            const ids = Array.from(grid.querySelectorAll('.image-item'))
+                .map(el => parseInt(el.dataset.id));
+
+            this.disabled = true;
+            this.textContent = '⏳ Đang lưu...';
+
+            try {
+                const resp = await fetch('@Url.Action("ReorderImages", "Chapter")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name=__RequestVerificationToken]')?.value ?? ''
+                    },
+                    body: JSON.stringify({ imageIds: ids })
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    this.textContent = '✅ Đã lưu!';
+                    this.classList.replace('btn-primary', 'btn-success');
+                    setTimeout(() => {
+                        this.classList.replace('btn-success', 'btn-primary');
+                        this.textContent = '💾 Lưu thứ tự';
+                        this.disabled = false;
+                    }, 2000);
+                }
+            } catch {
+                this.textContent = '❌ Lỗi, thử lại';
+                this.disabled = false;
+            }
+        });
+
+        // ── Lightbox ──────────────────────────────────────────────────────
+        function openLightbox(url, page) {
+            document.getElementById('lightboxImg').src = url;
+            document.getElementById('lightboxCaption').textContent = `Trang ${page}`;
+            document.getElementById('lightbox').classList.remove('d-none');
+        }
+        function closeLightbox() {
+            document.getElementById('lightbox').classList.add('d-none');
+        }
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+    </script>
+
+    <style>
+        .sortable-ghost {
+            opacity: .4;
+        }
+
+        .image-item .card:hover {
+            box-shadow: 0 0 0 3px #0d6efd66 !important;
+        }
+    </style>
+
+    @* Hidden token cho AJAX reorder *@
+    @Html.AntiForgeryToken()
+}

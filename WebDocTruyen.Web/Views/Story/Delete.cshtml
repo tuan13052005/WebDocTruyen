@@ -1,0 +1,27 @@
+﻿@model WebDocTruyen.Application.DTOs.Story.StoryDto
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Xác nhận xóa truyện";
+}
+
+<div class="container mt-4" style="max-width:600px;">
+    <div class="card shadow-sm border-danger">
+        <div class="card-header bg-danger text-white">🗑️ Xác nhận xóa truyện</div>
+        <div class="card-body">
+            <p>Bạn có chắc muốn xóa truyện sau?</p>
+            <ul class="list-unstyled">
+                <li><strong>Tiêu đề:</strong> @Model.Title</li>
+                <li><strong>Tác giả:</strong> @Model.Author</li>
+                <li><strong>Số chapter:</strong> @Model.ChapterCount</li>
+            </ul>
+            <p class="text-danger"><strong>⚠️ Hành động này không thể hoàn tác!</strong></p>
+
+            <form asp-action="Delete" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.Id" />
+                <button type="submit" class="btn btn-danger me-2">Xác nhận xóa</button>
+                <a asp-action="ManageStories" asp-controller="Editor" class="btn btn-secondary">Hủy</a>
+            </form>
+        </div>
+    </div>
+</div>

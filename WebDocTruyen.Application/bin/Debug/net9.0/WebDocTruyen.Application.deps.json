@@ -1,0 +1,39 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v9.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v9.0": {
+      "WebDocTruyen.Application/1.0.0": {
+        "dependencies": {
+          "WebDocTruyen.Domain": "1.0.0"
+        },
+        "runtime": {
+          "WebDocTruyen.Application.dll": {}
+        }
+      },
+      "WebDocTruyen.Domain/1.0.0": {
+        "runtime": {
+          "WebDocTruyen.Domain.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "WebDocTruyen.Application/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "WebDocTruyen.Domain/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

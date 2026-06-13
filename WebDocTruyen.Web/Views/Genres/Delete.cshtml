@@ -1,0 +1,25 @@
+﻿@model WebDocTruyen.Application.DTOs.Genre.GenreDto
+@{
+    ViewData["Title"] = "Xóa thể loại";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="container mt-4" style="max-width:500px;">
+    <div class="card shadow-sm border-danger">
+        <div class="card-header bg-danger text-white">🗑️ Xác nhận xóa thể loại</div>
+        <div class="card-body">
+            <p>Bạn có chắc muốn xóa thể loại <strong>@Model.Name</strong>?</p>
+            @if (Model.StoryCount > 0)
+            {
+                <div class="alert alert-warning">
+                    ⚠️ Thể loại này đang được dùng bởi <strong>@Model.StoryCount</strong> truyện.
+                </div>
+            }
+            <form asp-action="Delete" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.GenreId" />
+                <button type="submit" class="btn btn-danger me-2">Xác nhận xóa</button>
+                <a asp-action="Index" class="btn btn-secondary">Hủy</a>
+            </form>
+        </div>
+    </div>
+</div>

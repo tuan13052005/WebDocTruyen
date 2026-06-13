@@ -1,0 +1,407 @@
+﻿@model WebDocTruyen.Domain.Entities.Story
+@using System.Security.Claims
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = Model.Title;
+
+    var chapters = Model.Chapters.OrderBy(c => c.ChapterNumber).ToList();
+    bool isLoggedIn = User.Identity?.IsAuthenticated == true;
+    int uid = isLoggedIn ? int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0") : 0;
+    bool isEditor = User.IsInRole("Editor") || User.IsInRole("Admin");
+    bool ownsStory = isEditor && Model.CreatedBy == uid;
+
+    var comments = ViewBag.Comments as List<WebDocTruyen.Domain.Entities.Comment> ?? new();
+    double avgRating = (double)(ViewBag.AvgRating ?? 0.0);
+    int ratingCount = (int)(ViewBag.RatingCount ?? 0);
+    int favCount = (int)(ViewBag.FavCount ?? 0);
+    bool isFav = (bool)(ViewBag.IsFavorited ?? false);
+    int? myRating = ViewBag.MyRating as int?;
+    int myRatingVal = myRating ?? 0;
+}
+
+@* FIX: Token AJAX riêng biệt, đặt ngoài mọi <form> để JS luôn lấy đúng token *@
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+<input type="hidden" id="ajax-token" value="@Antiforgery.GetAndStoreTokens(Context).RequestToken" />
+
+<div class="container mt-4">
+
+    <!-- ── Thông tin truyện ───────────────────────────────────────────── -->
+    <div class="row mb-4">
+        <div class="col-md-3 col-sm-4 mb-3">
+            <img src="@(string.IsNullOrEmpty(Model.CoverImage) ? "/images/default.jpg" : Model.CoverImage)"
+                 alt="@Model.Title" class="img-fluid rounded shadow"
+                 style="width:100%;max-height:380px;object-fit:cover;" />
+        </div>
+        <div class="col-md-9 col-sm-8">
+            <h2 class="fw-bold mb-1">@Model.Title</h2>
+            <p class="text-muted mb-1">✍️ <strong>Tác giả:</strong> @Model.Author</p>
+            <p class="mb-2">
+                @foreach (var sg in Model.StoryGenres)
+                {
+                    <a asp-controller="Genres" asp-action="ByGenre" asp-route-id="@sg.GenreId"
+                       class="badge bg-info text-dark text-decoration-none me-1">@sg.Genre?.Name</a>
+                }
+            </p>
+            <p class="mb-1">
+                <strong>Trạng thái:</strong>
+                @if (Model.Status == "completed")
+                {
+                    <span class="badge bg-success">✅ Hoàn thành</span>
+                }
+                else
+                {
+                    <span class="badge bg-warning text-dark">🔄 Đang ra</span>
+                }
+                &nbsp;<strong>Chapter:</strong>
+                <span class="badge bg-secondary">@chapters.Count</span>
+            </p>
+
+            <!-- Rating trung bình -->
+            <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                <div id="avgStarRow"
+                     style="font-size:1.3rem; color:#f5a623; white-space:nowrap; user-select:none; letter-spacing:1px;">
+                    @for (int i = 1; i <= 5; i++)
+                    {
+                        <span class="avg-star">@(i <= Math.Round(avgRating) ? "★" : "☆")</span>
+                    }
+                </div>
+                <span class="fw-bold fs-5 text-dark" id="avgValBig">@avgRating.ToString("F1")</span>
+                <span class="text-muted small">
+                    / 5 &nbsp;·&nbsp; <span id="ratingCountTxt">@ratingCount</span> lượt đánh giá
+                </span>
+            </div>
+
+            <p class="mb-3">❤️ <span id="favCountTxt">@favCount</span> lượt theo dõi</p>
+
+            @if (!string.IsNullOrEmpty(Model.Description))
+            {
+                <div class="p-3 bg-light rounded border-start border-primary border-3 mb-3">
+                    <p class="mb-0" style="white-space:pre-line;">@Model.Description</p>
+                </div>
+            }
+
+            <!-- Nút hành động -->
+            <div class="d-flex flex-wrap gap-2 mb-3">
+                @if (chapters.Any())
+                {
+                    <a asp-action="ReadChapter" asp-controller="Chapter"
+                       asp-route-id="@chapters.First().ChapterId"
+                       class="btn btn-primary">📖 Đọc từ đầu</a>
+                    <a asp-action="ReadChapter" asp-controller="Chapter"
+                       asp-route-id="@chapters.Last().ChapterId"
+                       class="btn btn-outline-primary">⏩ Chapter mới nhất</a>
+                }
+                @if (isLoggedIn)
+                {
+                    <button id="favBtn" onclick="toggleFav(@Model.StoryId)"
+                            class="btn @(isFav ? "btn-danger" : "btn-outline-danger")">
+                        @(isFav ? "❤️ Đang theo dõi" : "🤍 Theo dõi")
+                    </button>
+                }
+                @if (ownsStory)
+                {
+                    <a asp-action="Edit" asp-controller="Story" asp-route-id="@Model.StoryId"
+                       class="btn btn-warning">✏️ Sửa</a>
+                    <a asp-action="AddChapter" asp-controller="Chapter" asp-route-storyId="@Model.StoryId"
+                       class="btn btn-success">➕ Chapter</a>
+                }
+            </div>
+
+            <!-- Đánh giá sao của user -->
+            @if (isLoggedIn)
+            {
+                <div class="mb-2">
+                    <p class="mb-1 small text-muted fw-semibold">ĐÁNH GIÁ CỦA BẠN:</p>
+                    <div class="d-flex align-items-center gap-3">
+                        <div id="myStarRow"
+                             data-story="@Model.StoryId"
+                             data-current="@myRatingVal"
+                             style="font-size:2rem; color:#f5a623; white-space:nowrap;
+                                                cursor:pointer; user-select:none; line-height:1;">
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                <span class="my-star" data-v="@i" title="@i điểm"
+                                      style="display:inline-block; padding:0 1px; transition:transform .1s;">
+                                    @(i <= myRatingVal ? "★" : "☆")
+                                </span>
+                            }
+                        </div>
+                        <span id="myScoreLabel" class="fw-bold text-primary fs-5">
+                            @(myRating.HasValue? myRating + "/5" : "Chưa đánh giá")
+                        </span>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- ── Mục lục chapter ────────────────────────────────────────────── -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+            <span>📑 Mục lục (@chapters.Count chapter)</span>
+            @if (chapters.Count > 15)
+            {
+                <input id="chapSearch" type="text" class="form-control form-control-sm w-auto"
+                       placeholder="Tìm chapter..." style="max-width:180px;" />
+            }
+        </div>
+        @if (!chapters.Any())
+        {
+            <div class="card-body text-muted">Truyện này chưa có chapter nào.</div>
+        }
+        else
+        {
+            <div style="max-height:380px;overflow-y:auto;">
+                <table class="table table-hover mb-0">
+                    <tbody>
+                        @foreach (var chap in chapters)
+                        {
+                            <tr class="chap-row align-middle">
+                                <td class="text-center text-muted small ps-3" style="width:50px;">
+                                    @chap.ChapterNumber
+                                </td>
+                                <td>
+                                    <a asp-action="ReadChapter" asp-controller="Chapter"
+                                       asp-route-id="@chap.ChapterId"
+                                       class="text-decoration-none fw-semibold text-dark chap-link">
+                                        @(string.IsNullOrEmpty(chap.Title)
+                                                                        ? $"Chapter {chap.ChapterNumber}"
+                                                                        : $"Chapter {chap.ChapterNumber}: {chap.Title}")
+                            </a>
+                        </td>
+                        <td class="text-end text-muted small pe-3" style="width:80px;">
+                            @chap.ChapterImages.Count trang
+                        </td>
+                        @if (ownsStory)
+                                {
+                                    <td style="width:120px;" class="pe-2">
+                                        <div class="d-flex gap-1 justify-content-end">
+                                            <a asp-action="ManageImages" asp-controller="Chapter"
+                                               asp-route-chapterId="@chap.ChapterId"
+                                               class="btn btn-xs btn-outline-primary py-0 px-1">🖼️</a>
+                                            <a asp-action="EditChapter" asp-controller="Chapter"
+                                               asp-route-id="@chap.ChapterId"
+                                               class="btn btn-xs btn-outline-warning py-0 px-1">✏️</a>
+                                            <a asp-action="DeleteChapter" asp-controller="Chapter"
+                                               asp-route-id="@chap.ChapterId"
+                                               class="btn btn-xs btn-outline-danger py-0 px-1">🗑️</a>
+                                        </div>
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+
+    <!-- ── Bình luận ──────────────────────────────────────────────────── -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-secondary text-white">
+            💬 Bình luận (@comments.Count)
+        </div>
+        <div class="card-body">
+            @if (isLoggedIn)
+            {
+                <form asp-action="AddComment" asp-controller="Story" method="post" class="mb-4">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="storyId" value="@Model.StoryId" />
+                    <textarea name="content" class="form-control mb-2" rows="3"
+                          placeholder="Viết bình luận..." required maxlength="1000"></textarea>
+                    <button type="submit" class="btn btn-primary btn-sm">💬 Gửi</button>
+                </form>
+            }
+            else
+            {
+                <div class="alert alert-light border mb-3">
+                    <a asp-controller="Account" asp-action="Login">Đăng nhập</a> để bình luận.
+                </div>
+            }
+
+            @if (!comments.Any())
+            {
+                <p class="text-muted text-center">Chưa có bình luận nào.</p>
+            }
+
+            @foreach (var c in comments)
+            {
+                <div class="d-flex gap-3 mb-3 pb-3 border-bottom">
+                    <div class="rounded-circle bg-primary text-white d-flex align-items-center
+                                            justify-content-center fw-bold flex-shrink-0"
+                         style="width:42px;height:42px;font-size:1.1rem;">
+                        @(c.User?.Username?.FirstOrDefault().ToString().ToUpper() ?? "?")
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <strong>@c.User?.Username</strong>
+                                <span class="text-muted small ms-2">
+                                    @c.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                                </span>
+                            </div>
+                            @if (isLoggedIn && (c.UserId == uid || User.IsInRole("Admin")))
+                            {
+                                <form asp-action="DeleteComment" asp-controller="Story"
+                                      method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="commentId" value="@c.CommentId" />
+                                    <input type="hidden" name="storyId" value="@Model.StoryId" />
+                                    <button type="submit" class="btn btn-xs btn-outline-danger py-0 px-1"
+                                            onclick="return confirm('Xóa bình luận?')">
+                                        🗑️
+                                    </button>
+                                </form>
+                            }
+                        </div>
+                        <p class="mb-0 mt-1" style="white-space:pre-line;">@c.Content</p>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+    <script>
+        // ── Lấy AJAX token từ thẻ riêng biệt (không bị lẫn với token của form) ──
+        function getAjaxToken() {
+            return document.getElementById('ajax-token')?.value ?? '';
+        }
+
+        // ── Tìm chapter ──────────────────────────────────────────────────────────
+        const chapSearch = document.getElementById('chapSearch');
+        if (chapSearch) {
+            chapSearch.addEventListener('input', function () {
+                const q = this.value.toLowerCase();
+                document.querySelectorAll('.chap-row').forEach(r => {
+                    r.style.display =
+                        r.querySelector('.chap-link')?.textContent?.toLowerCase().includes(q) ? '' : 'none';
+                });
+            });
+        }
+
+        // ── Favorite ──────────────────────────────────────────────────────────────
+        async function toggleFav(storyId) {
+            const btn = document.getElementById('favBtn');
+            btn.disabled = true;
+            try {
+                const resp = await fetch('/Story/ToggleFavorite', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'RequestVerificationToken': getAjaxToken()
+                    },
+                    body: `storyId=${storyId}`
+                });
+                if (!resp.ok) {
+                    console.error('ToggleFavorite thất bại:', resp.status);
+                    return;
+                }
+                const d = await resp.json();
+                btn.className   = d.favorited ? 'btn btn-danger' : 'btn btn-outline-danger';
+                btn.textContent = d.favorited ? '❤️ Đang theo dõi' : '🤍 Theo dõi';
+                document.getElementById('favCountTxt').textContent = d.count;
+            } catch (err) {
+                console.error('Lỗi toggleFav:', err);
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        // ── Rating ────────────────────────────────────────────────────────────────
+        (function () {
+            const myRow = document.getElementById('myStarRow');
+            if (!myRow) return;   // chưa đăng nhập
+
+            const avgRow  = document.getElementById('avgStarRow');
+            const storyId = +myRow.dataset.story;
+            let isSending = false;  // chặn double-click
+
+            // Tô sao user theo score
+            function paintMy(score) {
+                myRow.querySelectorAll('.my-star').forEach(s => {
+                    s.textContent = +s.dataset.v <= score ? '★' : '☆';
+                });
+            }
+
+            // Tô sao avg theo score
+            function paintAvg(score) {
+                avgRow.querySelectorAll('.avg-star').forEach((s, i) => {
+                    s.textContent = i + 1 <= score ? '★' : '☆';
+                });
+            }
+
+            // Hover preview
+            myRow.addEventListener('mousemove', e => {
+                const star = e.target.closest('.my-star');
+                if (star) paintMy(+star.dataset.v);
+            });
+            myRow.addEventListener('mouseleave', () => {
+                paintMy(+myRow.dataset.current);
+            });
+
+            // Scale effect
+            myRow.querySelectorAll('.my-star').forEach(s => {
+                s.addEventListener('mouseenter', () => s.style.transform = 'scale(1.3)');
+                s.addEventListener('mouseleave', () => s.style.transform = '');
+            });
+
+            // Click → gửi AJAX
+            myRow.addEventListener('click', async e => {
+                const star = e.target.closest('.my-star');
+                if (!star || isSending) return;
+                const score = +star.dataset.v;
+                isSending = true;
+                myRow.style.opacity = '0.6';
+
+                try {
+                    const resp = await fetch('/Story/Rate', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'RequestVerificationToken': getAjaxToken()
+                        },
+                        body: `storyId=${storyId}&score=${score}`
+                    });
+
+                    if (!resp.ok) {
+                        console.error('Rate thất bại:', resp.status, await resp.text());
+                        paintMy(+myRow.dataset.current); // khôi phục UI
+                        return;
+                    }
+
+                    const d = await resp.json();
+
+                    // Cập nhật sao user
+                    myRow.dataset.current = score;
+                    paintMy(score);
+                    document.getElementById('myScoreLabel').textContent = score + '/5';
+
+                    // Cập nhật avg
+                    document.getElementById('avgValBig').textContent = d.avg;
+                    document.getElementById('ratingCountTxt').textContent = d.count;
+                    paintAvg(Math.round(d.avg));
+
+                } catch (err) {
+                    console.error('Lỗi rating:', err);
+                    paintMy(+myRow.dataset.current);
+                } finally {
+                    isSending = false;
+                    myRow.style.opacity = '1';
+                }
+            });
+        })();
+    </script>
+    <style>
+        .btn-xs {
+            font-size: .75rem;
+            line-height: 1.4;
+        }
+
+        .chap-row:hover {
+            background: #f0f4ff;
+        }
+    </style>
+}

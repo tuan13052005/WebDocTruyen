@@ -1,0 +1,68 @@
+﻿body {
+    background-color: #f8f9fa;
+}
+
+.navbar {
+    background: linear-gradient(45deg, #2575fc, #6a11cb);
+}
+
+.navbar-brand, .nav-link, .btn-outline-light {
+    color: #fff !important;
+}
+
+.btn-gradient {
+    background: linear-gradient(45deg, #6a11cb, #2575fc);
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 16px;
+    transition: background 0.3s ease;
+}
+
+.btn-gradient:hover {
+    background: linear-gradient(45deg, #2575fc, #6a11cb);
+}
+
+.story-thumb {
+    width: 80px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+footer {
+    background-color: #fff;
+    text-align: center;
+    padding: 15px;
+    margin-top: 40px;
+    border-top: 1px solid #ddd;
+}
+.btn-login {
+    background: linear-gradient(45deg, #2575fc, #6a11cb); /* xanh tím */
+    color: #fff; /* chữ trắng */
+    border: none;
+    border-radius: 25px;
+    padding: 8px 18px;
+    font-weight: 600;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-login:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 117, 252, 0.4);
+}
+
+.btn-register {
+    background: linear-gradient(45deg, #ff512f, #dd2476); /* đỏ hồng */
+    color: #fff; /* chữ trắng */
+    border: none;
+    border-radius: 25px;
+    padding: 8px 18px;
+    font-weight: 600;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-register:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(221, 36, 118, 0.4);
+}

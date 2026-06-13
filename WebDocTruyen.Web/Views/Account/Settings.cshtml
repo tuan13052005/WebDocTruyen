@@ -1,0 +1,27 @@
+﻿@model WebDocTruyen.Application.DTOs.User.UserProfileDto
+@{
+    ViewData["Title"] = "Cài đặt";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-5" style="max-width:600px;">
+    <h2 class="mb-4 text-center">⚙️ Cài đặt tài khoản</h2>
+
+    @if (ViewBag.Success != null)
+    {
+        <div class="alert alert-success">@ViewBag.Success</div>
+    }
+
+    <form asp-action="Settings" method="post">
+        @Html.AntiForgeryToken()
+        <div class="mb-3">
+            <label class="form-label">Tên đăng nhập</label>
+            <input asp-for="Username" class="form-control" required />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Email</label>
+            <input asp-for="Email" type="email" class="form-control" required />
+        </div>
+        <button type="submit" class="btn btn-primary">💾 Lưu thay đổi</button>
+    </form>
+</div>

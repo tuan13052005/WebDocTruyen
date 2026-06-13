@@ -1,0 +1,82 @@
+﻿@{
+    ViewData["Title"] = "Editor Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var recentStories = ViewBag.RecentStories as IEnumerable<WebDocTruyen.Domain.Entities.Story>;
+    var latestStory = ViewBag.LatestStory as WebDocTruyen.Domain.Entities.Story;
+}
+
+<div class="container mt-4">
+    <h2 class="mb-4 text-center">📊 Bảng điều khiển Editor</h2>
+
+    <!-- Cards thống kê -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">📚 Tổng số truyện</h5>
+                    <p class="display-6">@ViewBag.TotalStories</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">🔄 Đang cập nhật</h5>
+                    <p class="display-6">@ViewBag.TotalOngoingStories</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">✅ Hoàn thành</h5>
+                    <p class="display-6">@ViewBag.TotalCompletedStories</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Truyện mới nhất -->
+    <div class="card text-center shadow-sm mb-4">
+        <div class="card-body">
+            <h5 class="card-title">🆕 Truyện mới nhất của bạn</h5>
+            <p class="display-6">@latestStory?.Title</p>
+        </div>
+    </div>
+
+    <!-- Danh sách truyện gần đây -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-info text-white">Truyện bạn đăng gần đây</div>
+        <div class="card-body">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Tiêu đề</th>
+                        <th>Tác giả</th>
+                        <th>Ngày tạo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var story in recentStories)
+                    {
+                        <tr>
+                            <td>@story.Title</td>
+                            <td>@story.Author</td>
+                            <td>@story.CreatedAt.ToString("dd/MM/yyyy")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Nút truy cập nhanh -->
+    <div class="row">
+        <div class="col-md-6 mb-2">
+            <a href="/Editor/ManageStories" class="btn btn-warning w-100">📚 Quản lý truyện</a>
+        </div>
+        <div class="col-md-6 mb-2">
+            <a href="/Account/Logout" class="btn btn-danger w-100">🚪 Đăng xuất</a>
+        </div>
+    </div>
+</div>

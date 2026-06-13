@@ -1,0 +1,86 @@
+﻿@{
+    ViewData["Title"] = "Bảng điều khiển Admin";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var recentUsers = ViewBag.RecentUsers as List<WebDocTruyen.Application.DTOs.User.UserDto> ?? new();
+}
+
+<div class="container mt-4">
+    <h2 class="mb-4">📊 Bảng điều khiển Admin</h2>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary shadow-sm">
+                <div class="card-body">
+                    <h6>Tổng người dùng</h6>
+                    <h2 class="mb-0">@ViewBag.TotalUsers</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-danger shadow-sm">
+                <div class="card-body">
+                    <h6>Admin</h6>
+                    <h2 class="mb-0">@ViewBag.TotalAdmins</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning shadow-sm">
+                <div class="card-body">
+                    <h6>Editor</h6>
+                    <h2 class="mb-0">@ViewBag.TotalEditors</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-secondary shadow-sm">
+                <div class="card-body">
+                    <h6>User thường</h6>
+                    <h2 class="mb-0">@ViewBag.TotalNormalUsers</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <div class="card text-white bg-success shadow-sm">
+                <div class="card-body">
+                    <h6>Tổng truyện</h6>
+                    <h2 class="mb-0">@ViewBag.TotalStories</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card text-white bg-info shadow-sm">
+                <div class="card-body">
+                    <h6>Tổng chapter</h6>
+                    <h2 class="mb-0">@ViewBag.TotalChapters</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-dark text-white">👥 Người dùng đăng nhập gần đây</div>
+        <table class="table table-striped mb-0">
+            <thead><tr><th>Username</th><th>Email</th><th>Role</th><th>Đăng nhập gần nhất</th></tr></thead>
+            <tbody>
+                @foreach (var u in recentUsers)
+                {
+                    <tr>
+                        <td>@u.Username</td>
+                        <td>@u.Email</td>
+                        <td><span class="badge @(u.Role == "Admin" ? "bg-danger" : u.Role == "Editor" ? "bg-warning text-dark" : "bg-secondary")">@u.Role</span></td>
+                        <td>@u.LastLogin?.ToString("dd/MM/yyyy HH:mm")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="mt-3 d-flex gap-2">
+        <a asp-action="ManageUsers" class="btn btn-primary">👥 Quản lý người dùng</a>
+        <a asp-action="ManageStories" class="btn btn-success">📚 Quản lý truyện</a>
+    </div>
+</div>
