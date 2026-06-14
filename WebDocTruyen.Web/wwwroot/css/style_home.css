@@ -6,14 +6,14 @@
 }
 
 .card-img-top {
-    height: 240px;
+    height: 220px;
     width: 100%;
     object-fit: cover;
-    transition: transform .5s ease;
+    transition: transform .4s ease;
 }
 
 .card:hover .card-img-top {
-    transform: scale(1.06);
+    transform: scale(1.05);
 }
 
 .card-body {
@@ -21,72 +21,89 @@
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    padding: 14px 16px;
 }
 
-.list-group-item {
-    border: none;
-    transition: background-color .3s ease, transform .2s ease;
-}
-
-    .list-group-item:hover {
-        background: var(--gradient-soft, linear-gradient(135deg, rgba(79,70,229,.08), rgba(168,85,247,.08)));
-        transform: translateX(4px);
-    }
-
-.btn-gradient {
-    background: var(--gradient-main, linear-gradient(135deg,#4f46e5,#7c3aed));
-    color: #fff;
-    border: none;
-    border-radius: 20px;
-    padding: 6px 16px;
-    transition: all .3s ease;
-}
-
-    .btn-gradient:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px -6px rgba(99,91,255,.45);
-    }
-
-/* ===== Khung tìm kiếm nhanh (sidebar) — kiểu kính mờ ===== */
+/* ── Sidebar tìm kiếm nhanh ── */
 .search-box {
-    padding: 18px;
-    border-radius: 16px;
-    background: rgba(255,255,255,.7);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(124,58,237,.12);
-    box-shadow: 0 8px 26px rgba(79,70,229,.10);
-    max-height: 220px;
+    padding: 16px;
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    border: 1px solid var(--border);
 }
 
     .search-box h5 {
-        font-size: 1rem;
-        margin-bottom: 10px;
-        font-weight: 700;
-        background: linear-gradient(135deg,#4f46e5,#a855f7);
-        -webkit-background-clip: text;
-        background-clip: text;
-        -webkit-text-fill-color: transparent;
+        font-size: 13px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        color: var(--text-muted);
+        margin-bottom: 12px;
     }
 
     .search-box input,
     .search-box select {
-        font-size: .9rem;
-        padding: 6px 10px;
-        border-radius: 10px;
+        font-size: 13px;
+        padding: 7px 10px;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border);
+        background: var(--bg);
+        color: var(--text-primary);
+        width: 100%;
+        outline: none;
+        transition: border-color .15s;
     }
+
+        .search-box input:focus,
+        .search-box select:focus {
+            border-color: var(--brand);
+            box-shadow: 0 0 0 3px rgba(124, 92, 248, .1);
+        }
 
     .search-box button {
-        font-size: .9rem;
-        padding: 6px 10px;
-        border-radius: 20px;
+        font-size: 13px;
+        padding: 7px 14px;
+        border-radius: var(--radius-sm);
+        border: none;
+        background: var(--brand);
+        color: #fff;
+        cursor: pointer;
+        transition: background .15s;
+        width: 100%;
     }
 
-/* ===== Hiệu ứng xuất hiện lần lượt cho lưới truyện ===== */
+        .search-box button:hover {
+            background: var(--brand-hover);
+        }
+
+/* ── List group (sidebar recent / related) ── */
+.list-group-item {
+    border: none;
+    border-bottom: 1px solid var(--border);
+    padding: 10px 0;
+    transition: padding-left .15s, color .15s;
+    background: transparent;
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+    .list-group-item:last-child {
+        border-bottom: none;
+    }
+
+    .list-group-item:hover {
+        padding-left: 6px;
+        color: var(--brand);
+    }
+
+/* ── Fade-in animation cho story grid ── */
 .row > .col,
-.row > .col-md-3,
-.row > .col-sm-6,
-.row > .col-lg-4 {
-    animation: fadeInUp .5s ease both;
+.row > [class*="col-"] {
+    animation: fadeInUp .4s ease both;
+}
+
+.row > *:nth-child(1) {
+    animation-delay: .00s;
 }
 
 .row > *:nth-child(2) {
@@ -94,33 +111,33 @@
 }
 
 .row > *:nth-child(3) {
-    animation-delay: .10s;
+    animation-delay: .09s;
 }
 
 .row > *:nth-child(4) {
-    animation-delay: .15s;
+    animation-delay: .13s;
 }
 
 .row > *:nth-child(5) {
-    animation-delay: .20s;
+    animation-delay: .17s;
 }
 
 .row > *:nth-child(6) {
-    animation-delay: .25s;
+    animation-delay: .21s;
 }
 
 .row > *:nth-child(7) {
-    animation-delay: .30s;
+    animation-delay: .25s;
 }
 
 .row > *:nth-child(8) {
-    animation-delay: .35s;
+    animation-delay: .29s;
 }
 
 @keyframes fadeInUp {
     from {
         opacity: 0;
-        transform: translateY(18px);
+        transform: translateY(14px);
     }
 
     to {

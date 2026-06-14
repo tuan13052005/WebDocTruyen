@@ -153,7 +153,7 @@ namespace WebDocTruyen.Web.Controllers
         [HttpPost, Authorize]
         public async Task<IActionResult> Rate(int storyId, int score)
         {
-            if (score < 1 || score > 10) return BadRequest(new { error = "Điểm phải từ 1–10" });
+            if (score < 1 || score > 5) return BadRequest(new { error = "Điểm phải từ 1–5" });
             int uid = CurrentUserId!.Value;
             var existing = await _ratingRepo.GetByUserAndStoryAsync(uid, storyId);
             if (existing != null) { existing.Score = score; await _ratingRepo.UpdateAsync(existing); }

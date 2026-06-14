@@ -4,20 +4,22 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using WebDocTruyen.Application.Interfaces;
 using WebDocTruyen.Application.Mapper;
 using WebDocTruyen.Domain.Entities;
 using WebDocTruyen.Domain.Interfaces;
 
 namespace WebDocTruyen.Web.Controllers
 {
-    // Trang Account không yêu cầu đăng nhập (AllowAnonymous trên từng action)
     public class AccountController : Controller
     {
         private readonly IUserRepository _userRepo;
+        private readonly IFavoriteService _favoriteService;
 
-        public AccountController(IUserRepository userRepo)
+        public AccountController(IUserRepository userRepo, IFavoriteService favoriteService)
         {
             _userRepo = userRepo;
+            _favoriteService = favoriteService;
         }
 
         // ── Login ──────────────────────────────────────────────────────────
@@ -32,9 +34,7 @@ namespace WebDocTruyen.Web.Controllers
             return View();
         }
 
-        [HttpPost]
-        [AllowAnonymous]
-        [ValidateAntiForgeryToken]
+        [HttpPost, AllowAnonymous, ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(string Email, string Password, string? returnUrl = null)
         {
             var user = _userRepo.GetByEmail(Email);
@@ -46,34 +46,29 @@ namespace WebDocTruyen.Web.Controllers
                 return View();
             }
 
-            // Cập nhật LastLogin
             user.LastLogin = DateTime.Now;
             _userRepo.Update(user);
 
-            // Tạo Claims
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
-                new Claim(ClaimTypes.Name,           user.Username),
-                new Claim(ClaimTypes.Email,          user.Email),
-                new Claim(ClaimTypes.Role,           user.Role ?? "User"),
+                new(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+                new(ClaimTypes.Name,           user.Username),
+                new(ClaimTypes.Email,          user.Email),
+                new(ClaimTypes.Role,           user.Role ?? "User"),
             };
 
-            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            var principal = new ClaimsPrincipal(identity);
-
-            var authProps = new AuthenticationProperties
-            {
-                IsPersistent = true,
-                ExpiresUtc = DateTimeOffset.UtcNow.AddHours(8)
-            };
+            var principal = new ClaimsPrincipal(
+                new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme));
 
             await HttpContext.SignInAsync(
                 CookieAuthenticationDefaults.AuthenticationScheme,
                 principal,
-                authProps);
+                new AuthenticationProperties
+                {
+                    IsPersistent = true,
+                    ExpiresUtc = DateTimeOffset.UtcNow.AddHours(8)
+                });
 
-            // Redirect theo role
             if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
                 return Redirect(returnUrl);
 
@@ -87,17 +82,12 @@ namespace WebDocTruyen.Web.Controllers
 
         // ── Logout ─────────────────────────────────────────────────────────
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+        [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction("Index", "Home");
         }
-
-        // Hỗ trợ GET logout từ navbar link (redirect về POST)
-        [AllowAnonymous]
-        public IActionResult LogoutGet() => View("Logout");
 
         // ── Register ───────────────────────────────────────────────────────
 
@@ -109,9 +99,7 @@ namespace WebDocTruyen.Web.Controllers
             return View();
         }
 
-        [HttpPost]
-        [AllowAnonymous]
-        [ValidateAntiForgeryToken]
+        [HttpPost, AllowAnonymous, ValidateAntiForgeryToken]
         public IActionResult Register(string Username, string Email, string Password, string ConfirmPassword)
         {
             if (Password != ConfirmPassword)
@@ -126,7 +114,7 @@ namespace WebDocTruyen.Web.Controllers
                 return View();
             }
 
-            var newUser = new User
+            _userRepo.Add(new User
             {
                 Username = Username,
                 Email = Email,
@@ -134,9 +122,8 @@ namespace WebDocTruyen.Web.Controllers
                 CreatedAt = DateTime.Now,
                 LastLogin = DateTime.Now,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(Password)
-            };
+            });
 
-            _userRepo.Add(newUser);
             TempData["Success"] = "Đăng ký thành công! Vui lòng đăng nhập.";
             return RedirectToAction("Login");
         }
@@ -151,10 +138,19 @@ namespace WebDocTruyen.Web.Controllers
         [Authorize]
         public IActionResult Profile()
         {
-            var email = User.FindFirst(ClaimTypes.Email)?.Value;
-            var user = _userRepo.GetByEmail(email!);
+            var user = CurrentUser();
             if (user == null) return RedirectToAction("Login");
             return View(UserMapper.ToDto(user));
+        }
+
+        // ── My Favorites ───────────────────────────────────────────────────
+
+        [Authorize]
+        public async Task<IActionResult> MyFavorites()
+        {
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var list = await _favoriteService.GetMyFavoritesAsync(userId);
+            return View(list);
         }
 
         // ── Settings ───────────────────────────────────────────────────────
@@ -162,37 +158,32 @@ namespace WebDocTruyen.Web.Controllers
         [Authorize]
         public IActionResult Settings()
         {
-            var email = User.FindFirst(ClaimTypes.Email)?.Value;
-            var user = _userRepo.GetByEmail(email!);
+            var user = CurrentUser();
             if (user == null) return RedirectToAction("Login");
             return View(UserMapper.ToProfileDto(user));
         }
 
-        [HttpPost]
-        [Authorize]
-        [ValidateAntiForgeryToken]
+        [HttpPost, Authorize, ValidateAntiForgeryToken]
         public async Task<IActionResult> Settings(WebDocTruyen.Application.DTOs.User.UserProfileDto updatedUser)
         {
-            var email = User.FindFirst(ClaimTypes.Email)?.Value;
-            var user = _userRepo.GetByEmail(email!);
+            var user = CurrentUser();
             if (user == null) return RedirectToAction("Login");
 
             user.Username = updatedUser.Username;
             user.Email = updatedUser.Email;
             _userRepo.Update(user);
 
-            // Cập nhật lại cookie với thông tin mới
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
-                new Claim(ClaimTypes.Name,           user.Username),
-                new Claim(ClaimTypes.Email,          user.Email),
-                new Claim(ClaimTypes.Role,           user.Role ?? "User"),
+                new(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+                new(ClaimTypes.Name,           user.Username),
+                new(ClaimTypes.Email,          user.Email),
+                new(ClaimTypes.Role,           user.Role ?? "User"),
             };
 
-            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            var principal = new ClaimsPrincipal(identity);
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+            await HttpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                new ClaimsPrincipal(new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme)));
 
             ViewBag.Success = "Cập nhật thành công!";
             return View(UserMapper.ToProfileDto(user));
@@ -203,13 +194,10 @@ namespace WebDocTruyen.Web.Controllers
         [Authorize]
         public IActionResult ChangePassword() => View();
 
-        [HttpPost]
-        [Authorize]
-        [ValidateAntiForgeryToken]
+        [HttpPost, Authorize, ValidateAntiForgeryToken]
         public IActionResult ChangePassword(string CurrentPassword, string NewPassword, string ConfirmPassword)
         {
-            var email = User.FindFirst(ClaimTypes.Email)?.Value;
-            var user = _userRepo.GetByEmail(email!);
+            var user = CurrentUser();
             if (user == null) return RedirectToAction("Login");
 
             if (!BCrypt.Net.BCrypt.Verify(CurrentPassword, user.PasswordHash))
@@ -229,6 +217,14 @@ namespace WebDocTruyen.Web.Controllers
 
             ViewBag.Success = "Đổi mật khẩu thành công!";
             return View();
+        }
+
+        // ── Helper ─────────────────────────────────────────────────────────
+
+        private WebDocTruyen.Domain.Entities.User? CurrentUser()
+        {
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            return email == null ? null : _userRepo.GetByEmail(email);
         }
     }
 }

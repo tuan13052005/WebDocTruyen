@@ -47,18 +47,17 @@
                 <span class="badge bg-secondary">@Model.ChapterCount</span>
             </p>
 
-            <!-- Rating trung bình (10 sao) -->
+            <!-- Rating trung bình (5 sao) -->
             <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
                 <div id="avgStarRow"
                      style="font-size:1.3rem; color:#f5a623; white-space:nowrap; user-select:none; letter-spacing:1px;">
-                    @for (int i = 1; i <= 10; i++)
+                    @for (int i = 1; i <= 5; i++)
                     {
                         <span class="avg-star">@(i <= Math.Round(Model.AvgRating) ? "★" : "☆")</span>
                     }
                 </div>
                 <span class="fw-bold fs-5 text-dark" id="avgValBig">@Model.AvgRating.ToString("F1")</span>
-                <span class="text-muted small">
-                    / 10 &nbsp;·&nbsp; <span id="ratingCountTxt">@Model.RatingCount</span> lượt đánh giá
+                <span class="text-muted small"> &nbsp;·&nbsp; <span id="ratingCountTxt">@Model.RatingCount</span> lượt đánh giá
                 </span>
             </div>
 
@@ -98,7 +97,7 @@
                 }
             </div>
 
-            <!-- Đánh giá sao của user (10 ô) -->
+            <!-- Đánh giá sao của user (5 ô) -->
             @if (isLoggedIn)
             {
                 <div class="mb-2">
@@ -109,7 +108,7 @@
                              data-current="@myRatingVal"
                              style="font-size:2rem; color:#f5a623; white-space:nowrap;
                                         cursor:pointer; user-select:none; line-height:1;">
-                            @for (int i = 1; i <= 10; i++)
+                            @for (int i = 1; i <= 5; i++)
                             {
                                 <span class="my-star" data-v="@i" title="@i điểm"
                                       style="display:inline-block; padding:0 1px; transition:transform .1s;">
@@ -118,7 +117,7 @@
                             }
                         </div>
                         <span id="myScoreLabel" class="fw-bold text-primary fs-5">
-                            @(Model.MyRating.HasValue? Model.MyRating + "/10" : "Chưa đánh giá")
+                            @(Model.MyRating.HasValue? Model.MyRating : "Chưa đánh giá")
                         </span>
                     </div>
                 </div>
@@ -288,7 +287,7 @@
             } finally { btn.disabled = false; }
         }
 
-        // ── Rating (1-10) ────────────────────────────────────────────────────────
+        // ── Rating (1-5) ────────────────────────────────────────────────────────
         (function () {
             const myRow = document.getElementById('myStarRow');
             if (!myRow) return;
