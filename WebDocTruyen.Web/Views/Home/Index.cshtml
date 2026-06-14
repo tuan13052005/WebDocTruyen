@@ -7,7 +7,7 @@
 <div class="container mt-4">
     <div class="row">
         <div class="col-12 mb-4">
-            <div class="p-5 text-center bg-light rounded shadow-sm">
+            <div class="hero-section text-center">
                 <h1 class="fw-bold">Chào mừng đến với WebDocTruyen 📚</h1>
                 <p class="lead text-muted">Nơi bạn có thể đọc hàng ngàn truyện tranh và tiểu thuyết trực tuyến.</p>
                 <a asp-controller="Story" asp-action="Index" class="btn btn-primary btn-lg">Khám phá ngay</a>
@@ -59,6 +59,22 @@
                             <option value="ongoing">Đang ra</option>
                             <option value="completed">Hoàn thành</option>
                         </select>
+
+                        @if (ViewBag.Genres != null)
+                        {
+                            <label class="form-label fw-semibold small text-muted">THỂ LOẠI</label>
+                            <div class="border rounded p-2 mb-2" style="max-height:180px;overflow-y:auto;">
+                                @foreach (var g in (IEnumerable<WebDocTruyen.Application.DTOs.Genre.GenreDto>)ViewBag.Genres)
+                                {
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox"
+                                               name="genreIds" value="@g.GenreId" id="homeGenre@(g.GenreId)" />
+                                        <label class="form-check-label small" for="homeGenre@(g.GenreId)">@g.Name</label>
+                                    </div>
+                                }
+                            </div>
+                        }
+
                         <button type="submit" class="btn btn-primary w-100">Tìm kiếm</button>
                     </form>
                 </div>
@@ -66,7 +82,3 @@
         </div>
     </div>
 </div>
-RAZOR
-
-# Admin/ManageUsers.cshtml - dùng List<UserDto>
-cat > "$BASE/WebDocTruyen.Web/Views/Admin/ManageUsers.cshtml" << 'RAZOR'

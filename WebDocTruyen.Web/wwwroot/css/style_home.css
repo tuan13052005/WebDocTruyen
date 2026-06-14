@@ -1,63 +1,130 @@
 ﻿.card {
     display: flex;
     flex-direction: column;
-    height: 100%; /* card chiếm toàn bộ chiều cao cột */
+    height: 100%;
+    overflow: hidden;
 }
 
 .card-img-top {
-    height: 240px; /* cố định chiều cao ảnh */
-    width: 100%; /* ảnh chiếm toàn bộ chiều rộng card */
-    object-fit: cover; /* crop ảnh vừa khung, không méo */
+    height: 240px;
+    width: 100%;
+    object-fit: cover;
+    transition: transform .5s ease;
+}
+
+.card:hover .card-img-top {
+    transform: scale(1.06);
 }
 
 .card-body {
-    flex-grow: 1; /* phần body chiếm hết phần còn lại */
+    flex-grow: 1;
     display: flex;
     flex-direction: column;
-    justify-content: space-between; /* căn đều nội dung và nút */
+    justify-content: space-between;
 }
 
 .list-group-item {
-    transition: background-color 0.3s ease;
+    border: none;
+    transition: background-color .3s ease, transform .2s ease;
 }
 
     .list-group-item:hover {
-        background-color: #f1f1f1;
+        background: var(--gradient-soft, linear-gradient(135deg, rgba(79,70,229,.08), rgba(168,85,247,.08)));
+        transform: translateX(4px);
     }
 
 .btn-gradient {
-    background: linear-gradient(45deg, #6a11cb, #2575fc);
+    background: var(--gradient-main, linear-gradient(135deg,#4f46e5,#7c3aed));
     color: #fff;
     border: none;
     border-radius: 20px;
-    padding: 6px 12px;
-    transition: background 0.3s ease;
+    padding: 6px 16px;
+    transition: all .3s ease;
 }
 
-.btn-gradient:hover {
-    background: linear-gradient(45deg, #2575fc, #6a11cb);
-}
+    .btn-gradient:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px -6px rgba(99,91,255,.45);
+    }
+
+/* ===== Khung tìm kiếm nhanh (sidebar) — kiểu kính mờ ===== */
 .search-box {
-    padding: 15px;
-    border-radius: 12px;
-    background: #f8f9fa; /* nền sáng */
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    max-height: 220px; /* giới hạn chiều cao */
+    padding: 18px;
+    border-radius: 16px;
+    background: rgba(255,255,255,.7);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(124,58,237,.12);
+    box-shadow: 0 8px 26px rgba(79,70,229,.10);
+    max-height: 220px;
 }
 
-.search-box h5 {
-    font-size: 1rem; /* chữ nhỏ gọn */
-    margin-bottom: 10px;
+    .search-box h5 {
+        font-size: 1rem;
+        margin-bottom: 10px;
+        font-weight: 700;
+        background: linear-gradient(135deg,#4f46e5,#a855f7);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .search-box input,
+    .search-box select {
+        font-size: .9rem;
+        padding: 6px 10px;
+        border-radius: 10px;
+    }
+
+    .search-box button {
+        font-size: .9rem;
+        padding: 6px 10px;
+        border-radius: 20px;
+    }
+
+/* ===== Hiệu ứng xuất hiện lần lượt cho lưới truyện ===== */
+.row > .col,
+.row > .col-md-3,
+.row > .col-sm-6,
+.row > .col-lg-4 {
+    animation: fadeInUp .5s ease both;
 }
 
-.search-box input,
-.search-box select {
-    font-size: 0.9rem;
-    padding: 6px 10px; /* thu nhỏ input */
+.row > *:nth-child(2) {
+    animation-delay: .05s;
 }
 
-.search-box button {
-    font-size: 0.9rem;
-    padding: 6px 10px;
-    border-radius: 20px;
+.row > *:nth-child(3) {
+    animation-delay: .10s;
+}
+
+.row > *:nth-child(4) {
+    animation-delay: .15s;
+}
+
+.row > *:nth-child(5) {
+    animation-delay: .20s;
+}
+
+.row > *:nth-child(6) {
+    animation-delay: .25s;
+}
+
+.row > *:nth-child(7) {
+    animation-delay: .30s;
+}
+
+.row > *:nth-child(8) {
+    animation-delay: .35s;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(18px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
