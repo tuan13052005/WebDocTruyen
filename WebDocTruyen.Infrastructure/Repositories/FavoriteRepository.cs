@@ -37,5 +37,15 @@ namespace WebDocTruyen.Infrastructure.Repositories
                     .ThenInclude(s => s.Chapters)
                 .Where(f => f.UserId == userId)
                 .ToListAsync();
+
+        public async Task UpdateLastReadChapterAsync(int userId, int storyId, int chapterId)
+        {
+            var fav = await _ctx.Favorites
+                .FirstOrDefaultAsync(f => f.UserId == userId && f.StoryId == storyId);
+            if (fav == null) return;
+
+            fav.LastReadChapterId = chapterId;
+            await _ctx.SaveChangesAsync();
+        }
     }
 }

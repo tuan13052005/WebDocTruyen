@@ -10,5 +10,6 @@ namespace WebDocTruyen.Domain.Interfaces
         Task DeleteAsync(int favoriteId);
         Task<int> CountAsync(int storyId);
         Task<IEnumerable<Favorite>> GetByUserIdAsync(int userId);
+        Task UpdateLastReadChapterAsync(int userId, int storyId, int chapterId);
     }
 }

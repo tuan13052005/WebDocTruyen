@@ -11,6 +11,8 @@
         public string CoverImage { get; set; } = "";
         public string Status { get; set; } = "";
         public int ChapterCount { get; set; }
+        public int? LastReadChapterId { get; set; }
+        public int? LastReadChapterNumber { get; set; }
     }
 
     // Kết quả trả về cho AJAX ToggleFavorite

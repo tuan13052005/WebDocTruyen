@@ -63,10 +63,20 @@
                             </span>
                         </div>
 
-                        <a asp-controller="Chapter" asp-action="ListChapters" asp-route-id="@fav.StoryId"
-                           class="fav-read-btn">
-                            <i class="bi bi-book-half me-1"></i>Đọc tiếp
-                        </a>
+                        @if (fav.LastReadChapterId.HasValue)
+                        {
+                            <a asp-controller="Chapter" asp-action="ReadChapter" asp-route-id="@fav.LastReadChapterId"
+                               class="fav-read-btn">
+                                <i class="bi bi-book-half me-1"></i>Đọc tiếp (Ch.@fav.LastReadChapterNumber)
+                            </a>
+                        }
+                        else
+                        {
+                            <a asp-controller="Chapter" asp-action="ListChapters" asp-route-id="@fav.StoryId"
+                               class="fav-read-btn">
+                                <i class="bi bi-book-half me-1"></i>Đọc tiếp
+                            </a>
+                        }
                     </div>
                 </div>
             }

@@ -40,5 +40,7 @@ namespace WebDocTruyen.Application.Services
             var favorites = await _favoriteRepo.GetByUserIdAsync(userId);
             return favorites.Select(FavoriteMapper.ToDto).ToList();
         }
+        public Task MarkReadingAsync(int userId, int storyId, int chapterId) =>
+             _favoriteRepo.UpdateLastReadChapterAsync(userId, storyId, chapterId);
     }
 }

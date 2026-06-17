@@ -15,5 +15,6 @@ namespace WebDocTruyen.Application.Interfaces
 
         /// Danh sách truyện user đang theo dõi
         Task<List<FavoriteDto>> GetMyFavoritesAsync(int userId);
+        Task MarkReadingAsync(int userId, int storyId, int chapterId);
     }
 }

@@ -58,6 +58,12 @@ namespace WebDocTruyen.Infrastructure.Persistence
                 e.HasKey(f => f.FavoriteId);
                 e.HasOne(f => f.User).WithMany().HasForeignKey(f => f.UserId);
                 e.HasOne(f => f.Story).WithMany(s => s.Favorites).HasForeignKey(f => f.StoryId);
+
+                e.HasOne(f => f.LastReadChapter)
+                 .WithMany()
+                 .HasForeignKey(f => f.LastReadChapterId)
+                 .IsRequired(false)
+                 .OnDelete(DeleteBehavior.SetNull);
             });
 
             mb.Entity<Chapter>()

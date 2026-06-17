@@ -116,6 +116,9 @@ namespace WebDocTruyen.Application.Services
             bool isFav = currentUserId.HasValue
                 && await _favoriteService.IsFavoritedAsync(currentUserId.Value, chapter.StoryId);
 
+            if (isFav && currentUserId.HasValue)
+                await _favoriteService.MarkReadingAsync(currentUserId.Value, chapter.StoryId, chapterId);
+
             return ChapterMapper.ToReadDto(
                 chapter, story,
                 imageEntities.Select(ChapterMapper.ToImageDto).ToList(),

@@ -13,5 +13,7 @@ namespace WebDocTruyen.Domain.Entities
         public User User { get; set; } = null!;
         public int StoryId { get; set; }
         public Story Story { get; set; } = null!;
+        public int? LastReadChapterId { get; set; }
+        public Chapter? LastReadChapter { get; set; }
     }
 }

@@ -14,7 +14,9 @@ namespace WebDocTruyen.Application.Mapper
             StoryTitle = f.Story?.Title ?? "",
             CoverImage = string.IsNullOrEmpty(f.Story?.CoverImage) ? "/images/default.jpg" : f.Story!.CoverImage,
             Status = f.Story?.Status ?? "",
-            ChapterCount = f.Story?.Chapters?.Count ?? 0
+            ChapterCount = f.Story?.Chapters?.Count ?? 0,
+            LastReadChapterId = f.LastReadChapterId,
+            LastReadChapterNumber = f.LastReadChapter?.ChapterNumber
         };
 
         public static FavoriteStatusDto ToStatusDto(bool isFavorited, int count) => new()
