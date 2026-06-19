@@ -1,4 +1,4 @@
-﻿@model WebDocTruyen.Domain.Entities.Chapter
+﻿@model WebDocTruyen.Application.DTOs.Chapter.ChapterDeleteDto
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "Xác nhận xóa Chapter";
@@ -16,7 +16,7 @@
                 <li><strong>Tiêu đề:</strong> @(string.IsNullOrEmpty(Model.Title) ? "(không có)" : Model.Title)</li>
                 <li>
                     <strong>Số ảnh:</strong>
-                    <span class="badge bg-warning text-dark">@Model.ChapterImages.Count ảnh sẽ bị xóa vĩnh viễn</span>
+                    <span class="badge bg-warning text-dark">@Model.ImageCount ảnh sẽ bị xóa vĩnh viễn</span>
                 </li>
             </ul>
             <p class="text-danger fw-semibold">⚠️ Hành động này không thể hoàn tác!</p>

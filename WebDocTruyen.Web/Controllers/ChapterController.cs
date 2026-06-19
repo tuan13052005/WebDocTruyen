@@ -61,7 +61,7 @@ namespace WebDocTruyen.Web.Controllers
         // ── Editor: Chapter CRUD ───────────────────────────────────────────
 
         [Authorize(Roles = "Editor")]
-        public async Task<IActionResult> AddChapter(int storyId)
+        public IActionResult AddChapter(int storyId)
         {
             return View(new ChapterFormDto { StoryId = storyId });
         }
