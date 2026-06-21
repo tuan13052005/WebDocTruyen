@@ -60,7 +60,7 @@
                                name="SelectedGenreIds"
                                value="@genre.GenreId"
                                id="g@(genre.GenreId)"
-                               checked="@(isChecked ? "checked" : null)" />
+                        @(isChecked ? "checked" : "") />
                         <label class="form-check-label" for="g@(genre.GenreId)">@genre.Name</label>
                     </div>
                 }

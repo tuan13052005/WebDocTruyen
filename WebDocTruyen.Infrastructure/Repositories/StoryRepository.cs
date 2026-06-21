@@ -109,9 +109,14 @@ namespace WebDocTruyen.Infrastructure.Repositories
 
         public async Task UpdateAsync(Story story)
         {
-            // Cập nhật slug khi sửa
             story.NormalizedTitle = GenerateSlug(story.Title);
             story.NormalizedAuthor = GenerateSlug(story.Author);
+
+            // Xóa StoryGenres cũ trong DB trước
+            var oldGenres = await _context.StoryGenres
+                .Where(sg => sg.StoryId == story.StoryId)
+                .ToListAsync();
+            _context.StoryGenres.RemoveRange(oldGenres);
 
             _context.Stories.Update(story);
             await _context.SaveChangesAsync();
