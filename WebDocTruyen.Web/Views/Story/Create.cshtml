@@ -2,12 +2,13 @@
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "Thêm truyện";
+    var genres = (List<WebDocTruyen.Application.DTOs.Genre.GenreDto>)ViewBag.Genres;
 }
 
 <div class="container mt-4" style="max-width:700px;">
     <h2 class="mb-4">➕ Thêm truyện</h2>
 
-    <form asp-action="Create" method="post" enctype="multipart/form-data">
+    <form asp-action="Create" method="post" enctype="multipart/form-data" id="storyForm">
         @Html.AntiForgeryToken()
 
         <div class="mb-3">
@@ -32,13 +33,22 @@
             </select>
         </div>
         <div class="mb-3">
-            <label class="form-label">Ảnh bìa</label>
-            <input type="file" name="coverImage" class="form-control" accept=".jpg,.jpeg,.png,.webp" />
+            <label class="form-label">Ảnh bìa <span class="text-danger">*</span></label>
+            <div class="input-group">
+                <label class="btn btn-outline-secondary mb-0" for="coverImageInput" style="flex-shrink:0;">
+                    Chọn tệp
+                </label>
+                <input type="text" id="coverImageFileNameBox" class="form-control" readonly
+                       placeholder="Không có tệp nào được chọn" style="cursor:pointer;" />
+                <input type="file" name="coverImage" id="coverImageInput"
+                       class="d-none" accept=".jpg,.jpeg,.png,.webp" />
+            </div>
+            <div id="coverImageError" class="text-danger small mt-1"></div>
         </div>
         <div class="mb-3">
             <label class="form-label">Thể loại <span class="text-danger">*</span></label>
             <div class="border rounded p-2" style="max-height:220px;overflow-y:auto;">
-                @foreach (var genre in (IEnumerable<WebDocTruyen.Application.DTOs.Genre.GenreDto>)ViewBag.Genres)
+                @foreach (var genre in genres)
                 {
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" name="SelectedGenreIds"
@@ -57,3 +67,27 @@
         </div>
     </form>
 </div>
+
+@section Scripts {
+    <script>
+        const coverInput = document.getElementById('coverImageInput');
+        const coverNameBox = document.getElementById('coverImageFileNameBox');
+        const coverError = document.getElementById('coverImageError');
+        const storyForm = document.getElementById('storyForm');
+
+        coverInput?.addEventListener('change', function () {
+            coverNameBox.value = this.files.length > 0 ? this.files[0].name : '';
+            if (this.files.length > 0) coverError.textContent = '';
+        });
+
+        coverNameBox?.addEventListener('click', () => coverInput.click());
+
+        storyForm?.addEventListener('submit', function (e) {
+            if (!coverInput.files || coverInput.files.length === 0) {
+                e.preventDefault();
+                coverError.textContent = '⚠️ Vui lòng chọn ảnh bìa.';
+                coverInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        });
+    </script>
+}
