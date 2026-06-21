@@ -55,16 +55,12 @@
                 {
                     bool isChecked = Model.SelectedGenreIds.Contains(genre.GenreId);
                     <div class="form-check">
-                        @if (isChecked)
-                        {
-                            <input class="form-check-input" type="checkbox" name="SelectedGenreIds"
-                                   value="@genre.GenreId" id="g@(genre.GenreId)" checked />
-                        }
-                        else
-                        {
-                            <input class="form-check-input" type="checkbox" name="SelectedGenreIds"
-                                   value="@genre.GenreId" id="g@(genre.GenreId)" />
-                        }
+                        <input class="form-check-input"
+                               type="checkbox"
+                               name="SelectedGenreIds"
+                               value="@genre.GenreId"
+                               id="g@(genre.GenreId)"
+                               checked="@(isChecked ? "checked" : null)" />
                         <label class="form-check-label" for="g@(genre.GenreId)">@genre.Name</label>
                     </div>
                 }

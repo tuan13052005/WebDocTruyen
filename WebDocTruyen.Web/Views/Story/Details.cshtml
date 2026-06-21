@@ -72,28 +72,52 @@
 
             <!-- Nút hành động -->
             <div class="d-flex flex-wrap gap-2 mb-3">
+                @if (isLoggedIn && Model.LastReadChapterId.HasValue)
+                {
+                    <a asp-action="ReadChapter"
+                       asp-controller="Chapter"
+                       asp-route-id="@Model.LastReadChapterId"
+                       class="btn btn-info text-white">
+                        ▶️ Đọc tiếp (Ch.@Model.LastReadChapterNumber)
+                    </a>
+                }
                 @if (Model.Chapters.Any())
                 {
-                    <a asp-action="ReadChapter" asp-controller="Chapter"
+                    <a asp-action="ReadChapter"
+                       asp-controller="Chapter"
                        asp-route-id="@Model.Chapters.First().ChapterId"
-                       class="btn btn-primary">📖 Đọc từ đầu</a>
-                    <a asp-action="ReadChapter" asp-controller="Chapter"
+                       class="btn btn-primary">
+                        📖 Đọc từ đầu
+                    </a>
+                    <a asp-action="ReadChapter"
+                       asp-controller="Chapter"
                        asp-route-id="@Model.Chapters.Last().ChapterId"
-                       class="btn btn-outline-primary">⏩ Chapter mới nhất</a>
+                       class="btn btn-outline-primary">
+                        ⏩ Chapter mới nhất
+                    </a>
                 }
                 @if (isLoggedIn)
                 {
-                    <button id="favBtn" onclick="toggleFav(@Model.Id)"
+                    <button id="favBtn"
+                            onclick="toggleFav(@Model.Id)"
                             class="btn @(Model.IsFavorited ? "btn-danger" : "btn-outline-danger")">
                         @(Model.IsFavorited ? "❤️ Đang theo dõi" : "🤍 Theo dõi")
                     </button>
                 }
                 @if (ownsStory)
                 {
-                    <a asp-action="Edit" asp-controller="Story" asp-route-id="@Model.Id"
-                       class="btn btn-warning">✏️ Sửa</a>
-                    <a asp-action="AddChapter" asp-controller="Chapter" asp-route-storyId="@Model.Id"
-                       class="btn btn-success">➕ Chapter</a>
+                    <a asp-action="Edit"
+                       asp-controller="Story"
+                       asp-route-id="@Model.Id"
+                       class="btn btn-warning">
+                        ✏️ Sửa
+                    </a>
+                    <a asp-action="AddChapter"
+                       asp-controller="Chapter"
+                       asp-route-storyId="@Model.Id"
+                       class="btn btn-success">
+                        ➕ Chapter
+                    </a>
                 }
             </div>
 

@@ -25,6 +25,8 @@ namespace WebDocTruyen.Application.DTOs.Story
         public int RatingCount { get; set; }
         public int? MyRating { get; set; }
         public bool IsFavorited { get; set; }
+        public int? LastReadChapterId { get; set; }
+        public int? LastReadChapterNumber { get; set; }
         public List<ChapterSummaryDto> Chapters { get; set; } = new();
         public List<CommentDto> Comments { get; set; } = new();
     }

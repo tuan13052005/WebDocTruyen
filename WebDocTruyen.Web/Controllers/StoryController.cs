@@ -84,18 +84,31 @@ namespace WebDocTruyen.Web.Controllers
             var avgRating = await _ratingRepo.GetAverageAsync(id);
             var ratingCount = await _ratingRepo.CountAsync(id);
             var favCount = await _favoriteRepo.CountAsync(id);
+
             bool isFav = false;
             int? myRating = null;
+            int? lastReadChapterId = null;
+            int? lastReadChapterNumber = null;
 
             if (CurrentUserId.HasValue)
             {
-                isFav = await _favoriteRepo.IsFavoritedAsync(CurrentUserId.Value, id);
+                var fav = await _favoriteRepo.GetAsync(CurrentUserId.Value, id);
+                isFav = fav != null;
+
+                if (fav?.LastReadChapterId != null)
+                {
+                    lastReadChapterId = fav.LastReadChapterId;
+                    lastReadChapterNumber = story.Chapters
+                        .FirstOrDefault(c => c.ChapterId == fav.LastReadChapterId)?.ChapterNumber;
+                }
+
                 var myR = await _ratingRepo.GetByUserAndStoryAsync(CurrentUserId.Value, id);
                 myRating = myR?.Score;
             }
 
             var dto = StoryMapper.ToDetailDto(story, comments, avgRating,
-                ratingCount, favCount, isFav, myRating, CurrentUserId);
+                ratingCount, favCount, isFav, myRating, CurrentUserId,
+                lastReadChapterId, lastReadChapterNumber);
 
             return View(dto);
         }
@@ -245,8 +258,18 @@ namespace WebDocTruyen.Web.Controllers
                 await coverImage.CopyToAsync(s);
                 existing.CoverImage = $"/images/stories/{existing.StoryId}/{fn}";
             }
-            existing.StoryGenres = dto.SelectedGenreIds
-                .Select(g => new StoryGenre { GenreId = g, StoryId = existing.StoryId }).ToList();
+            var toRemove = existing.StoryGenres
+                .Where(sg => !dto.SelectedGenreIds.Contains(sg.GenreId))
+                .ToList();
+            foreach (var sg in toRemove)
+                existing.StoryGenres.Remove(sg);
+
+            var currentGenreIds = existing.StoryGenres.Select(sg => sg.GenreId).ToList();
+            var toAdd = dto.SelectedGenreIds
+                .Where(id => !currentGenreIds.Contains(id))
+                .Select(id => new StoryGenre { StoryId = existing.StoryId, GenreId = id });
+            foreach (var sg in toAdd)
+                existing.StoryGenres.Add(sg);
             await _storyRepo.UpdateAsync(existing);
             TempData["Success"] = "Cập nhật thành công!";
             return RedirectToAction("ManageStories", "Editor");

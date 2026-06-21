@@ -28,11 +28,9 @@ namespace WebDocTruyen.Application.Mapper
             }).ToList()
         };
 
-        public static StoryDetailDto ToDetailDto(Story s,
-            List<CommentDto> comments,
-            double avgRating, int ratingCount,
-            int favCount, bool isFav, int? myRating,
-            int? currentUserId) => new()
+        public static StoryDetailDto ToDetailDto(Story s, List<CommentDto> comments,
+            double avgRating, int ratingCount, int favCount, bool isFav, int? myRating,
+            int? currentUserId, int? lastReadChapterId = null, int? lastReadChapterNumber = null) => new()
             {
                 Id = s.StoryId,
                 Title = s.Title,
@@ -46,6 +44,10 @@ namespace WebDocTruyen.Application.Mapper
                 RatingCount = ratingCount,
                 IsFavorited = isFav,
                 MyRating = myRating,
+                LastReadChapterId = lastReadChapterId,        // ➕
+                LastReadChapterNumber = lastReadChapterId.HasValue
+                    ? s.Chapters.FirstOrDefault(c => c.ChapterId == lastReadChapterId)?.ChapterNumber
+                    : null,                                     // ➕
                 CreatedAt = s.CreatedAt,
                 UpdatedAt = s.UpdatedAt,
                 CreatedBy = s.CreatedBy,

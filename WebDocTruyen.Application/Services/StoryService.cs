@@ -118,8 +118,18 @@ namespace WebDocTruyen.Application.Services
             if (coverImageStream != null && !string.IsNullOrEmpty(coverImageFileName))
                 existing.CoverImage = await SaveCoverImageAsync(existing.StoryId, coverImageStream, coverImageFileName);
 
-            existing.StoryGenres = dto.SelectedGenreIds
-                .Select(g => new StoryGenre { GenreId = g, StoryId = existing.StoryId }).ToList();
+            var toRemove = existing.StoryGenres
+                .Where(sg => !dto.SelectedGenreIds.Contains(sg.GenreId))
+                .ToList();
+            foreach (var sg in toRemove)
+                existing.StoryGenres.Remove(sg);
+
+            var currentGenreIds = existing.StoryGenres.Select(sg => sg.GenreId).ToList();
+            var toAdd = dto.SelectedGenreIds
+                .Where(id => !currentGenreIds.Contains(id))
+                .Select(id => new StoryGenre { StoryId = existing.StoryId, GenreId = id });
+            foreach (var sg in toAdd)
+                existing.StoryGenres.Add(sg);
 
             await _storyRepo.UpdateAsync(existing);
             return true;
