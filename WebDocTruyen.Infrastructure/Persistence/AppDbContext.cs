@@ -36,8 +36,14 @@ namespace WebDocTruyen.Infrastructure.Persistence
             mb.Entity<StoryGenre>(e =>
             {
                 e.HasKey(sg => sg.StoryGenreId);
-                e.HasOne(sg => sg.Story).WithMany(s => s.StoryGenres).HasForeignKey(sg => sg.StoryId);
-                e.HasOne(sg => sg.Genre).WithMany(g => g.StoryGenres).HasForeignKey(sg => sg.GenreId);
+                e.HasOne(sg => sg.Story)
+                    .WithMany(s => s.StoryGenres)
+                    .HasForeignKey(sg => sg.StoryId)
+                    .OnDelete(DeleteBehavior.Cascade); 
+                e.HasOne(sg => sg.Genre)
+                    .WithMany(g => g.StoryGenres)
+                    .HasForeignKey(sg => sg.GenreId)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             mb.Entity<Comment>(e =>

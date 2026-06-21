@@ -249,19 +249,41 @@ namespace WebDocTruyen.Web.Controllers
             existing.Status = dto.Status;
             existing.UpdatedAt = DateTime.Now;
 
+            // ── Ảnh bìa: chỉ thay nếu file vật lý hiện tại KHÔNG còn tồn tại trên đĩa ──
             if (coverImage?.Length > 0)
             {
-                var folder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "stories", existing.StoryId.ToString());
-                Directory.CreateDirectory(folder);
-                var fn = Guid.NewGuid() + Path.GetExtension(coverImage.FileName);
-                using var s = new FileStream(Path.Combine(folder, fn), FileMode.Create);
-                await coverImage.CopyToAsync(s);
-                existing.CoverImage = $"/images/stories/{existing.StoryId}/{fn}";
+                var existingPhysicalPath = string.IsNullOrEmpty(existing.CoverImage)
+                    ? null
+                    : Path.Combine(Directory.GetCurrentDirectory(), "wwwroot",
+                        existing.CoverImage.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+
+                bool fileStillExists = existingPhysicalPath != null && System.IO.File.Exists(existingPhysicalPath);
+
+                if (!fileStillExists)
+                {
+                    var folder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "stories", existing.StoryId.ToString());
+                    Directory.CreateDirectory(folder);
+                    var fn = Guid.NewGuid() + Path.GetExtension(coverImage.FileName);
+                    using var s = new FileStream(Path.Combine(folder, fn), FileMode.Create);
+                    await coverImage.CopyToAsync(s);
+                    existing.CoverImage = $"/images/stories/{existing.StoryId}/{fn}";
+                }
+                else
+                {
+                    TempData["Info"] = "Ảnh bìa hiện tại vẫn còn tồn tại trên hệ thống, không thay đổi.";
+                }
             }
 
-            // Xóa hết rồi thêm lại
-            existing.StoryGenres.Clear();
-            foreach (var gid in dto.SelectedGenreIds)
+            // ── Diff thể loại: chỉ thêm cái mới chọn, chỉ xóa cái bị bỏ chọn ──
+            var selectedIds = (dto.SelectedGenreIds ?? new List<int>()).Distinct().ToList();
+            var currentIds = existing.StoryGenres.Select(sg => sg.GenreId).ToList();
+
+            var toRemove = existing.StoryGenres.Where(sg => !selectedIds.Contains(sg.GenreId)).ToList();
+            foreach (var sg in toRemove)
+                existing.StoryGenres.Remove(sg);
+
+            var toAdd = selectedIds.Where(id => !currentIds.Contains(id)).ToList();
+            foreach (var gid in toAdd)
                 existing.StoryGenres.Add(new StoryGenre { StoryId = existing.StoryId, GenreId = gid });
 
             await _storyRepo.UpdateAsync(existing);

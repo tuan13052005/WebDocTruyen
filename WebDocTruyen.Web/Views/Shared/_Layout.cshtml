@@ -145,11 +145,11 @@
                     <button class="wdt-alert-close" onclick="this.parentElement.remove()">&times;</button>
                 </div>
             }
-            @if (TempData["Error"] != null)
+            @if (TempData["Info"] != null)
             {
-                <div class="wdt-alert wdt-alert-danger">
-                    <i class="bi bi-exclamation-circle-fill"></i>
-                    @TempData["Error"]
+                <div class="wdt-alert" style="background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af;">
+                    <i class="bi bi-info-circle-fill"></i>
+                    @TempData["Info"]
                     <button class="wdt-alert-close" onclick="this.parentElement.remove()">&times;</button>
                 </div>
             }
