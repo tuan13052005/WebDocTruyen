@@ -2,23 +2,79 @@
 @{
     ViewData["Title"] = "Trang cá nhân";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var initials = (Model.Username?.Length > 0)
+        ? Model.Username.Substring(0, Math.Min(2, Model.Username.Length)).ToUpper()
+        : "?";
+    var roleColor = Model.Role switch {
+        "Admin"  => "#c0392b",
+        "Editor" => "#a0612b",
+        _        => "#4b5563"
+    };
+    var roleLabel = Model.Role switch {
+        "Admin"  => "Quản trị viên",
+        "Editor" => "Biên tập viên",
+        _        => "Thành viên"
+    };
+    <link rel="stylesheet" href="~/css/profile.css" />
 }
 
-<div class="container mt-5" style="max-width:600px;">
-    <h2 class="mb-4 text-center">👤 Trang cá nhân</h2>
+<div class="profile-wrap">
 
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <p><strong>Tên đăng nhập:</strong> @Model.Username</p>
-            <p><strong>Email:</strong> @Model.Email</p>
-            <p><strong>Vai trò:</strong> @Model.Role</p>
-            <p><strong>Ngày tạo:</strong> @Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</p>
-            <p><strong>Lần đăng nhập gần nhất:</strong> @Model.LastLogin?.ToString("dd/MM/yyyy HH:mm")</p>
+    <!-- Hero -->
+    <div class="profile-hero">
+        <div class="profile-avatar">@initials</div>
+        <div class="profile-meta">
+            <h1 class="profile-name">@Model.Username</h1>
+            <p class="profile-email">
+                <i class="bi bi-envelope" style="font-size:13px;"></i>
+                @Model.Email
+            </p>
+            <span class="profile-role-badge"
+                  style="background:@(roleColor)18; color:@roleColor;">
+                <span class="dot"></span>
+                @roleLabel
+            </span>
         </div>
     </div>
 
-    <div class="mt-3 text-center">
-        <a asp-action="Settings" class="btn btn-outline-primary">⚙️ Cài đặt</a>
-        <a asp-action="ChangePassword" class="btn btn-outline-secondary">🔑 Đổi mật khẩu</a>
+    <!-- Info cards -->
+    <p class="section-label">Thông tin tài khoản</p>
+    <div class="profile-grid">
+        <div class="info-card">
+            <div class="info-icon"><i class="bi bi-calendar3"></i></div>
+            <div>
+                <div class="info-label">Ngày tạo</div>
+                <div class="info-value">@Model.CreatedAt.ToString("dd/MM/yyyy")</div>
+            </div>
+        </div>
+        <div class="info-card">
+            <div class="info-icon"><i class="bi bi-clock-history"></i></div>
+            <div>
+                <div class="info-label">Đăng nhập gần nhất</div>
+                <div class="info-value">
+                    @(Model.LastLogin.HasValue
+                        ? Model.LastLogin.Value.ToString("dd/MM/yyyy HH:mm")
+                        : "Chưa có")
+                </div>
+            </div>
+        </div>
     </div>
+
+    <!-- Actions -->
+    <p class="section-label">Hành động nhanh</p>
+    <div class="profile-actions">
+        <a asp-action="Settings" class="action-btn">
+            <i class="bi bi-gear"></i>
+            Cài đặt
+        </a>
+        <a asp-action="ChangePassword" class="action-btn">
+            <i class="bi bi-key"></i>
+            Đổi mật khẩu
+        </a>
+        <a asp-action="MyFavorites" class="action-btn">
+            <i class="bi bi-bookmark-heart"></i>
+            Theo dõi
+        </a>
+    </div>
+
 </div>

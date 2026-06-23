@@ -4,24 +4,146 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="container mt-5" style="max-width:600px;">
-    <h2 class="mb-4 text-center">⚙️ Cài đặt tài khoản</h2>
+<link rel="stylesheet" href="~/css/settings.css" />
+
+<div class="settings-wrap">
+
+    <!-- Header — đồng bộ với profile-hero -->
+    <div class="settings-hero">
+        <div class="settings-icon-wrap">
+            <i class="bi bi-gear"></i>
+        </div>
+        <div>
+            <h2 class="settings-title">Cài đặt tài khoản</h2>
+            <p class="settings-sub">Quản lý thông tin cá nhân của bạn</p>
+        </div>
+    </div>
 
     @if (ViewBag.Success != null)
     {
-        <div class="alert alert-success">@ViewBag.Success</div>
+        <div class="settings-toast">
+            <i class="bi bi-check-circle-fill"></i> @ViewBag.Success
+        </div>
     }
 
-    <form asp-action="Settings" method="post">
-        @Html.AntiForgeryToken()
-        <div class="mb-3">
-            <label class="form-label">Tên đăng nhập</label>
-            <input asp-for="Username" class="form-control" required />
+    <p class="section-label">Thông tin tài khoản</p>
+
+    <div class="settings-list">
+
+        <!-- ── Username ── -->
+        <div class="settings-item" id="item-username">
+            <div class="settings-row" onclick="toggleEdit('username')">
+                <div class="settings-info">
+                    <span class="settings-lbl">Tên đăng nhập</span>
+                    <span class="settings-val">@Model.Username</span>
+                </div>
+                <button class="settings-edit-btn" type="button" aria-label="Sửa tên đăng nhập">
+                    <i class="bi bi-pencil" id="icon-username"></i>
+                </button>
+            </div>
+            <div class="settings-form" id="form-username">
+                <form asp-action="Settings" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="UserId" value="@Model.UserId" />
+                    <input type="hidden" name="Email" value="@Model.Email" />
+                    <div class="sf-field">
+                        <label class="sf-label">Tên đăng nhập mới</label>
+                        <div class="sf-input-wrap">
+                            <i class="bi bi-person sf-input-icon"></i>
+                            <input type="text" name="Username" value="@Model.Username"
+                                   class="sf-input" required autocomplete="off" />
+                        </div>
+                    </div>
+                    <div class="sf-actions">
+                        <button type="submit" class="sf-btn sf-btn-save">
+                            <i class="bi bi-check2"></i> Lưu
+                        </button>
+                        <button type="button" class="sf-btn sf-btn-cancel"
+                                onclick="toggleEdit('username')">
+                            Huỷ
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
-        <div class="mb-3">
-            <label class="form-label">Email</label>
-            <input asp-for="Email" type="email" class="form-control" required />
+
+        <!-- ── Email ── -->
+        <div class="settings-item" id="item-email">
+            <div class="settings-row" onclick="toggleEdit('email')">
+                <div class="settings-info">
+                    <span class="settings-lbl">Email</span>
+                    <span class="settings-val">@Model.Email</span>
+                </div>
+                <button class="settings-edit-btn" type="button" aria-label="Sửa email">
+                    <i class="bi bi-pencil" id="icon-email"></i>
+                </button>
+            </div>
+            <div class="settings-form" id="form-email">
+                <form asp-action="Settings" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="UserId" value="@Model.UserId" />
+                    <input type="hidden" name="Username" value="@Model.Username" />
+                    <div class="sf-field">
+                        <label class="sf-label">Email mới</label>
+                        <div class="sf-input-wrap">
+                            <i class="bi bi-envelope sf-input-icon"></i>
+                            <input type="email" name="Email" value="@Model.Email"
+                                   class="sf-input" required autocomplete="off" />
+                        </div>
+                    </div>
+                    <div class="sf-actions">
+                        <button type="submit" class="sf-btn sf-btn-save">
+                            <i class="bi bi-check2"></i> Lưu
+                        </button>
+                        <button type="button" class="sf-btn sf-btn-cancel"
+                                onclick="toggleEdit('email')">
+                            Huỷ
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
-        <button type="submit" class="btn btn-primary">💾 Lưu thay đổi</button>
-    </form>
+
+        <!-- ── Password ── -->
+        <div class="settings-item">
+            <a asp-action="ChangePassword" class="settings-row settings-row-link">
+                <div class="settings-info">
+                    <span class="settings-lbl">Mật khẩu</span>
+                    <span class="settings-val">••••••••</span>
+                </div>
+                <i class="bi bi-chevron-right settings-chevron"></i>
+            </a>
+        </div>
+
+    </div>
+
+    <a asp-action="Profile" class="settings-back">
+        <i class="bi bi-arrow-left"></i> Quay lại trang cá nhân
+    </a>
+
 </div>
+
+@section Scripts {
+    <script>
+        function toggleEdit(key) {
+            const form   = document.getElementById('form-' + key);
+            const icon   = document.getElementById('icon-' + key);
+            const isOpen = form.classList.contains('open');
+
+            document.querySelectorAll('.settings-form.open').forEach(f => {
+                f.classList.remove('open');
+                f.style.maxHeight = null;
+            });
+            document.querySelectorAll('.settings-edit-btn i').forEach(i => i.className = 'bi bi-pencil');
+            document.querySelectorAll('.settings-item').forEach(el => el.classList.remove('active'));
+
+            if (!isOpen) {
+                form.classList.add('open');
+                form.style.maxHeight = form.scrollHeight + 'px';
+                icon.className = 'bi bi-x-lg';
+                document.getElementById('item-' + key).classList.add('active');
+                setTimeout(() => form.querySelector('input:not([type=hidden])')?.focus(), 60);
+            }
+        }
+    </script>
+}
