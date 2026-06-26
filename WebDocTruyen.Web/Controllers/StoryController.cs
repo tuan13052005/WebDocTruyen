@@ -60,7 +60,10 @@ namespace WebDocTruyen.Web.Controllers
             };
 
             int total = stories.Count();
-            ViewBag.Genres = (await _genreRepo.GetAllGenreAsync()).Select(GenreMapper.ToDto).ToList();
+            ViewBag.Genres = (await _genreRepo.GetAllGenreAsync())
+                .OrderBy(g => g.Name, StringComparer.OrdinalIgnoreCase)
+                .Select(GenreMapper.ToDto)
+                .ToList();
             ViewBag.GenreIds = genreIds ?? new List<int>();
             ViewBag.Keyword = keyword;
             ViewBag.Status = status;
