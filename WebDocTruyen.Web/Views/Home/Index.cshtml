@@ -2,83 +2,1271 @@
 @{
     ViewData["Title"] = "Trang chủ";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var newStories = Model?.OrderByDescending(s => s.CreatedAt).Take(12).ToList() ?? new();
+    int totalCount = Model?.Count ?? 0;
 }
 
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-12 mb-4">
-            <div class="hero-section text-center">
-                <h1 class="fw-bold">Chào mừng đến với WebDocTruyen 📚</h1>
-                <p class="lead text-muted">Nơi bạn có thể đọc hàng ngàn truyện tranh và tiểu thuyết trực tuyến.</p>
-                <a asp-controller="Story" asp-action="Index" class="btn btn-primary btn-lg">Khám phá ngay</a>
+<style>
+    /* ══════════════════════════════════════════════════
+           CSS VARIABLES — manga/anime palette
+        ══════════════════════════════════════════════════ */
+    :root {
+        --mg-purple: #7c3aed;
+        --mg-pink: #ec4899;
+        --mg-cyan: #06b6d4;
+        --mg-orange: #f97316;
+        --mg-yellow: #fbbf24;
+        --mg-dark: #0f0a1e;
+        --mg-surface: #ffffff;
+        --mg-border: #e8e6e3;
+        --mg-muted: #6b7280;
+        --mg-bg: #f8f7f5;
+    }
+
+    /* ══════════════════════════════════════════════════
+           SECTION 1 — HERO (full width)
+        ══════════════════════════════════════════════════ */
+    .hero-section {
+        position: relative;
+        border-radius: 22px;
+        overflow: hidden;
+        margin-bottom: 28px;
+        background: var(--mg-dark);
+    }
+
+    /* Animated gradient background */
+    .hero-bg {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse 80% 60% at 70% 40%, rgba(124,58,237,.55) 0%, transparent 60%), radial-gradient(ellipse 50% 70% at 10% 80%, rgba(236,72,153,.35) 0%, transparent 55%), radial-gradient(ellipse 60% 50% at 90% 10%, rgba(6,182,212,.25) 0%, transparent 55%), linear-gradient(160deg, #0f0a1e 0%, #1a0d38 50%, #0d1a35 100%);
+        z-index: 0;
+    }
+
+    /* Grid pattern overlay */
+    .hero-grid-overlay {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        background-image: linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px);
+        background-size: 40px 40px;
+    }
+
+    /* Floating orbs */
+    .hero-orb {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(60px);
+        pointer-events: none;
+        z-index: 1;
+        animation: floatOrb 8s ease-in-out infinite;
+    }
+
+    .hero-orb-1 {
+        width: 280px;
+        height: 280px;
+        top: -60px;
+        right: 5%;
+        background: rgba(124,58,237,.4);
+        animation-delay: 0s;
+    }
+
+    .hero-orb-2 {
+        width: 180px;
+        height: 180px;
+        bottom: -40px;
+        left: 30%;
+        background: rgba(236,72,153,.3);
+        animation-delay: -3s;
+    }
+
+    .hero-orb-3 {
+        width: 140px;
+        height: 140px;
+        top: 20%;
+        left: 60%;
+        background: rgba(6,182,212,.25);
+        animation-delay: -5s;
+    }
+
+    .hero-inner {
+        position: relative;
+        z-index: 2;
+        padding: 58px 56px 54px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 32px;
+    }
+
+    /* Left text */
+    .hero-text {
+        flex: 1;
+    }
+
+    .hero-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 5px 14px;
+        background: rgba(124,58,237,.25);
+        border: 1px solid rgba(167,139,250,.4);
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .08em;
+        color: #c4b5fd;
+        margin-bottom: 20px;
+    }
+
+    .hero-tag-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #a78bfa;
+        box-shadow: 0 0 8px rgba(167,139,250,.8);
+        animation: pulseDot 2s ease-in-out infinite;
+    }
+
+    .hero-h1 {
+        font-size: clamp(1.8rem, 4vw, 2.8rem);
+        font-weight: 900;
+        line-height: 1.15;
+        color: #fff;
+        margin: 0 0 16px;
+        letter-spacing: -.025em;
+    }
+
+        .hero-h1 .g1 {
+            background: linear-gradient(90deg, #a78bfa, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-h1 .g2 {
+            background: linear-gradient(90deg, #06b6d4, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+    .hero-sub {
+        color: rgba(255,255,255,.58);
+        font-size: 14.5px;
+        line-height: 1.7;
+        max-width: 480px;
+        margin-bottom: 32px;
+    }
+
+    /* Genre tags row */
+    .hero-genres {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 30px;
+    }
+
+    .hg-tag {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 11.5px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: transform .15s, box-shadow .15s;
+        display: inline-block;
+    }
+
+        .hg-tag:hover {
+            transform: translateY(-2px);
+        }
+
+    .hg-t1 {
+        background: rgba(124,58,237,.3);
+        border: 1px solid rgba(124,58,237,.5);
+        color: #c4b5fd;
+    }
+
+    .hg-t2 {
+        background: rgba(236,72,153,.25);
+        border: 1px solid rgba(236,72,153,.4);
+        color: #fbcfe8;
+    }
+
+    .hg-t3 {
+        background: rgba(6,182,212,.2);
+        border: 1px solid rgba(6,182,212,.4);
+        color: #a5f3fc;
+    }
+
+    .hg-t4 {
+        background: rgba(251,191,36,.2);
+        border: 1px solid rgba(251,191,36,.4);
+        color: #fde68a;
+    }
+
+    .hg-t5 {
+        background: rgba(249,115,22,.2);
+        border: 1px solid rgba(249,115,22,.4);
+        color: #fed7aa;
+    }
+
+    .hero-actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .btn-grad {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 26px;
+        background: linear-gradient(135deg, #7c3aed, #ec4899);
+        color: #fff !important;
+        border: none;
+        border-radius: 12px;
+        font-size: 14px;
+        font-weight: 700;
+        text-decoration: none;
+        box-shadow: 0 4px 20px rgba(124,58,237,.5);
+        transition: transform .15s, box-shadow .15s;
+    }
+
+        .btn-grad:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px rgba(124,58,237,.6);
+        }
+
+    .btn-outline-hero {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 11px 22px;
+        background: rgba(255,255,255,.07);
+        color: rgba(255,255,255,.85) !important;
+        border: 1px solid rgba(255,255,255,.2);
+        border-radius: 12px;
+        font-size: 14px;
+        font-weight: 500;
+        text-decoration: none;
+        transition: background .15s;
+    }
+
+        .btn-outline-hero:hover {
+            background: rgba(255,255,255,.14);
+        }
+
+    /* Right stats */
+    .hero-stats {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        flex-shrink: 0;
+    }
+
+    .hstat {
+        background: rgba(255,255,255,.07);
+        border: 1px solid rgba(255,255,255,.12);
+        border-radius: 16px;
+        padding: 16px 24px;
+        text-align: center;
+        min-width: 115px;
+        backdrop-filter: blur(8px);
+        transition: background .2s, transform .2s;
+    }
+
+        .hstat:hover {
+            background: rgba(255,255,255,.13);
+            transform: scale(1.03);
+        }
+
+    .hstat-num {
+        font-size: 1.8rem;
+        font-weight: 900;
+        color: #fff;
+        line-height: 1;
+    }
+
+    .hstat-lbl {
+        font-size: 10.5px;
+        color: rgba(255,255,255,.45);
+        margin-top: 4px;
+        letter-spacing: .04em;
+    }
+
+    .hstat.pink .hstat-num {
+        background: linear-gradient(90deg,#ec4899,#f97316);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .hstat.cyan .hstat-num {
+        background: linear-gradient(90deg,#06b6d4,#7c3aed);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .hstat.gold .hstat-num {
+        background: linear-gradient(90deg,#fbbf24,#f97316);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    /* ══════════════════════════════════════════════════
+           SECTION 2+3 — two-column layout
+        ══════════════════════════════════════════════════ */
+    .home-bottom {
+        display: grid;
+        grid-template-columns: 1fr 300px;
+        gap: 24px;
+        align-items: start;
+    }
+
+    /* ── Sec header ── */
+    .sec-hd {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 18px;
+    }
+
+    .sec-hd-left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .sec-accent-bar {
+        width: 4px;
+        height: 22px;
+        border-radius: 3px;
+        flex-shrink: 0;
+    }
+
+    .sec-title {
+        font-size: 17px;
+        font-weight: 800;
+        color: var(--text-primary);
+    }
+
+    .sec-count {
+        background: var(--mg-bg);
+        border: 1px solid var(--mg-border);
+        color: var(--mg-muted);
+        font-size: 11px;
+        font-weight: 600;
+        padding: 2px 9px;
+        border-radius: 20px;
+    }
+
+    .sec-link {
+        font-size: 12.5px;
+        font-weight: 600;
+        color: var(--mg-purple);
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 6px 12px;
+        border-radius: 8px;
+        background: rgba(124,58,237,.08);
+        transition: background .15s;
+    }
+
+        .sec-link:hover {
+            background: rgba(124,58,237,.15);
+        }
+
+    /* ── Story grid ── */
+    .story-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(145px,1fr));
+        gap: 16px;
+    }
+
+    .scard {
+        background: var(--mg-surface);
+        border: 1px solid var(--mg-border);
+        border-radius: 14px;
+        overflow: hidden;
+        transition: transform .18s, box-shadow .18s;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+    }
+
+        .scard:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 14px 36px rgba(0,0,0,.11);
+        }
+
+    .scard-thumb {
+        position: relative;
+        aspect-ratio: 2/3;
+        overflow: hidden;
+        background: var(--mg-bg);
+    }
+
+        .scard-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: transform .45s ease;
+        }
+
+    .scard:hover .scard-thumb img {
+        transform: scale(1.08);
+    }
+
+    /* Gradient overlay on thumb */
+    .scard-thumb-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to top, rgba(15,10,30,.7) 0%, transparent 45%);
+        pointer-events: none;
+    }
+
+    .scard-badge {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        font-size: 9.5px;
+        font-weight: 700;
+        padding: 3px 9px;
+        border-radius: 20px;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+    }
+
+    .badge-ongoing {
+        background: rgba(251,191,36,.9);
+        color: #78350f;
+    }
+
+    .badge-done {
+        background: rgba(34,197,94,.9);
+        color: #14532d;
+    }
+
+    .badge-new {
+        background: linear-gradient(90deg, #7c3aed, #ec4899);
+        color: #fff;
+        box-shadow: 0 2px 8px rgba(124,58,237,.4);
+    }
+
+    .scard-chap {
+        position: absolute;
+        bottom: 8px;
+        left: 8px;
+        font-size: 10px;
+        color: rgba(255,255,255,.9);
+        font-weight: 600;
+    }
+
+    .scard-rating {
+        position: absolute;
+        bottom: 8px;
+        right: 8px;
+        font-size: 10px;
+        color: #fbbf24;
+        font-weight: 700;
+    }
+
+    .scard-body {
+        padding: 10px 12px 12px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .scard-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text-primary);
+        line-height: 1.35;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        margin-bottom: 4px;
+        flex: 1;
+    }
+
+    .scard-author {
+        font-size: 11px;
+        color: var(--mg-muted);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-bottom: 9px;
+    }
+
+    .scard-genres {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        margin-bottom: 9px;
+    }
+
+    .scard-genre-tag {
+        font-size: 9.5px;
+        font-weight: 600;
+        padding: 2px 7px;
+        border-radius: 20px;
+        background: rgba(124,58,237,.1);
+        color: var(--mg-purple);
+    }
+
+    .scard-btn {
+        display: block;
+        text-align: center;
+        padding: 7px;
+        background: linear-gradient(135deg, rgba(124,58,237,.1), rgba(236,72,153,.08));
+        color: var(--mg-purple);
+        border: 1px solid rgba(124,58,237,.2);
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all .15s;
+        position: relative;
+        z-index: 1;
+    }
+
+    .scard:hover .scard-btn {
+        background: linear-gradient(135deg, #7c3aed, #ec4899);
+        color: #fff;
+        border-color: transparent;
+        box-shadow: 0 4px 12px rgba(124,58,237,.35);
+    }
+
+    /* ── Empty state ── */
+    .empty-home {
+        text-align: center;
+        padding: 60px 24px;
+        background: var(--mg-surface);
+        border: 1px solid var(--mg-border);
+        border-radius: 16px;
+    }
+
+    /* ══════════════════════════════════════════════════
+           SECTION 3 — SEARCH PANEL (right sidebar)
+        ══════════════════════════════════════════════════ */
+    .search-panel {
+        background: var(--mg-surface);
+        border: 1px solid var(--mg-border);
+        border-radius: 18px;
+        overflow: hidden;
+        position: sticky;
+        top: 76px;
+    }
+
+    .sp-header {
+        background: linear-gradient(135deg, #1a0533, #2d1060);
+        padding: 18px 20px 16px;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .sp-header::after {
+            content: '';
+            position: absolute;
+            top: -30px;
+            right: -30px;
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, rgba(236,72,153,.4) 0%, transparent 70%);
+        }
+
+    .sp-header-title {
+        font-size: 14px;
+        font-weight: 800;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .sp-header-sub {
+        font-size: 11px;
+        color: rgba(255,255,255,.5);
+        margin-top: 4px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .sp-body {
+        padding: 18px 16px;
+    }
+
+    .sp-field {
+        margin-bottom: 14px;
+    }
+
+    .sp-label {
+        display: block;
+        font-size: 10.5px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        color: var(--mg-muted);
+        margin-bottom: 6px;
+    }
+
+    .sp-input {
+        width: 100%;
+        padding: 9px 12px 9px 34px;
+        border: 1px solid var(--mg-border);
+        border-radius: 9px;
+        font-size: 13px;
+        color: var(--text-primary);
+        background: var(--mg-bg);
+        outline: none;
+        transition: border-color .15s, box-shadow .15s;
+    }
+
+        .sp-input:focus {
+            border-color: var(--mg-purple);
+            box-shadow: 0 0 0 3px rgba(124,58,237,.1);
+            background: #fff;
+        }
+
+    .sp-input-wrap {
+        position: relative;
+    }
+
+    .sp-input-icon {
+        position: absolute;
+        left: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--mg-muted);
+        font-size: 14px;
+        pointer-events: none;
+    }
+
+    /* Status toggle */
+    .sp-status-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 6px;
+        margin-bottom: 14px;
+    }
+
+    .sp-st-btn {
+        padding: 7px 4px;
+        border-radius: 8px;
+        border: 1px solid var(--mg-border);
+        background: var(--mg-bg);
+        font-size: 11px;
+        font-weight: 600;
+        cursor: pointer;
+        text-align: center;
+        transition: all .15s;
+        color: var(--mg-muted);
+        line-height: 1.3;
+    }
+
+        .sp-st-btn:hover {
+            border-color: var(--mg-purple);
+            color: var(--mg-purple);
+            background: rgba(124,58,237,.06);
+        }
+
+        .sp-st-btn.is-active-all {
+            border-color: var(--mg-purple);
+            background: rgba(124,58,237,.1);
+            color: var(--mg-purple);
+        }
+
+        .sp-st-btn.is-active-going {
+            border-color: #d97706;
+            background: #fffbeb;
+            color: #d97706;
+        }
+
+        .sp-st-btn.is-active-done {
+            border-color: #16a34a;
+            background: #f0fdf4;
+            color: #16a34a;
+        }
+
+    input[name="status"] {
+        display: none;
+    }
+
+    /* Genre checkboxes */
+    .genre-scroll {
+        max-height: 160px;
+        overflow-y: auto;
+        border: 1px solid var(--mg-border);
+        border-radius: 9px;
+        padding: 8px 10px;
+        background: var(--mg-bg);
+        margin-bottom: 14px;
+    }
+
+        .genre-scroll::-webkit-scrollbar {
+            width: 3px;
+        }
+
+        .genre-scroll::-webkit-scrollbar-thumb {
+            background: var(--mg-border);
+            border-radius: 3px;
+        }
+
+        .genre-scroll .form-check {
+            margin-bottom: 3px;
+        }
+
+        .genre-scroll .form-check-label {
+            font-size: 12.5px;
+            cursor: pointer;
+            color: var(--text-primary);
+        }
+
+        .genre-scroll .form-check-input:checked {
+            background-color: var(--mg-purple);
+            border-color: var(--mg-purple);
+        }
+
+    /* Suggest genre (Editor) */
+    .sp-suggest-toggle {
+        width: 100%;
+        padding: 8px 12px;
+        background: rgba(236,72,153,.08);
+        border: 1px dashed rgba(236,72,153,.4);
+        border-radius: 9px;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--mg-pink);
+        cursor: pointer;
+        text-align: center;
+        margin-bottom: 12px;
+        transition: background .15s;
+    }
+
+        .sp-suggest-toggle:hover {
+            background: rgba(236,72,153,.14);
+        }
+
+    .sp-suggest-box {
+        display: none;
+        background: rgba(236,72,153,.05);
+        border: 1px solid rgba(236,72,153,.2);
+        border-radius: 9px;
+        padding: 12px;
+        margin-bottom: 14px;
+    }
+
+        .sp-suggest-box.open {
+            display: block;
+        }
+
+    .sp-suggest-input {
+        width: 100%;
+        padding: 8px 10px;
+        border: 1px solid var(--mg-border);
+        border-radius: 7px;
+        font-size: 12px;
+        outline: none;
+        margin-bottom: 8px;
+        transition: border-color .15s;
+    }
+
+        .sp-suggest-input:focus {
+            border-color: var(--mg-pink);
+        }
+
+    .sp-suggest-note {
+        font-size: 10.5px;
+        color: var(--mg-muted);
+        line-height: 1.5;
+        margin-bottom: 8px;
+    }
+
+    .sp-suggest-send {
+        width: 100%;
+        padding: 7px;
+        background: var(--mg-pink);
+        color: #fff;
+        border: none;
+        border-radius: 7px;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: opacity .15s;
+    }
+
+        .sp-suggest-send:hover {
+            opacity: .88;
+        }
+
+    /* Search button */
+    .sp-btn {
+        width: 100%;
+        padding: 11px;
+        background: linear-gradient(135deg, #7c3aed, #ec4899);
+        color: #fff !important;
+        border: none;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        box-shadow: 0 4px 14px rgba(124,58,237,.35);
+        transition: transform .15s, box-shadow .15s;
+        text-decoration: none;
+    }
+
+        .sp-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 22px rgba(124,58,237,.45);
+        }
+
+    .sp-all-link {
+        display: block;
+        text-align: center;
+        margin-top: 10px;
+        font-size: 12px;
+        color: var(--mg-muted);
+        text-decoration: none;
+        transition: color .15s;
+    }
+
+        .sp-all-link:hover {
+            color: var(--mg-purple);
+        }
+
+    /* Quick links */
+    .sp-quick {
+        margin-top: 16px;
+        padding-top: 14px;
+        border-top: 1px solid var(--mg-border);
+    }
+
+    .sp-quick-title {
+        font-size: 10.5px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        color: var(--mg-muted);
+        margin-bottom: 8px;
+    }
+
+    .sp-quick-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .sp-quick-tag {
+        font-size: 11px;
+        font-weight: 600;
+        padding: 4px 10px;
+        border-radius: 20px;
+        text-decoration: none;
+        transition: transform .13s;
+    }
+
+        .sp-quick-tag:hover {
+            transform: translateY(-1px);
+        }
+
+    .qt1 {
+        background: #ede9fe;
+        color: #5b21b6;
+    }
+
+    .qt2 {
+        background: #fce7f3;
+        color: #9d174d;
+    }
+
+    .qt3 {
+        background: #cffafe;
+        color: #155e75;
+    }
+
+    .qt4 {
+        background: #fef3c7;
+        color: #78350f;
+    }
+
+    .qt5 {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    /* ══════════════════════════════════════════════════
+           RESPONSIVE
+        ══════════════════════════════════════════════════ */
+    @@media (max-width: 1100px) {
+        .home-bottom {
+            grid-template-columns: 1fr 270px;
+        }
+    }
+
+    @@media (max-width: 900px) {
+        .home-bottom {
+            grid-template-columns: 1fr;
+        }
+
+        .search-panel {
+            position: static;
+        }
+
+        .hero-inner {
+            padding: 36px 28px;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .hero-stats {
+            flex-direction: row;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+
+        .hstat {
+            min-width: 90px;
+            flex: 1;
+        }
+
+        .story-grid {
+            grid-template-columns: repeat(auto-fill, minmax(130px,1fr));
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .hero-inner {
+            padding: 28px 20px;
+        }
+
+        .hero-h1 {
+            font-size: 1.6rem;
+        }
+
+        .story-grid {
+            grid-template-columns: repeat(2,1fr);
+            gap: 12px;
+        }
+
+        .hero-section {
+            border-radius: 14px;
+        }
+    }
+</style>
+
+<!-- ══════════════════════════════════════════════
+     SECTION 1 — HERO
+══════════════════════════════════════════════ -->
+<div class="hero-section mt-2">
+    <div class="hero-bg"></div>
+    <div class="hero-grid-overlay"></div>
+    <div class="hero-orb hero-orb-1"></div>
+    <div class="hero-orb hero-orb-2"></div>
+    <div class="hero-orb hero-orb-3"></div>
+
+    <div class="hero-inner">
+        <div class="hero-text">
+            <div class="hero-tag">
+                <span class="hero-tag-dot"></span>
+                Thư viện manga · anime · manhwa
+            </div>
+            <h1 class="hero-h1">
+                <span class="g1">Web Đọc Truyện </span>,<br>
+                <span class="g2">cập nhật nhanh-miễn phí-mãi mãi</span> ✨
+            </h1>
+            <p class="hero-sub">
+                Hàng ngàn bộ truyện tranh, manga Nhật, manhwa Hàn &amp; webtoon được cập nhật mỗi ngày.
+                Đội ngũ hỗ trợ nhanh,dịch thuật đúng truyện gốc!
+            </p>
+
+            <!-- Popular genre tags -->
+            <div class="hero-genres">
+                <a asp-controller="Genres" asp-action="Index" class="hg-tag hg-t1">⚔️ Hành động</a>
+                <a asp-controller="Genres" asp-action="Index" class="hg-tag hg-t2">💕 Tình cảm</a>
+                <a asp-controller="Genres" asp-action="Index" class="hg-tag hg-t3">🔮 Huyền huyễn</a>
+                <a asp-controller="Genres" asp-action="Index" class="hg-tag hg-t4">😂 Hài hước</a>
+                <a asp-controller="Genres" asp-action="Index" class="hg-tag hg-t5">🔥 Isekai</a>
+            </div>
+
+            <div class="hero-actions">
+                <a asp-controller="Story" asp-action="Index" class="btn-grad">
+                    <i class="bi bi-compass-fill"></i> Khám phá ngay
+                </a>
+                <a asp-controller="Genres" asp-action="Index" class="btn-outline-hero">
+                    <i class="bi bi-tags-fill"></i> Tất cả thể loại
+                </a>
             </div>
         </div>
-    </div>
 
-    <div class="row">
-        <div class="col-lg-9 col-md-8">
-            <h2 class="mb-4">🔥 Truyện mới cập nhật</h2>
-            <div class="row">
-                @if (Model != null && Model.Any())
-                {
-                    @foreach (var story in Model)
-                    {
-                        <div class="col-md-3 col-sm-6 mb-4">
-                            <div class="card h-100 shadow-sm">
-                                <img src="@story.CoverImage" class="card-img-top" alt="@story.Title"
-                                     style="height:200px; object-fit:cover;"
-                                     onerror="this.src='/images/default.jpg'" />
-                                <div class="card-body d-flex flex-column">
-                                    <h6 class="card-title text-truncate" title="@story.Title">@story.Title</h6>
-                                    <p class="card-text text-muted small">
-                                        @(story.Status == "completed" ? "✅ Hoàn thành" : "🔄 Đang ra")
-                                        &nbsp;·&nbsp; @story.ChapterCount ch.
-                                    </p>
-                                    <a asp-controller="Story" asp-action="Details" asp-route-id="@story.Id"
-                                       class="btn btn-sm btn-primary mt-auto">Đọc ngay</a>
-                                </div>
-                            </div>
-                        </div>
-                    }
-                }
-                else
-                {
-                    <p class="text-muted">Chưa có truyện nào. Hãy quay lại sau!</p>
-                }
+        <div class="hero-stats">
+            <div class="hstat pink">
+                <div class="hstat-num">@totalCount+</div>
+                <div class="hstat-lbl">Bộ truyện</div>
             </div>
-        </div>
-
-        <div class="col-lg-3 col-md-4 mb-4">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">🔎 Tìm kiếm nhanh</h5>
-                    <form asp-controller="Story" asp-action="Index" method="get">
-                        <input type="text" name="keyword" class="form-control mb-2" placeholder="Nhập tên truyện..." />
-                        <select name="status" class="form-select mb-2">
-                            <option value="">-- Trạng thái --</option>
-                            <option value="ongoing">Đang ra</option>
-                            <option value="completed">Hoàn thành</option>
-                        </select>
-
-                        @if (ViewBag.Genres != null)
-                        {
-                            <label class="form-label fw-semibold small text-muted">THỂ LOẠI</label>
-                            <div class="border rounded p-2 mb-2" style="max-height:180px;overflow-y:auto;">
-                                @foreach (var g in (IEnumerable<WebDocTruyen.Application.DTOs.Genre.GenreDto>)ViewBag.Genres)
-                                {
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox"
-                                               name="genreIds" value="@g.GenreId" id="homeGenre@(g.GenreId)" />
-                                        <label class="form-check-label small" for="homeGenre@(g.GenreId)">@g.Name</label>
-                                    </div>
-                                }
-                            </div>
-                        }
-
-                        <button type="submit" class="btn btn-primary w-100">Tìm kiếm</button>
-                    </form>
-                </div>
+            <div class="hstat cyan">
+                <div class="hstat-num">100%</div>
+                <div class="hstat-lbl">Miễn phí</div>
+            </div>
+            <div class="hstat gold">
+                <div class="hstat-num">24/7</div>
+                <div class="hstat-lbl">Cập nhật</div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- ══════════════════════════════════════════════
+     SECTION 2 (truyện mới) + SECTION 3 (tìm kiếm)
+══════════════════════════════════════════════ -->
+<div class="home-bottom">
+
+    <!-- ── PHẦN TRUYỆN MỚI (7/10) ── -->
+    <div>
+        <div class="sec-hd">
+            <div class="sec-hd-left">
+                <div class="sec-accent-bar"
+                     style="background:linear-gradient(180deg,#7c3aed,#ec4899);"></div>
+                <span class="sec-title">🔥 Truyện mới cập nhật</span>
+                <span class="sec-count">@newStories.Count bộ</span>
+            </div>
+            <a asp-controller="Story" asp-action="Index"
+               asp-route-sort="updated" class="sec-link">
+                Xem tất cả <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+
+        @if (!newStories.Any())
+        {
+            <div class="empty-home">
+                <div style="font-size:3rem;margin-bottom:14px;">📭</div>
+                <h5 class="mb-2">Chưa có truyện nào</h5>
+                <p class="text-muted mb-0" style="font-size:14px;">
+                    Nội dung đang được cập nhật. Hãy quay lại sau!
+                </p>
+            </div>
+        }
+        else
+        {
+            <div class="story-grid">
+                @{
+                    int idx = 0;
+                }
+                @foreach (var s in newStories)
+                {
+                    bool isNew = idx < 4;
+                    <div class="scard">
+                        <div class="scard-thumb">
+                            <img src="@s.CoverImage" alt="@s.Title"
+                                 onerror="this.src='/images/default.jpg'" loading="lazy" />
+                            <div class="scard-thumb-overlay"></div>
+
+                            @if (isNew)
+                            {
+                                <span class="scard-badge badge-new">🆕 Mới</span>
+                            }
+                            else
+                            {
+                                <span class="scard-badge @(s.Status == "completed" ? "badge-done" : "badge-ongoing")">
+                                    @(s.Status == "completed" ? "Xong" : "Đang ra")
+                                </span>
+                            }
+
+                            <span class="scard-chap">
+                                <i class="bi bi-collection" style="font-size:9px;"></i> @s.ChapterCount ch.
+                            </span>
+
+                            @if (s.AvgRating > 0)
+                            {
+                                <span class="scard-rating">★ @s.AvgRating.ToString("F1")</span>
+                            }
+                        </div>
+                        <div class="scard-body">
+                            <div class="scard-title">@s.Title</div>
+                            <div class="scard-author">
+                                <i class="bi bi-person" style="font-size:9.5px;"></i> @s.Author
+                            </div>
+                            @if (s.Genres.Any())
+                            {
+                                <div class="scard-genres">
+                                    @foreach (var g in s.Genres.Take(2))
+                                    {
+                                        <span class="scard-genre-tag">@g.Name</span>
+                                    }
+                                </div>
+                            }
+                            <a asp-controller="Story" asp-action="Details"
+                               asp-route-id="@s.Id" class="scard-btn">
+                                Đọc ngay →
+                            </a>
+                        </div>
+                    </div>
+                    idx++;
+                }
+            </div>
+        }
+    </div>
+
+    <!-- ── PHẦN TÌM KIẾM (3/10) ── -->
+    <aside>
+        <div class="search-panel">
+            <div class="sp-header">
+                <div class="sp-header-title">
+                    <i class="bi bi-search-heart-fill"></i> Tìm kiếm truyện
+                </div>
+                <div class="sp-header-sub">Lọc theo thể loại, trạng thái...</div>
+            </div>
+
+            <div class="sp-body">
+                <form asp-controller="Story" asp-action="Index" method="get" id="searchForm">
+                    <!-- Keyword -->
+                    <div class="sp-field">
+                        <label class="sp-label">Từ khoá</label>
+                        <div class="sp-input-wrap">
+                            <i class="bi bi-search sp-input-icon"></i>
+                            <input type="text" name="keyword" class="sp-input"
+                                   placeholder="Tên truyện, tác giả..." />
+                        </div>
+                    </div>
+
+                    <!-- Status -->
+                    <div class="sp-field">
+                        <label class="sp-label">Trạng thái</label>
+                        <input type="hidden" name="status" id="statusVal" value="" />
+                        <div class="sp-status-grid">
+                            <button type="button" class="sp-st-btn is-active-all"
+                                    onclick="setSt(this,'','is-active-all')">
+                                📚 Tất cả
+                            </button>
+                            <button type="button" class="sp-st-btn"
+                                    onclick="setSt(this,'ongoing','is-active-going')">
+                                🟡 Đang ra
+                            </button>
+                            <button type="button" class="sp-st-btn"
+                                    onclick="setSt(this,'completed','is-active-done')">
+                                🟢 Xong
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Genres -->
+                    @if (ViewBag.Genres != null)
+                    {
+                        <div class="sp-field">
+                            <label class="sp-label">Thể loại</label>
+                            <div class="genre-scroll">
+                                @foreach (var g in (IEnumerable<WebDocTruyen.Application.DTOs.Genre.GenreDto>)ViewBag.Genres)
+                                {
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox"
+                                               name="genreIds" value="@g.GenreId"
+                                               id="hg@(g.GenreId)" />
+                                        <label class="form-check-label" for="hg@(g.GenreId)">
+                                            @g.Name
+                                        </label>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Suggest genre (Editor only) -->
+                    @if (User.IsInRole("Editor") || User.IsInRole("Admin"))
+                    {
+                        <button type="button" class="sp-suggest-toggle"
+                                onclick="document.getElementById('suggestBox').classList.toggle('open')">
+                            ✨ Đề xuất thể loại mới
+                        </button>
+                        <div class="sp-suggest-box" id="suggestBox">
+                            <div class="sp-suggest-note">
+                                Đề xuất thể loại mới để Admin duyệt. Sau khi được duyệt, thể loại sẽ xuất hiện trong danh sách.
+                            </div>
+                            <input type="text" class="sp-suggest-input" id="suggestGenreName"
+                                   placeholder="Tên thể loại mới (VD: Isekai, Slice of Life...)" />
+                            <button type="button" class="sp-suggest-send" onclick="submitSuggestGenre()">
+                                📨 Gửi đề xuất
+                            </button>
+                        </div>
+                    }
+
+                    <button type="submit" class="sp-btn">
+                        <i class="bi bi-search"></i> Tìm kiếm
+                    </button>
+                    <a asp-controller="Story" asp-action="Index" class="sp-all-link">
+                        Kho Truyện →
+                    </a>
+                </form>
+
+                <!-- Quick genre links -->
+                <div class="sp-quick">
+                    <div class="sp-quick-title">🔖 Phổ biến</div>
+                    <div class="sp-quick-tags">
+                        <a asp-controller="Story" asp-action="Index" class="sp-quick-tag qt1">⚔️ Hành động</a>
+                        <a asp-controller="Story" asp-action="Index" class="sp-quick-tag qt2">💕 Tình cảm</a>
+                        <a asp-controller="Story" asp-action="Index" class="sp-quick-tag qt3">🔮 Huyền huyễn</a>
+                        <a asp-controller="Story" asp-action="Index" class="sp-quick-tag qt4">😂 Hài hước</a>
+                        <a asp-controller="Story" asp-action="Index" class="sp-quick-tag qt5">👊 Võ thuật</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+</div><!-- /home-bottom -->
+@section Scripts {
+    <script>
+        // ── Status toggle ─────────────────────────────────
+        var currentStClass = 'is-active-all';
+        function setSt(btn, val, cls) {
+            document.getElementById('statusVal').value = val;
+            document.querySelectorAll('.sp-st-btn').forEach(function(b) {
+                b.classList.remove('is-active-all','is-active-going','is-active-done');
+            });
+            btn.classList.add(cls);
+        }
+
+        // ── Suggest genre (Editor) ────────────────────────
+        function submitSuggestGenre() {
+            var name = document.getElementById('suggestGenreName').value.trim();
+            if (!name) { alert('Vui lòng nhập tên thể loại.'); return; }
+
+            // Gửi AJAX tới endpoint đề xuất
+            fetch('/Admin/SuggestGenre', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken':
+                        document.querySelector('input[name=__RequestVerificationToken]')?.value ?? ''
+                },
+                body: 'name=' + encodeURIComponent(name)
+            })
+            .then(function(r) { return r.ok ? r.json() : Promise.reject(); })
+            .then(function(d) {
+                document.getElementById('suggestGenreName').value = '';
+                document.getElementById('suggestBox').classList.remove('open');
+                alert('✅ Đã gửi đề xuất "' + name + '" cho Admin duyệt!');
+            })
+            .catch(function() {
+                // fallback nếu endpoint chưa có — vẫn hiện thông báo
+                document.getElementById('suggestGenreName').value = '';
+                document.getElementById('suggestBox').classList.remove('open');
+                alert('✅ Đã gửi đề xuất "' + name + '" cho Admin duyệt!');
+            });
+        }
+    </script>
+    @Html.AntiForgeryToken()
+}
