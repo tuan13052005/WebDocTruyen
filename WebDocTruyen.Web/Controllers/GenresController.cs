@@ -23,7 +23,10 @@ namespace WebDocTruyen.Web.Controllers
         public async Task<IActionResult> Index()
         {
             var genres = await _genreRepo.GetAllGenreAsync();
-            return View(genres.Select(GenreMapper.ToDto).ToList());
+            return View(genres
+                .OrderBy(g => g.Name, StringComparer.OrdinalIgnoreCase)
+                .Select(GenreMapper.ToDto)
+                .ToList());
         }
 
         [AllowAnonymous]
