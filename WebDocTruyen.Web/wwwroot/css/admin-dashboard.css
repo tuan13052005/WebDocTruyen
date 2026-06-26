@@ -1,0 +1,358 @@
+﻿/* ── Admin Dashboard page ── */
+.adm-wrap {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 12px 0 48px;
+    animation: admFadeUp .45s cubic-bezier(.22,1,.36,1) both;
+}
+
+@keyframes admFadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(22px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ── Hero ── */
+.adm-hero {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 40px 36px 32px;
+    display: flex;
+    gap: 28px;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+    .adm-hero::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 5px;
+        background: linear-gradient(90deg, var(--brand), #a78bfa, #60a5fa);
+        border-radius: 20px 20px 0 0;
+        pointer-events: none;
+    }
+
+/* ── Avatar ── */
+.adm-avatar {
+    width: 88px;
+    height: 88px;
+    border-radius: 22px;
+    background: linear-gradient(135deg, var(--brand), #a78bfa);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    color: #fff;
+    flex-shrink: 0;
+    box-shadow: 0 8px 24px rgba(124,92,248,.28);
+    transition: transform .25s cubic-bezier(.34,1.56,.64,1), box-shadow .25s;
+}
+
+    .adm-avatar:hover {
+        transform: scale(1.07) rotate(-2deg);
+        box-shadow: 0 12px 32px rgba(124,92,248,.38);
+    }
+
+/* ── Meta ── */
+.adm-meta {
+    flex: 1;
+    min-width: 0;
+}
+
+.adm-title {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 6px;
+    letter-spacing: -.3px;
+}
+
+.adm-sub {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+/* ── Section label ── */
+.section-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--text-muted);
+    margin: 0 0 12px 2px;
+    animation: admFadeUp .45s .08s cubic-bezier(.22,1,.36,1) both;
+}
+
+/* ── Stat grid ── */
+.adm-grid {
+    display: grid;
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+.adm-grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+.adm-grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+@media (max-width: 600px) {
+    .adm-grid-4 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .adm-grid-2 {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+/* ── Stat card ── */
+.stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    transition: border-color .18s, box-shadow .18s, transform .18s;
+    animation: admFadeUp .45s cubic-bezier(.22,1,.36,1) both;
+}
+
+    .stat-card:hover {
+        border-color: var(--brand);
+        box-shadow: 0 4px 16px rgba(124,92,248,.10);
+        transform: translateY(-2px);
+    }
+
+.stat-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.stat-blue {
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+.stat-red {
+    background: #fff0f0;
+    color: #b91c1c;
+}
+
+.stat-amber {
+    background: #fffbeb;
+    color: #b45309;
+}
+
+.stat-gray {
+    background: #f3f4f6;
+    color: #4b5563;
+}
+
+.stat-green {
+    background: #f0fdf4;
+    color: #15803d;
+}
+
+.stat-purple {
+    background: #f5f3ff;
+    color: #6d28d9;
+}
+
+.stat-label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+}
+
+.stat-value {
+    font-size: 26px;
+    font-weight: 500;
+    color: var(--text-primary);
+    line-height: 1.1;
+}
+
+/* ── Actions ── */
+.adm-actions {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+    animation: admFadeUp .45s .18s cubic-bezier(.22,1,.36,1) both;
+}
+
+.action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 20px 12px;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-primary);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    transition: border-color .18s, background .18s, transform .20s cubic-bezier(.34,1.56,.64,1), box-shadow .18s;
+}
+
+    .action-btn i {
+        font-size: 22px;
+        color: var(--brand);
+        transition: transform .20s cubic-bezier(.34,1.56,.64,1);
+    }
+
+    .action-btn:hover {
+        border-color: var(--brand);
+        background: var(--brand-light);
+        color: var(--brand);
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(124,92,248,.14);
+    }
+
+        .action-btn:hover i {
+            transform: scale(1.22);
+        }
+
+    .action-btn:active {
+        transform: translateY(0) scale(.97);
+    }
+
+/* ── Recent users card ── */
+.adm-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    animation: admFadeUp .45s .22s cubic-bezier(.22,1,.36,1) both;
+}
+
+.user-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    transition: background .12s;
+}
+
+    .user-row:last-child {
+        border-bottom: none;
+    }
+
+    .user-row:hover {
+        background: var(--brand-light);
+    }
+
+.user-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 9px;
+    background: var(--brand-light);
+    color: var(--brand);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.user-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.user-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.user-email {
+    font-size: 12px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.user-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+.role-badge {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 9px;
+    border-radius: 20px;
+}
+
+.role-admin {
+    background: #fff0f0;
+    color: #b91c1c;
+}
+
+.role-editor {
+    background: #fffbeb;
+    color: #b45309;
+}
+
+.role-user {
+    background: #f3f4f6;
+    color: #4b5563;
+}
+
+.user-time {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+/* ── Responsive ── */
+@media (max-width: 540px) {
+    .adm-hero {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .adm-actions {
+        grid-template-columns: 1fr;
+    }
+}

@@ -1,85 +1,172 @@
 ﻿@{
     ViewData["Title"] = "Bảng điều khiển Editor";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    var latestStory = ViewBag.LatestStory as WebDocTruyen.Application.DTOs.Story.StoryDto;
+
+    var username = User.Identity?.Name ?? "Editor";
+    var initials = username.Length > 0
+                        ? username.Substring(0, Math.Min(2, username.Length)).ToUpper()
+                        : "ED";
+
+    int totalStories = (int)(ViewBag.TotalStories ?? 0);
+    int totalOngoing = (int)(ViewBag.TotalOngoingStories ?? 0);
+    int totalCompleted = (int)(ViewBag.TotalCompletedStories ?? 0);
+
     var recentStories = ViewBag.RecentStories as List<WebDocTruyen.Application.DTOs.Story.StoryDto> ?? new();
 }
 
-<div class="container mt-4">
-    <h2 class="mb-4">✏️ Bảng điều khiển Editor</h2>
+<link rel="stylesheet" href="~/css/editor-dashboard.css" />
 
-    <div class="row g-3 mb-4">
-        <div class="col-md-4">
-            <div class="card text-white bg-primary shadow-sm">
-                <div class="card-body">
-                    <h6>Tổng số truyện</h6>
-                    <h2 class="mb-0">@ViewBag.TotalStories</h2>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card text-white bg-warning shadow-sm">
-                <div class="card-body">
-                    <h6>Đang ra</h6>
-                    <h2 class="mb-0">@ViewBag.TotalOngoingStories</h2>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card text-white bg-success shadow-sm">
-                <div class="card-body">
-                    <h6>Hoàn thành</h6>
-                    <h2 class="mb-0">@ViewBag.TotalCompletedStories</h2>
-                </div>
+<div class="ed-wrap">
+
+    <!-- ── Hero ── -->
+    <div class="ed-hero">
+        <div class="ed-avatar">@initials</div>
+        <div class="ed-meta">
+            <h1 class="ed-name">Xin chào, @username 👋</h1>
+            <span class="ed-role"><span class="dot"></span>Biên tập viên</span>
+            <div class="ed-hero-actions">
+                <a asp-action="Create" asp-controller="Story" class="ed-hero-btn ed-hero-btn-primary">
+                    <i class="bi bi-plus-lg"></i> Thêm truyện mới
+                </a>
+                <a asp-action="ManageStories" class="ed-hero-btn ed-hero-btn-outline">
+                    <i class="bi bi-collection"></i> Quản lý truyện
+                </a>
             </div>
         </div>
     </div>
 
-    @if (latestStory != null)
-    {
-        <div class="card mb-4 shadow-sm">
-            <div class="card-header bg-dark text-white">📌 Truyện mới nhất của bạn</div>
-            <div class="card-body d-flex gap-3">
-                <img src="@latestStory.CoverImage" style="width:80px;height:110px;object-fit:cover;" class="rounded" />
-                <div>
-                    <h5>@latestStory.Title</h5>
-                    <p class="text-muted mb-1">@latestStory.Author</p>
-                    <a asp-controller="Story" asp-action="Details" asp-route-id="@latestStory.Id" class="btn btn-sm btn-primary">Xem</a>
-                </div>
+    <!-- ── Thống kê ── -->
+    <p class="section-label">Tổng quan</p>
+    <div class="ed-stats">
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-purple">
+                <i class="bi bi-book"></i>
+            </div>
+            <div>
+                <div class="stat-label">Tổng truyện</div>
+                <div class="stat-value">@totalStories</div>
             </div>
         </div>
-    }
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-amber">
+                <i class="bi bi-hourglass-split"></i>
+            </div>
+            <div>
+                <div class="stat-label">Đang ra</div>
+                <div class="stat-value">@totalOngoing</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-green">
+                <i class="bi bi-check-circle"></i>
+            </div>
+            <div>
+                <div class="stat-label">Hoàn thành</div>
+                <div class="stat-value">@totalCompleted</div>
+            </div>
+        </div>
+    </div>
 
-    <div class="card shadow-sm">
-        <div class="card-header bg-dark text-white">📚 Truyện gần đây</div>
-        <table class="table table-striped mb-0">
-            <thead><tr><th>Tiêu đề</th><th>Trạng thái</th><th>Chapter</th><th>Ngày tạo</th></tr></thead>
-            <tbody>
-                @foreach (var s in recentStories)
-                {
+    <!-- ── Hoạt động gần đây ── -->
+    <p class="section-label">Hoạt động gần đây</p>
+    <div class="ed-card">
+        <div class="ed-card-header">
+            <span class="ed-card-title">
+                <i class="bi bi-clock-history" style="color:var(--brand);"></i>
+                Truyện của tôi
+            </span>
+            <a asp-action="ManageStories" class="ed-card-link">
+                Xem tất cả <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+
+        @if (!recentStories.Any())
+        {
+            <div class="ed-empty">
+                <div><i class="bi bi-inbox"></i></div>
+                <p class="mb-0">Chưa có truyện nào. Hãy thêm truyện đầu tiên!</p>
+            </div>
+        }
+        else
+        {
+            <table class="ed-table">
+                <thead>
                     <tr>
-                        <td>@s.Title</td>
-                        <td>
-                            @if (s.Status == "completed")
-                            {
-                                <span class="badge bg-success">Hoàn thành</span>
-                            }
-                            else
-                            {
-
-                                <span class="badge bg-warning text-dark">Đang ra</span>
-                            }
-                        </td>
-                        <td>@s.ChapterCount</td>
-                        <td>@s.CreatedAt.ToString("dd/MM/yyyy")</td>
+                        <th style="width:44px;"></th>
+                        <th>Tiêu đề</th>
+                        <th class="col-hide">Tác giả</th>
+                        <th>Trạng thái</th>
+                        <th class="col-hide" style="text-align:center;">Chapter</th>
+                        <th class="col-hide">Ngày tạo</th>
+                        <th>Thao tác</th>
                     </tr>
-                }
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @foreach (var s in recentStories)
+                    {
+                        <tr>
+                            <td>
+                                <img src="@s.CoverImage"
+                                     class="story-thumb"
+                                     onerror="this.src='/images/default.jpg'"
+                                     alt="@s.Title" />
+                            </td>
+                            <td>
+                                <a asp-controller="Story" asp-action="Details"
+                                   asp-route-id="@s.Id" class="story-title">
+                                    @s.Title
+                                </a>
+                            </td>
+                            <td class="col-hide" style="color:var(--text-muted);">@s.Author</td>
+                            <td>
+                                <span class="badge-status @(s.Status == "completed" ? "badge-done" : "badge-ongoing")">
+                                    @(s.Status == "completed" ? "✅ Xong" : "🔄 Đang ra")
+                                </span>
+                            </td>
+                            <td class="col-hide" style="text-align:center; color:var(--text-muted);">
+                                @s.ChapterCount
+                            </td>
+                            <td class="col-hide" style="color:var(--text-muted); white-space:nowrap;">
+                                @s.CreatedAt.ToString("dd/MM/yyyy")
+                            </td>
+                            <td>
+                                <div class="td-actions">
+                                    <a asp-action="AddChapter" asp-controller="Chapter"
+                                       asp-route-storyId="@s.Id" class="ed-act-btn" title="Thêm chapter">
+                                        <i class="bi bi-plus"></i>
+                                    </a>
+                                    <a asp-action="ListChapters" asp-controller="Chapter"
+                                       asp-route-id="@s.Id" class="ed-act-btn" title="Danh sách chapter">
+                                        <i class="bi bi-list-ul"></i>
+                                    </a>
+                                    <a asp-action="Edit" asp-controller="Story"
+                                       asp-route-id="@s.Id" class="ed-act-btn" title="Sửa truyện">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
     </div>
 
-    <div class="mt-3 d-flex gap-2">
-        <a asp-action="Create" asp-controller="Story" class="btn btn-success">➕ Thêm truyện mới</a>
-        <a asp-action="ManageStories" class="btn btn-primary">📋 Quản lý truyện</a>
+    <!-- ── Thao tác nhanh ── -->
+    <p class="section-label">Thao tác nhanh</p>
+    <div class="ed-quick">
+        <a asp-action="Create" asp-controller="Story" class="quick-btn">
+            <i class="bi bi-plus-circle"></i>
+            Thêm truyện
+        </a>
+        <a asp-action="ManageStories" class="quick-btn">
+            <i class="bi bi-collection"></i>
+            Quản lý truyện
+        </a>
+        <a asp-controller="Story" asp-action="Index" class="quick-btn">
+            <i class="bi bi-eye"></i>
+            Xem trang chủ
+        </a>
     </div>
+
 </div>
