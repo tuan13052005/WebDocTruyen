@@ -29,7 +29,10 @@ namespace WebDocTruyen.Web.Controllers
         public async Task<IActionResult> Index()
         {
             var stories = await _storyService.GetAllStoriesAsync();
-            ViewBag.Genres = (await _genreRepo.GetAllGenreAsync()).Select(GenreMapper.ToDto).ToList();
+            ViewBag.Genres = (await _genreRepo.GetAllGenreAsync())
+                .OrderBy(g => g.Name, StringComparer.OrdinalIgnoreCase)
+                .Select(GenreMapper.ToDto)
+                .ToList();
             return View(stories.OrderByDescending(s => s.CreatedAt).Take(8).ToList());
         }
 
