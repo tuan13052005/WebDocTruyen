@@ -353,7 +353,7 @@
                     const d = await resp.json();
                     myRow.dataset.current = score;
                     paintMy(score);
-                    document.getElementById('myScoreLabel').textContent = score + '/10';
+                    document.getElementById('myScoreLabel').textContent = score;
                     document.getElementById('avgValBig').textContent = d.avg;
                     document.getElementById('ratingCountTxt').textContent = d.count;
                     paintAvg(Math.round(d.avg));

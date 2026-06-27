@@ -252,29 +252,26 @@ namespace WebDocTruyen.Web.Controllers
             existing.Status = dto.Status;
             existing.UpdatedAt = DateTime.Now;
 
-            // ── Ảnh bìa: chỉ thay nếu file vật lý hiện tại KHÔNG còn tồn tại trên đĩa ──
+            // ── Ảnh bìa: thay ảnh mới và xóa ảnh cũ ──
             if (coverImage?.Length > 0)
             {
-                var existingPhysicalPath = string.IsNullOrEmpty(existing.CoverImage)
-                    ? null
-                    : Path.Combine(Directory.GetCurrentDirectory(), "wwwroot",
+                // Xóa ảnh cũ nếu tồn tại
+                if (!string.IsNullOrEmpty(existing.CoverImage))
+                {
+                    var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot",
                         existing.CoverImage.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
-
-                bool fileStillExists = existingPhysicalPath != null && System.IO.File.Exists(existingPhysicalPath);
-
-                if (!fileStillExists)
-                {
-                    var folder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "stories", existing.StoryId.ToString());
-                    Directory.CreateDirectory(folder);
-                    var fn = Guid.NewGuid() + Path.GetExtension(coverImage.FileName);
-                    using var s = new FileStream(Path.Combine(folder, fn), FileMode.Create);
-                    await coverImage.CopyToAsync(s);
-                    existing.CoverImage = $"/images/stories/{existing.StoryId}/{fn}";
+                    if (System.IO.File.Exists(oldPath))
+                        System.IO.File.Delete(oldPath);
                 }
-                else
-                {
-                    TempData["Info"] = "Ảnh bìa hiện tại vẫn còn tồn tại trên hệ thống, không thay đổi.";
-                }
+
+                // Lưu ảnh mới
+                var folder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot",
+                    "images", "stories", existing.StoryId.ToString());
+                Directory.CreateDirectory(folder);
+                var fn = Guid.NewGuid() + Path.GetExtension(coverImage.FileName);
+                using var s = new FileStream(Path.Combine(folder, fn), FileMode.Create);
+                await coverImage.CopyToAsync(s);
+                existing.CoverImage = $"/images/stories/{existing.StoryId}/{fn}";
             }
 
             // ── Diff thể loại: chỉ thêm cái mới chọn, chỉ xóa cái bị bỏ chọn ──
