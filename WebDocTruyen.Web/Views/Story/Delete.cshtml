@@ -4,24 +4,101 @@
     ViewData["Title"] = "Xác nhận xóa truyện";
 }
 
-<div class="container mt-4" style="max-width:600px;">
-    <div class="card shadow-sm border-danger">
-        <div class="card-header bg-danger text-white">🗑️ Xác nhận xóa truyện</div>
-        <div class="card-body">
-            <p>Bạn có chắc muốn xóa truyện sau?</p>
-            <ul class="list-unstyled">
-                <li><strong>Tiêu đề:</strong> @Model.Title</li>
-                <li><strong>Tác giả:</strong> @Model.Author</li>
-                <li><strong>Số chapter:</strong> @Model.ChapterCount</li>
-            </ul>
-            <p class="text-danger"><strong>⚠️ Hành động này không thể hoàn tác!</strong></p>
+<link rel="stylesheet" href="~/css/story-delete.css">
 
+<div class="del-page">
+    <div class="del-card">
+
+        <!-- Corner deco -->
+        <div class="del-corner-deco">💀</div>
+
+        <!-- ── Header ── -->
+        <div class="del-header">
+            <div class="del-header-grid"></div>
+            <div class="del-orb del-orb-1"></div>
+            <div class="del-orb del-orb-2"></div>
+
+            <div class="del-icon-wrap">
+                <div class="del-icon-ring">🗑️</div>
+            </div>
+            <h1 class="del-header-title">Xóa truyện vĩnh viễn</h1>
+            <p class="del-header-sub">Hành động này không thể hoàn tác</p>
+        </div>
+
+        <!-- ── Body ── -->
+        <div class="del-body">
+
+            <!-- Story preview card -->
+            <div class="del-story-preview">
+                <img src="@Model.CoverImage"
+                     alt="@Model.Title"
+                     class="del-story-thumb"
+                     onerror="this.src='/images/default.jpg'" />
+                <div class="del-story-info">
+                    <div class="del-story-title">@Model.Title</div>
+                    <div class="del-story-author">
+                        <i class="bi bi-person-fill"></i>
+                        @Model.Author
+                    </div>
+                    <div class="del-story-stats">
+                        <span class="del-stat-badge del-stat-chapters">
+                            <i class="bi bi-collection-fill"></i>
+                            @Model.ChapterCount chương
+                        </span>
+                        @if (Model.Status == "completed")
+                        {
+                            <span class="del-stat-badge del-stat-status-done">
+                                ✅ Hoàn thành
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="del-stat-badge del-stat-status-ongoing">
+                                🔄 Đang ra
+                            </span>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Divider -->
+            <div class="del-divider">
+                <div class="del-divider-line"></div>
+                <span class="del-divider-text">⚠️ Cảnh báo</span>
+                <div class="del-divider-line"></div>
+            </div>
+
+            <!-- Warning -->
+            <div class="del-warning">
+                <div class="del-warning-icon">☠️</div>
+                <div class="del-warning-text">
+                    <p class="del-warning-title">Sẽ xóa toàn bộ dữ liệu liên quan</p>
+                    <p class="del-warning-desc">
+                        Tất cả @Model.ChapterCount chương, ảnh trang, bình luận và đánh giá
+                        của truyện này sẽ bị xóa vĩnh viễn. Không thể khôi phục!
+                    </p>
+                </div>
+            </div>
+
+            <!-- Action buttons -->
             <form asp-action="Delete" method="post">
                 @Html.AntiForgeryToken()
                 <input type="hidden" name="id" value="@Model.Id" />
-                <button type="submit" class="btn btn-danger me-2">Xác nhận xóa</button>
-                <a asp-action="ManageStories" asp-controller="Editor" class="btn btn-secondary">Hủy</a>
+                <div class="del-actions">
+                    <a asp-action="ManageStories" asp-controller="Editor"
+                       class="del-btn-cancel">
+                        <i class="bi bi-arrow-left"></i> Quay lại
+                    </a>
+                    <button type="submit" class="del-btn-confirm">
+                        <span>
+                            <i class="bi bi-trash3-fill"></i>
+                            Xóa vĩnh viễn
+                        </span>
+                    </button>
+                </div>
             </form>
+
         </div>
     </div>
 </div>
+
