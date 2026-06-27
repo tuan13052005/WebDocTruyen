@@ -5,52 +5,97 @@
     var story = ViewBag.Story as WebDocTruyen.Domain.Entities.Story;
 }
 
-<div class="container mt-4" style="max-width:560px;">
-    <nav aria-label="breadcrumb" class="mb-3">
-        <ol class="breadcrumb">
+<link rel="stylesheet" href="~/css/Edit-Chapter.css" />
+
+<div class="ec-wrap">
+
+    <!-- ── Hero ── -->
+    <div class="ec-hero">
+        <div class="ec-hero-icon">
+            <i class="bi bi-pencil-square"></i>
+        </div>
+        <div class="ec-hero-meta">
+            <h1 class="ec-hero-title">Sửa Chapter @Model.ChapterNumber</h1>
             @if (story != null)
             {
-                <li class="breadcrumb-item">
-                    <a asp-action="ListChapters" asp-controller="Chapter" asp-route-id="@story.StoryId">
-                        @story.Title
-                    </a>
-                </li>
+                <p class="ec-hero-sub">
+                    <i class="bi bi-book"></i> @story.Title
+                </p>
             }
-            <li class="breadcrumb-item active">Sửa Chapter @Model.ChapterNumber</li>
-        </ol>
-    </nav>
-
-    <div class="card shadow-sm">
-        <div class="card-header bg-warning text-dark fw-semibold">
-            ✏️ Sửa thông tin Chapter @Model.ChapterNumber
-        </div>
-        <div class="card-body">
-            <form asp-action="EditChapter" asp-controller="Chapter" method="post">
-                @Html.AntiForgeryToken()
-                <input type="hidden" asp-for="ChapterId" />
-                <input type="hidden" asp-for="StoryId" />
-
-                <div class="mb-3">
-                    <label asp-for="ChapterNumber" class="form-label">Số Chapter <span class="text-danger">*</span></label>
-                    <input asp-for="ChapterNumber" class="form-control" type="number" min="1" required />
-                    <span asp-validation-for="ChapterNumber" class="text-danger"></span>
-                </div>
-
-                <div class="mb-3">
-                    <label asp-for="Title" class="form-label">Tiêu đề</label>
-                    <input asp-for="Title" class="form-control" placeholder="VD: Khởi đầu mới..." />
-                </div>
-
-                <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-primary">💾 Cập nhật</button>
-                    <!-- FIX: asp-action="List" → asp-action="ListChapters" -->
-                    <a asp-action="ManageImages" asp-route-chapterId="@Model.ChapterId"
-                       class="btn btn-outline-info">🖼️ Quản lý ảnh</a>
-                    <a asp-action="ListChapters" asp-controller="Chapter"
-                       asp-route-id="@Model.StoryId"
-                       class="btn btn-outline-secondary">← Quay lại</a>
-                </div>
-            </form>
+            else if (!string.IsNullOrEmpty(Model.StoryTitle))
+            {
+                <p class="ec-hero-sub">
+                    <i class="bi bi-book"></i> @Model.StoryTitle
+                </p>
+            }
         </div>
     </div>
+
+    <!-- ── Form ── -->
+    <form asp-action="EditChapter" asp-controller="Chapter" method="post" id="ecForm">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="ChapterId" />
+        <input type="hidden" asp-for="StoryId" />
+
+        <!-- Thông tin chapter -->
+        <p class="ec-section-label">Thông tin chapter</p>
+        <div class="ec-card ec-info-card">
+
+            <div class="ec-field">
+                <label class="ec-field-label">
+                    Số Chapter <span class="ec-required">*</span>
+                </label>
+                <div class="ec-input-wrap">
+                    <i class="bi bi-hash ec-input-icon"></i>
+                    <input asp-for="ChapterNumber"
+                           class="ec-input ec-input-number"
+                           type="number" min="1"
+                           required />
+                </div>
+                <span asp-validation-for="ChapterNumber" class="ec-validation"></span>
+            </div>
+
+            <div class="ec-field">
+                <label class="ec-field-label">Tiêu đề</label>
+                <div class="ec-input-wrap">
+                    <i class="bi bi-cursor-text ec-input-icon"></i>
+                    <input asp-for="Title"
+                           class="ec-input"
+                           placeholder="VD: Khởi đầu mới... (tuỳ chọn)" />
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Hành động nhanh -->
+        <p class="ec-section-label">Liên kết nhanh</p>
+        <div class="ec-quick-links">
+            <a asp-action="ManageImages"
+               asp-route-chapterId="@Model.ChapterId"
+               class="ec-quick-btn">
+                <i class="bi bi-images"></i>
+                <span>Quản lý ảnh</span>
+            </a>
+            <a asp-action="ListChapters" asp-controller="Chapter"
+               asp-route-id="@Model.StoryId"
+               class="ec-quick-btn">
+                <i class="bi bi-list-ul"></i>
+                <span>Danh sách chapter</span>
+            </a>
+        </div>
+
+        <!-- Buttons -->
+        <div class="ec-actions">
+            <button type="submit" class="ec-btn ec-btn-primary">
+                <i class="bi bi-check-lg"></i> Cập nhật
+            </button>
+            <a asp-action="ListChapters" asp-controller="Chapter"
+               asp-route-id="@Model.StoryId"
+               class="ec-btn ec-btn-ghost">
+                <i class="bi bi-arrow-left"></i> Quay lại
+            </a>
+        </div>
+
+    </form>
+
 </div>

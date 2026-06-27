@@ -2,155 +2,316 @@
 @using System.Security.Claims
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = $"{Model.StoryTitle} — {Model.DisplayTitle}";
+
     bool isLoggedIn = User.Identity?.IsAuthenticated == true;
-    int uid = isLoggedIn ? int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0") : 0;
-    ViewData["Title"] = $"{Model.StoryTitle} - {Model.DisplayTitle}";
+    int uid = isLoggedIn
+        ? int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0")
+        : 0;
+
+    // ── Dữ liệu sidebar từ ViewBag (truyền từ controller, lấy từ DB) ──
+    var recentComments = ViewBag.RecentComments
+                         as List<WebDocTruyen.Application.DTOs.Comment.CommentDto>
+                         ?? new List<WebDocTruyen.Application.DTOs.Comment.CommentDto>();
+
+    // Danh sách chapter = Model.AllChapters đã từ DB (qua GetReadDtoAsync)
+    // Tách thành: chapter gần hiện tại (±5) để hiển thị nhanh
+    int currentIdx = Model.AllChapters.FindIndex(c => c.ChapterId == Model.ChapterId);
+    int nearStart = Math.Max(0, currentIdx - 4);
+    int nearEnd = Math.Min(Model.AllChapters.Count - 1, currentIdx + 5);
+    var nearChapters = Model.AllChapters.Skip(nearStart).Take(nearEnd - nearStart + 1).ToList();
 }
 
-<div class="container-fluid px-2 px-md-3 mt-3">
+<link rel="stylesheet" href="~/css/Read-Chapters.css" />
+
+<!-- Progress bar đọc -->
+<div class="rc-progress-bar">
+    <div class="rc-progress-fill" id="progressFill"></div>
+</div>
+
+<div class="rc-outer">
 
     <!-- Breadcrumb -->
-    <div class="text-center mb-2">
-        <a asp-action="Details" asp-controller="Story" asp-route-id="@Model.StoryId"
-           class="text-decoration-none text-muted fw-semibold">@Model.StoryTitle</a>
-        <span class="text-muted mx-1">/</span>
-        <span class="fw-bold">@Model.DisplayTitle</span>
-        <div class="text-muted small">@Model.TotalImages trang</div>
-    </div>
+    <nav class="rc-breadcrumb" aria-label="breadcrumb">
+        <a asp-controller="Home" asp-action="Index">Trang chủ</a>
+        <span class="rc-breadcrumb-sep">/</span>
+        <a asp-controller="Story" asp-action="Details" asp-route-id="@Model.StoryId">
+            @Model.StoryTitle
+        </a>
+        <span class="rc-breadcrumb-sep">/</span>
+        <a asp-controller="Chapter" asp-action="ListChapters" asp-route-id="@Model.StoryId">
+            Danh sách chapter
+        </a>
+        <span class="rc-breadcrumb-sep">/</span>
+        <span class="rc-breadcrumb-cur">@Model.DisplayTitle</span>
+    </nav>
 
-    <!-- Nav trên -->
-    @{
-        await RenderNav("top");
-    }
+    <div class="rc-layout">
 
-    <!-- Ảnh -->
-    @if (!Model.Images.Any())
-    {
-        <div class="alert alert-warning text-center my-5">
-            <div style="font-size:3rem;">🖼️</div>
-            <p class="mb-0">Chapter này chưa có ảnh nào.</p>
-        </div>
-    }
-    else
-    {
-        <div class="d-flex flex-column align-items-center"
-             style="background:#111;border-radius:8px;padding:4px 0;margin:12px 0;">
-            @foreach (var img in Model.Images)
-            {
-                <img src="@img.ImageUrl" alt="Trang @img.PageNumber" loading="lazy"
-                     style="max-width:900px;width:100%;display:block;"
-                     onerror="this.style.display='none'" />
+        <!-- ══ CỘT TRÁI: nội dung đọc ══ -->
+        <div>
+
+            <!-- Nav trên -->
+            @{
+                await RenderNav("top");
             }
-        </div>
-    }
 
-    <!-- Nav dưới -->
-    @{
-        await RenderNav("bot");
-    }
-
-    <!-- Bình luận chapter -->
-    <div class="card shadow-sm mt-4 mb-4" style="max-width:900px;margin-left:auto;margin-right:auto;">
-        <div class="card-header bg-secondary text-white">
-            💬 Bình luận chapter (@Model.Comments.Count)
-        </div>
-        <div class="card-body">
-            @if (isLoggedIn)
+            <!-- Vùng ảnh -->
+            @if (!Model.Images.Any())
             {
-                <form asp-action="AddComment" asp-controller="Story" method="post" class="mb-4">
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" name="storyId" value="@Model.StoryId" />
-                    <input type="hidden" name="chapterId" value="@Model.ChapterId" />
-                    <textarea name="content" class="form-control mb-2" rows="3"
-                          placeholder="Bình luận về chapter này..." required maxlength="1000"></textarea>
-                    <button type="submit" class="btn btn-primary btn-sm">💬 Gửi</button>
-                </form>
+                <div class="rc-empty">
+                    <div class="rc-empty-icon">🖼️</div>
+                    <p class="fw-semibold mb-1">Chapter này chưa có ảnh nào</p>
+                    <p class="small mb-0 text-muted">Nội dung đang được cập nhật.</p>
+                </div>
             }
             else
             {
-                <div class="alert alert-light border mb-3">
-                    <a asp-controller="Account" asp-action="Login">Đăng nhập</a> để bình luận.
+                <div class="rc-img-area" id="imgArea">
+                    @foreach (var img in Model.Images)
+                    {
+                        <img src="@img.ImageUrl"
+                             alt="Trang @img.PageNumber"
+                             loading="lazy"
+                             onerror="this.style.display='none'" />
+                    }
                 </div>
             }
 
-            @if (!Model.Comments.Any())
-            {
-                <p class="text-muted text-center">Chưa có bình luận nào cho chapter này.</p>
+            <!-- Nav dưới -->
+            @{
+                await RenderNav("bot");
             }
-            @foreach (var c in Model.Comments)
-            {
-                <div class="d-flex gap-3 mb-3 pb-3 border-bottom">
-                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold flex-shrink-0"
-                         style="width:40px;height:40px;font-size:1rem;">
-                        @(c.Username?.FirstOrDefault().ToString().ToUpper() ?? "?")
-                    </div>
-                    <div class="flex-grow-1">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <strong>@c.Username</strong>
-                                <span class="text-muted small ms-2">@c.CreatedAt.ToString("dd/MM/yyyy HH:mm")</span>
-                            </div>
-                            @if (isLoggedIn && (c.UserId == uid || User.IsInRole("Admin")))
-                            {
-                                <form asp-action="DeleteComment" asp-controller="Story" method="post" class="d-inline">
-                                    @Html.AntiForgeryToken()
-                                    <input type="hidden" name="commentId" value="@c.CommentId" />
-                                    <input type="hidden" name="storyId" value="@Model.StoryId" />
-                                    <input type="hidden" name="chapterId" value="@Model.ChapterId" />
-                                    <button type="submit" class="btn btn-xs btn-outline-danger py-0 px-1"
-                                            onclick="return confirm('Xóa bình luận?')">
-                                        🗑️
-                                    </button>
-                                </form>
-                            }
-                        </div>
-                        <p class="mb-0 mt-1" style="white-space:pre-line;">@c.Content</p>
-                    </div>
+
+            <!-- Comment section -->
+            <div class="rc-comment-section">
+                <div class="rc-comment-hd">
+                    <i class="bi bi-chat-dots-fill"></i>
+                    Bình luận chapter
+                    <span style="background:rgba(255,255,255,.2);padding:2px 9px;
+                        border-radius:20px;font-size:12px;">
+                        @Model.Comments.Count
+                    </span>
                 </div>
-            }
+                <div class="rc-comment-body">
+
+                    @if (isLoggedIn)
+                    {
+                        <form asp-action="AddComment" asp-controller="Story"
+                              method="post" class="rc-comment-form">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="storyId" value="@Model.StoryId" />
+                            <input type="hidden" name="chapterId" value="@Model.ChapterId" />
+                            <textarea name="content"
+                                      class="rc-comment-textarea"
+                                      placeholder="Viết bình luận về chapter này…"
+                                      required maxlength="1000"></textarea>
+                            <button type="submit" class="rc-comment-submit">
+                                <i class="bi bi-send-fill"></i> Gửi bình luận
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <div class="rc-login-prompt">
+                            <i class="bi bi-info-circle me-1"></i>
+                            <a asp-controller="Account" asp-action="Login">Đăng nhập</a>
+                            để bình luận.
+                        </div>
+                    }
+
+                    @if (!Model.Comments.Any())
+                    {
+                        <div class="rc-comment-empty">
+                            <i class="bi bi-chat" style="font-size:2rem;opacity:.3;display:block;margin-bottom:8px;"></i>
+                            Chưa có bình luận nào. Hãy là người đầu tiên!
+                        </div>
+                    }
+                    else
+                    {
+                        @foreach (var c in Model.Comments)
+                        {
+                            <div class="rc-comment-item">
+                                <div class="rc-avatar">
+                                    @(c.Username.Length > 0
+                                        ? c.Username.Substring(0, 1).ToUpper()
+                                        : "?")
+                                </div>
+                                <div style="flex:1;min-width:0;">
+                                    <div class="rc-comment-meta">
+                                        <span class="rc-comment-user">@c.Username</span>
+                                        <span class="rc-comment-time">
+                                            @c.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                                        </span>
+                                        @if (isLoggedIn && (c.UserId == uid || User.IsInRole("Admin")))
+                                        {
+                                            <span class="rc-comment-del">
+                                                <form asp-action="DeleteComment"
+                                                      asp-controller="Story"
+                                                      method="post" class="d-inline">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="commentId"
+                                                           value="@c.CommentId" />
+                                                    <input type="hidden" name="storyId"
+                                                           value="@Model.StoryId" />
+                                                    <input type="hidden" name="chapterId"
+                                                           value="@Model.ChapterId" />
+                                                    <button type="submit"
+                                                            class="btn btn-sm btn-outline-danger py-0 px-1"
+                                                            onclick="return confirm('Xóa bình luận?')"
+                                                            style="font-size:11px;">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </span>
+                                        }
+                                    </div>
+                                    <p class="rc-comment-text">@c.Content</p>
+                                </div>
+                            </div>
+                        }
+                    }
+
+                </div>
+            </div>
         </div>
+
+        <!-- ══ CỘT PHẢI: sidebar ══ -->
+        <aside class="rc-sidebar" id="rcSidebar">
+
+            <!-- Widget: thông tin chapter hiện tại -->
+            <div class="rc-widget">
+                <div class="rc-widget-hd purple">
+                    <i class="bi bi-info-circle-fill"></i> Thông tin
+                </div>
+                <ul class="rc-info-list">
+                    <li class="rc-info-row">
+                        <span class="rc-info-lbl">Truyện</span>
+                        <a asp-controller="Story" asp-action="Details"
+                           asp-route-id="@Model.StoryId"
+                           style="color:#3b1fa8;font-weight:700;font-size:12px;
+                            text-decoration:none;text-align:right;max-width:140px;
+                            overflow:hidden;white-space:nowrap;text-overflow:ellipsis;"
+                           title="@Model.StoryTitle">
+                            @Model.StoryTitle
+                        </a>
+                    </li>
+                    <li class="rc-info-row">
+                        <span class="rc-info-lbl">Chapter</span>
+                        <span class="rc-info-val">@Model.ChapterNumber / @Model.AllChapters.Count</span>
+                    </li>
+                    <li class="rc-info-row">
+                        <span class="rc-info-lbl">Số trang</span>
+                        <span class="rc-info-val">@Model.TotalImages trang</span>
+                    </li>
+                    <li class="rc-info-row">
+                        <span class="rc-info-lbl">Bình luận</span>
+                        <span class="rc-info-val">@Model.Comments.Count</span>
+                    </li>
+                    <li class="rc-info-row">
+                        <span class="rc-info-lbl">Theo dõi</span>
+                        <span class="rc-info-val" id="sidebarFavCount">@Model.FavCount</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Widget: danh sách chapter (từ Model.AllChapters - DB) -->
+            <div class="rc-widget">
+                <div class="rc-widget-hd teal">
+                    <i class="bi bi-collection-fill"></i>
+                    Chapters
+                    <span style="background:rgba(255,255,255,.2);padding:1px 7px;
+                        border-radius:20px;font-size:10px;margin-left:auto;">
+                        @Model.AllChapters.Count
+                    </span>
+                </div>
+                @if (!Model.AllChapters.Any())
+                {
+                    <p class="text-muted small text-center py-3 mb-0">Chưa có chapter.</p>
+                }
+                else
+                {
+                    <!-- Hiển thị chapter gần chapter hiện tại (±5), scroll tới current -->
+                    <div class="rc-chap-scroll" id="chapScroll">
+                        @foreach (var ch in nearChapters)
+                        {
+                            bool isCur = ch.ChapterId == Model.ChapterId;
+                            <a asp-action="ReadChapter" asp-controller="Chapter"
+                               asp-route-id="@ch.ChapterId"
+                               class="rc-chap-row @(isCur ? "current-chap" : "")"
+                               id="@(isCur ? "currentChapRow" : "")">
+                                <span class="rc-chap-num-pill">@ch.ChapterNumber</span>
+                                <span class="rc-chap-title">
+                                    @(string.IsNullOrEmpty(ch.Title)
+                                        ? "(Không tiêu đề)"
+                                        : ch.Title)
+                                </span>
+                                <span class="rc-chap-img-cnt">
+                                    <i class="bi bi-image"></i> @ch.ImageCount
+                                </span>
+                            </a>
+                        }
+                    </div>
+                    @if (Model.AllChapters.Count > nearChapters.Count)
+                    {
+                        <div style="padding:8px 14px;border-top:1px solid #f0ebff;">
+                            <a asp-action="ListChapters" asp-controller="Chapter"
+                               asp-route-id="@Model.StoryId"
+                               style="font-size:12px;color:#7c5cf8;text-decoration:none;
+                                font-weight:600;display:flex;align-items:center;gap:5px;">
+                                <i class="bi bi-list-ul"></i>
+                                Xem tất cả @Model.AllChapters.Count chapter
+                            </a>
+                        </div>
+                    }
+                }
+            </div>
     </div>
 </div>
-
-@functions {
+@{
+    // Helper render nav - gọi 2 lần (top & bot)
     async Task RenderNav(string suffix)
     {
         var prev = Model.PrevChapter;
         var next = Model.NextChapter;
         bool loggedIn = User.Identity?.IsAuthenticated == true;
 
-        <div class="d-flex align-items-center justify-content-between gap-2 my-2 flex-wrap"
-             style="max-width:900px; margin:8px auto;">
-
-            <div style="min-width:110px;">
+        <div class="rc-nav">
+            <!-- Nút prev -->
+            <div>
                 @if (prev != null)
                 {
-                    <a id="prevChapterBtn_@suffix"
-                       asp-action="ReadChapter" asp-controller="Chapter" asp-route-id="@prev.ChapterId"
-                       class="btn btn-outline-secondary w-100">‹ @prev.ChapterNumber</a>
+                    <a id="prevBtn_@suffix"
+                       asp-action="ReadChapter" asp-controller="Chapter"
+                       asp-route-id="@prev.ChapterId"
+                       class="rc-nav-btn rc-nav-btn-prev">
+                        <i class="bi bi-chevron-left"></i> Ch.@prev.ChapterNumber
+                    </a>
                 }
                 else
                 {
-
-                    <button class="btn btn-outline-secondary w-100" disabled>‹ Đầu</button>
+                    <button class="rc-nav-btn rc-nav-btn-prev" disabled>
+                        <i class="bi bi-chevron-left"></i> Đầu tiên
+                    </button>
                 }
             </div>
 
-            <div class="d-flex flex-column align-items-center gap-1 flex-grow-1" style="max-width:400px;">
-                <select class="form-select form-select-sm text-center fw-semibold"
+            <!-- Center: select + fav -->
+            <div class="rc-nav-center">
+                <select class="rc-chap-select"
                         onchange="location.href='/Chapter/ReadChapter/'+this.value">
-                    @foreach (var c in Model.AllChapters)
+                    @foreach (var ch in Model.AllChapters)
                     {
-                        var lbl = string.IsNullOrEmpty(c.Title)
-                        ? $"Chapter {c.ChapterNumber}"
-                        : $"Ch.{c.ChapterNumber}: {c.Title}";
-                        if (c.ChapterId == Model.ChapterId)
+                        string lbl = string.IsNullOrEmpty(ch.Title)
+                            ? $"Chapter {ch.ChapterNumber}"
+                            : $"Ch.{ch.ChapterNumber}: {ch.Title}";
+                        if (ch.ChapterId == Model.ChapterId)
                         {
-                            <option value="@c.ChapterId" selected>@lbl</option>
+                            <option value="@ch.ChapterId" selected>@lbl</option>
                         }
                         else
                         {
-                            <option value="@c.ChapterId">@lbl</option>
+                            <option value="@ch.ChapterId">@lbl</option>
                         }
                     }
                 </select>
@@ -158,77 +319,112 @@
                 @if (loggedIn)
                 {
                     <button id="favBtn_@suffix"
+                            class="rc-fav-btn @(Model.IsFavorited ? "is-fav" : "")"
                             data-story="@Model.StoryId"
-                            class="btn btn-sm @(Model.IsFavorited ? "btn-danger" : "btn-outline-danger") w-100 fav-btn-reader">
-                        <span class="fav-icon">@(Model.IsFavorited ? "❤️" : "🤍")</span>
-                        <span class="fav-txt">@(Model.IsFavorited ? "Đang theo dõi" : "Theo dõi truyện")</span>
+                            onclick="toggleFav(this)">
+                        <i class="bi @(Model.IsFavorited ? "bi-heart-fill" : "bi-heart")"></i>
+                        <span class="fav-label">
+                            @(Model.IsFavorited ? "Đang theo dõi" : "Theo dõi")
+                        </span>
                         (<span class="fav-count">@Model.FavCount</span>)
                     </button>
                 }
             </div>
 
-            <div style="min-width:110px;">
+            <!-- Nút next -->
+            <div style="display:flex;gap:6px;align-items:center;">
+                <a asp-action="Details" asp-controller="Story"
+                   asp-route-id="@Model.StoryId"
+                   class="rc-story-btn">
+                    <i class="bi bi-book"></i>
+                </a>
                 @if (next != null)
                 {
-                    <a id="nextChapterBtn_@suffix"
-                       asp-action="ReadChapter" asp-controller="Chapter" asp-route-id="@next.ChapterId"
-                       class="btn btn-primary w-100">@next.ChapterNumber ›</a>
+                    <a id="nextBtn_@suffix"
+                       asp-action="ReadChapter" asp-controller="Chapter"
+                       asp-route-id="@next.ChapterId"
+                       class="rc-nav-btn rc-nav-btn-next">
+                        Ch.@next.ChapterNumber <i class="bi bi-chevron-right"></i>
+                    </a>
                 }
                 else
                 {
-
-                    <button class="btn btn-primary w-100" disabled>Hết ›</button>
+                    <button class="rc-nav-btn rc-nav-btn-next" disabled>
+                        Mới nhất <i class="bi bi-chevron-right"></i>
+                    </button>
                 }
             </div>
-        </div>
-        <div class="text-center mb-1">
-            <a asp-action="Details" asp-controller="Story" asp-route-id="@Model.StoryId"
-               class="btn btn-sm btn-outline-dark">📚 Về trang truyện</a>
         </div>
     }
 }
 
+
 @section Scripts {
     @Html.AntiForgeryToken()
     <script>
+        // ── Reading progress bar ─────────────────────────────────────────
+        const progressFill = document.getElementById('progressFill');
+        function updateProgress() {
+            const scrollTop    = window.scrollY || document.documentElement.scrollTop;
+            const docHeight    = document.documentElement.scrollHeight - window.innerHeight;
+            const pct          = docHeight > 0 ? (scrollTop / docHeight * 100).toFixed(1) : 0;
+            progressFill.style.width = pct + '%';
+        }
+        window.addEventListener('scroll', updateProgress, { passive: true });
+        updateProgress();
+
+        // ── Keyboard navigation ──────────────────────────────────────────
         document.addEventListener('keydown', e => {
-            if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
-            if (e.key === 'ArrowLeft')  document.getElementById('prevChapterBtn_top')?.click();
-            if (e.key === 'ArrowRight') document.getElementById('nextChapterBtn_top')?.click();
+            if (['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)) return;
+            if (e.key === 'ArrowLeft')  document.getElementById('prevBtn_top')?.click();
+            if (e.key === 'ArrowRight') document.getElementById('nextBtn_top')?.click();
         });
 
-        document.querySelectorAll('.fav-btn-reader').forEach(btn => {
-            btn.addEventListener('click', async () => {
-                const storyId = +btn.dataset.story;
-                const token   = document.querySelector('input[name=__RequestVerificationToken]')?.value ?? '';
-                btn.disabled  = true;
-                try {
-                    const resp = await fetch('/Story/ToggleFavorite', {
-                        method : 'POST',
-                        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'RequestVerificationToken': token },
-                        body   : `storyId=${storyId}`
-                    });
-                    if (!resp.ok) return;
-                    const d = await resp.json();
-                    document.querySelectorAll('.fav-btn-reader').forEach(b => {
-                        b.className = `btn btn-sm ${d.favorited ? 'btn-danger' : 'btn-outline-danger'} w-100 fav-btn-reader`;
-                        b.querySelector('.fav-icon').textContent = d.favorited ? '❤️' : '🤍';
-                        b.querySelector('.fav-txt').textContent  = d.favorited ? 'Đang theo dõi' : 'Theo dõi truyện';
-                        b.querySelector('.fav-count').textContent = d.count;
-                    });
-                } finally { document.querySelectorAll('.fav-btn-reader').forEach(b => b.disabled = false); }
-            });
-        });
+        // ── Toggle favorite (AJAX) ───────────────────────────────────────
+        const token = () =>
+            document.querySelector('input[name=__RequestVerificationToken]')?.value ?? '';
+
+        async function toggleFav(btn) {
+            const storyId = +btn.dataset.story;
+            document.querySelectorAll('[id^="favBtn_"]').forEach(b => b.disabled = true);
+            try {
+                const resp = await fetch('/Story/ToggleFavorite', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'RequestVerificationToken': token()
+                    },
+                    body: `storyId=${storyId}`
+                });
+                if (!resp.ok) return;
+                const d = await resp.json();
+
+                // Cập nhật tất cả nút fav (top + bot)
+                document.querySelectorAll('[id^="favBtn_"]').forEach(b => {
+                    b.classList.toggle('is-fav', d.favorited);
+                    b.querySelector('i').className =
+                        d.favorited ? 'bi bi-heart-fill' : 'bi bi-heart';
+                    b.querySelector('.fav-label').textContent =
+                        d.favorited ? 'Đang theo dõi' : 'Theo dõi';
+                    b.querySelectorAll('.fav-count').forEach(s => s.textContent = d.count);
+                });
+
+                // Cập nhật sidebar
+                const sfc = document.getElementById('sidebarFavCount');
+                if (sfc) sfc.textContent = d.count;
+
+            } finally {
+                document.querySelectorAll('[id^="favBtn_"]').forEach(b => b.disabled = false);
+            }
+        }
+
+        // ── Scroll chapter hiện tại vào giữa sidebar ────────────────────
+        const curRow = document.getElementById('currentChapRow');
+        if (curRow) {
+            const scroll = document.getElementById('chapScroll');
+            if (scroll) {
+                scroll.scrollTop = curRow.offsetTop - scroll.offsetHeight / 2 + curRow.offsetHeight / 2;
+            }
+        }
     </script>
-    <style>
-        img[loading="lazy"] {
-            background: #222;
-            min-height: 20px;
-        }
-
-        .btn-xs {
-            font-size: .75rem;
-            line-height: 1.4;
-        }
-    </style>
 }

@@ -4,33 +4,89 @@
     ViewData["Title"] = "Xác nhận xóa Chapter";
 }
 
-<div class="container mt-4" style="max-width:500px;">
-    <div class="card shadow-sm border-danger">
-        <div class="card-header bg-danger text-white">
-            🗑️ Xác nhận xóa Chapter @Model.ChapterNumber
-        </div>
-        <div class="card-body">
-            <p>Bạn có chắc muốn xóa chapter sau không?</p>
-            <ul class="list-unstyled">
-                <li><strong>Số chapter:</strong> @Model.ChapterNumber</li>
-                <li><strong>Tiêu đề:</strong> @(string.IsNullOrEmpty(Model.Title) ? "(không có)" : Model.Title)</li>
-                <li>
-                    <strong>Số ảnh:</strong>
-                    <span class="badge bg-warning text-dark">@Model.ImageCount ảnh sẽ bị xóa vĩnh viễn</span>
-                </li>
-            </ul>
-            <p class="text-danger fw-semibold">⚠️ Hành động này không thể hoàn tác!</p>
+<link rel="stylesheet" href="~/css/Delete-Chapter.css" />
 
-            <form asp-action="DeleteChapter" method="post">
-                @Html.AntiForgeryToken()
-                <input type="hidden" name="id" value="@Model.ChapterId" />
-                <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-danger">Xác nhận xóa</button>
-                    <a asp-action="ListChapters" asp-controller="Chapter"
-                       asp-route-id="@Model.StoryId"
-                       class="btn btn-secondary">Huỷ</a>
-                </div>
-            </form>
+<div class="dc-wrap">
+
+    <!-- ── Hero ── -->
+    <div class="dc-hero">
+        <div class="dc-hero-icon">
+            <i class="bi bi-trash3"></i>
+        </div>
+        <div class="dc-hero-meta">
+            <h1 class="dc-hero-title">Xóa Chapter</h1>
+            <p class="dc-hero-sub">Hành động này không thể hoàn tác</p>
         </div>
     </div>
+
+    <!-- ── Thông tin chapter ── -->
+    <p class="dc-section-label">Thông tin chapter sẽ bị xóa</p>
+    <div class="dc-card dc-info-card">
+
+        <div class="dc-info-row">
+            <div class="dc-info-icon">
+                <i class="bi bi-hash"></i>
+            </div>
+            <div class="dc-info-body">
+                <span class="dc-info-label">Số chapter</span>
+                <span class="dc-info-value">Chapter @Model.ChapterNumber</span>
+            </div>
+        </div>
+
+        <div class="dc-info-row">
+            <div class="dc-info-icon">
+                <i class="bi bi-cursor-text"></i>
+            </div>
+            <div class="dc-info-body">
+                <span class="dc-info-label">Tiêu đề</span>
+                <span class="dc-info-value">
+                    @(string.IsNullOrEmpty(Model.Title) ? "(không có tiêu đề)" : Model.Title)
+                </span>
+            </div>
+        </div>
+
+        <div class="dc-info-row dc-info-row-danger">
+            <div class="dc-info-icon dc-icon-danger">
+                <i class="bi bi-images"></i>
+            </div>
+            <div class="dc-info-body">
+                <span class="dc-info-label">Số ảnh bị xóa</span>
+                <span class="dc-info-value">
+                    @Model.ImageCount ảnh
+                    <span class="dc-danger-note">sẽ bị xóa vĩnh viễn</span>
+                </span>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ── Cảnh báo ── -->
+    <div class="dc-warning">
+        <i class="bi bi-exclamation-triangle-fill dc-warning-icon"></i>
+        <div class="dc-warning-body">
+            <p class="dc-warning-title">Bạn có chắc chắn muốn xóa?</p>
+            <p class="dc-warning-sub">
+                Toàn bộ <strong>@Model.ImageCount ảnh</strong> và dữ liệu của
+                <strong>Chapter @Model.ChapterNumber</strong> sẽ bị xóa vĩnh viễn
+                và không thể khôi phục.
+            </p>
+        </div>
+    </div>
+
+    <!-- ── Hành động ── -->
+    <div class="dc-actions">
+        <form asp-action="DeleteChapter" method="post" class="dc-delete-form">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@Model.ChapterId" />
+            <button type="submit" class="dc-btn dc-btn-danger">
+                <i class="bi bi-trash3"></i> Xác nhận xóa
+            </button>
+        </form>
+        <a asp-action="ListChapters" asp-controller="Chapter"
+           asp-route-id="@Model.StoryId"
+           class="dc-btn dc-btn-ghost">
+            <i class="bi bi-arrow-left"></i> Huỷ, quay lại
+        </a>
+    </div>
+
 </div>
