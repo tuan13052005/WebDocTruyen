@@ -46,6 +46,33 @@
     border-radius: 20px;
 }
 
+/* ── Add genre button — themed purple/pink ── */
+.gx-add-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 18px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #7c3aed, #ec4899);
+    color: #fff !important;
+    text-decoration: none;
+    box-shadow: 0 4px 14px rgba(124,58,237,.38);
+    transition: transform .15s, box-shadow .15s, opacity .15s;
+    white-space: nowrap;
+}
+
+    .gx-add-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 22px rgba(124,58,237,.52);
+        color: #fff !important;
+    }
+
+    .gx-add-btn:active {
+        transform: scale(.97);
+    }
+
 /* ── Genres grid ── */
 .genres-grid {
     display: grid;

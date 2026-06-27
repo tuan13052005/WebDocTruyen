@@ -3,23 +3,85 @@
     ViewData["Title"] = "Xóa thể loại";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-<div class="container mt-4" style="max-width:500px;">
-    <div class="card shadow-sm border-danger">
-        <div class="card-header bg-danger text-white">🗑️ Xác nhận xóa thể loại</div>
-        <div class="card-body">
-            <p>Bạn có chắc muốn xóa thể loại <strong>@Model.Name</strong>?</p>
+<link rel="stylesheet" href="~/css/genres-delete.css" />
+<div class="gd-page">
+    <div class="gd-card">
+
+        <!-- ── Header ── -->
+        <div class="gd-header">
+            <div class="gd-header-grid"></div>
+            <div class="gd-glow-border"></div>
+            <div class="gd-orb-1"></div>
+            <div class="gd-orb-2"></div>
+
+            <div class="gd-icon-wrap">
+                <div class="gd-icon-ring">🗑️</div>
+            </div>
+            <h1 class="gd-header-title">Xóa thể loại</h1>
+            <p class="gd-header-sub">Hành động này không thể hoàn tác</p>
+        </div>
+
+        <!-- ── Body ── -->
+        <div class="gd-body">
+
+            <!-- Genre preview -->
+            <div class="gd-genre-preview">
+                <div class="gd-genre-icon">🏷️</div>
+                <div class="gd-genre-info">
+                    <div class="gd-genre-label">Thể loại sẽ bị xóa</div>
+                    <p class="gd-genre-name">@Model.Name</p>
+                    <div class="gd-genre-count">
+                        <i class="bi bi-collection"></i>
+                        @Model.StoryCount truyện đang dùng thể loại này
+                    </div>
+                </div>
+            </div>
+
+            <!-- Divider -->
+            <div class="gd-divider">
+                <div class="gd-divider-line"></div>
+                <span class="gd-divider-text">⚠️ Lưu ý</span>
+                <div class="gd-divider-line"></div>
+            </div>
+
+            <!-- Warning (chỉ hiện nếu còn truyện dùng) -->
             @if (Model.StoryCount > 0)
             {
-                <div class="alert alert-warning">
-                    ⚠️ Thể loại này đang được dùng bởi <strong>@Model.StoryCount</strong> truyện.
+                <div class="gd-warning">
+                    <span class="gd-warning-icon">⚠️</span>
+                    <div>
+                        <p class="gd-warning-title">Thể loại đang được sử dụng</p>
+                        <p class="gd-warning-desc">
+                            Thể loại này đang được dùng bởi
+                            <strong>@Model.StoryCount truyện</strong>.
+                            Xóa thể loại sẽ gỡ nó khỏi tất cả các truyện liên quan.
+                        </p>
+                    </div>
                 </div>
             }
+
+            <!-- Confirm question -->
+            <p class="gd-question">
+                Bạn có chắc muốn xóa thể loại <strong>@Model.Name</strong> không?
+            </p>
+
+            <!-- Actions -->
             <form asp-action="Delete" method="post">
                 @Html.AntiForgeryToken()
                 <input type="hidden" name="id" value="@Model.GenreId" />
-                <button type="submit" class="btn btn-danger me-2">Xác nhận xóa</button>
-                <a asp-action="Index" class="btn btn-secondary">Hủy</a>
+                <div class="gd-actions">
+                    <a asp-action="Index" class="gd-btn-cancel">
+                        <i class="bi bi-arrow-left"></i> Hủy
+                    </a>
+                    <button type="submit" class="gd-btn-confirm">
+                        <span>
+                            <i class="bi bi-trash3-fill"></i>
+                            Xác nhận xóa
+                        </span>
+                    </button>
+                </div>
             </form>
+
         </div>
     </div>
 </div>

@@ -3,22 +3,117 @@
     ViewData["Title"] = "Thêm thể loại";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-<div class="container mt-4" style="max-width:500px;">
-    <h2 class="mb-4">➕ Thêm thể loại</h2>
-    <form asp-action="Create" method="post">
-        @Html.AntiForgeryToken()
-        <div class="mb-3">
-            <label asp-for="Name" class="form-label">Tên thể loại</label>
-            <input asp-for="Name" class="form-control" required />
-            <span asp-validation-for="Name" class="text-danger"></span>
+<link rel="stylesheet" href="~/css/geres-create.css" />
+<div class="gc-page">
+    <div class="gc-card">
+
+        <!-- ── Header ── -->
+        <div class="gc-header">
+            <div class="gc-orb-1"></div>
+            <div class="gc-orb-2"></div>
+
+            <div class="gc-eyebrow">
+                <div class="gc-eyebrow-dot"></div>
+                Quản lý thể loại
+            </div>
+
+            <div class="gc-header-inner">
+                <div class="gc-icon">✨</div>
+                <div>
+                    <h1 class="gc-title">Thêm thể loại mới</h1>
+                    <p class="gc-sub">Thể loại mới sẽ xuất hiện ngay trên trang khám phá</p>
+                </div>
+            </div>
         </div>
-        <div class="mb-3">
-            <label asp-for="Description" class="form-label">Mô tả</label>
-            <textarea asp-for="Description" class="form-control" rows="3"></textarea>
-        </div>
-        <div class="d-flex gap-2">
-            <button type="submit" class="btn btn-success">💾 Lưu</button>
-            <a asp-action="Index" class="btn btn-secondary">← Quay lại</a>
-        </div>
-    </form>
+
+        <!-- ── Form ── -->
+        <form asp-action="Create" method="post" id="gcForm">
+            @Html.AntiForgeryToken()
+
+            <div class="gc-body">
+
+                <!-- Tên thể loại -->
+                <div class="gc-field">
+                    <label class="gc-label" for="gc-name">
+                        <i class="bi bi-tag"></i>
+                        Tên thể loại
+                        <span class="gc-required">*</span>
+                    </label>
+                    <input asp-for="Name"
+                           id="gc-name"
+                           class="gc-input"
+                           placeholder="VD: Isekai, Slice of Life, Huyền huyễn..."
+                           required
+                           oninput="updatePreview()" />
+                    <span asp-validation-for="Name"
+                          style="color:#dc2626;font-size:12px;font-weight:600;margin-top:6px;display:block;"></span>
+                </div>
+
+                <!-- Mô tả -->
+                <div class="gc-field">
+                    <label class="gc-label" for="gc-desc">
+                        <i class="bi bi-card-text"></i>
+                        Mô tả
+                        <span style="font-size:11px;font-weight:500;text-transform:none;letter-spacing:0;color:#a78bfa;margin-left:auto;">
+                            Tuỳ chọn
+                        </span>
+                    </label>
+                    <textarea asp-for="Description"
+                              id="gc-desc"
+                              class="gc-textarea"
+                              placeholder="Mô tả ngắn về thể loại này..."></textarea>
+                </div>
+
+                <!-- Live preview -->
+                <div class="gc-divider"></div>
+                <div class="gc-preview-label">Xem trước thẻ thể loại</div>
+                <div class="gc-preview-card" id="previewCard">
+                    <span class="gc-preview-icon">🏷️</span>
+                    <span class="gc-preview-name" id="previewName" style="color:#9ca3af;">Tên thể loại</span>
+                    <span class="gc-preview-count">0 truyện</span>
+                </div>
+
+            </div>
+
+            <!-- ── Footer actions ── -->
+            <div class="gc-actions">
+                <a asp-action="Index" class="gc-btn-back">
+                    <i class="bi bi-arrow-left"></i> Quay lại
+                </a>
+                <button type="submit" class="gc-btn-submit">
+                    <span>
+                        <i class="bi bi-check-circle"></i>
+                        Tạo thể loại
+                    </span>
+                </button>
+            </div>
+
+        </form>
+
+    </div>
 </div>
+
+@section Scripts {
+    <script>
+        // Live preview
+        const nameInput   = document.getElementById('gc-name');
+        const previewName = document.getElementById('previewName');
+
+        const emojis = ['⚔️','💕','🔮','😂','🌿','🔬','👻','🕵️','⚡','🌀','📚','🎭','🐉','🌊','🎵'];
+        let currentEmoji = '🏷️';
+
+        function updatePreview() {
+            const val = nameInput.value.trim();
+            if (val) {
+                previewName.textContent = val;
+                previewName.style.color = '';
+                currentEmoji = emojis[val.length % emojis.length];
+                document.querySelector('.gc-preview-icon').textContent = currentEmoji;
+            } else {
+                previewName.textContent = 'Tên thể loại';
+                previewName.style.color = '#9ca3af';
+                document.querySelector('.gc-preview-icon').textContent = '🏷️';
+            }
+        }
+    </script>
+}
