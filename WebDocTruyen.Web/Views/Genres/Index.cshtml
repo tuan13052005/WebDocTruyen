@@ -3,195 +3,200 @@
     ViewData["Title"] = "Thể loại";
     Layout = "~/Views/Shared/_Layout.cshtml";
     bool isAdmin = User.IsInRole("Admin");
+    int totalGenres = Model.Count;
+    int totalStories = Model.Sum(g => g.StoryCount);
 
-    var galaxyPalettes = new[] {
-        new { from = "#7c3aed", to = "#ec4899", glow = "rgba(124,58,237,.6)"  },
-        new { from = "#06b6d4", to = "#3b82f6", glow = "rgba(6,182,212,.55)"  },
-        new { from = "#f97316", to = "#ec4899", glow = "rgba(249,115,22,.55)" },
-        new { from = "#10b981", to = "#06b6d4", glow = "rgba(16,185,129,.55)" },
-        new { from = "#8b5cf6", to = "#06b6d4", glow = "rgba(139,92,246,.55)" },
-        new { from = "#f59e0b", to = "#f97316", glow = "rgba(245,158,11,.55)" },
-        new { from = "#ec4899", to = "#8b5cf6", glow = "rgba(236,72,153,.55)" },
-        new { from = "#3b82f6", to = "#10b981", glow = "rgba(59,130,246,.55)" },
-    };
-
-    var emojiPool = new[] {
-        "⚔️","💘","🔮","🌙","🐉","👊","🌸","🕵️","😂","👻",
-        "🚀","⚡","🧠","🔥","🌊","🎭","🎮","🌺","🦋","💫",
-        "🌀","🏯","🎌","🌌","🧩","🐾","🌈","💎","🗡️","🧿"
-    };
+    var emojis = new[] { "⚔️", "💕", "🔮", "😂", "🌿", "🔬", "👻", "🕵️", "⚡", "🌀", "📚", "🎭" };
 }
 
 <link rel="stylesheet" href="~/css/genre-index.css" />
+<link rel="stylesheet" href="~/css/genge-index-extra.css" />
+@* ══ PHẦN 1 — HERO GALAXY × MANGA ══ *@
+<div class="gx-root">
+    <div class="gx-galaxy"></div>
+    <div class="gx-nebula"></div>
+    <div class="gx-dots"></div>
+    <div class="gx-halftone"></div>
+    <canvas id="gx-canvas"></canvas>
+    <div class="gx-slash"></div>
+    <div class="gx-slash2"></div>
+    <div class="gx-glow-border"></div>
 
-<div class="galaxy-page">
-
-    <canvas id="starCanvas"></canvas>
-
-    <!-- ── Header ── -->
-    <div class="gx-header">
-        <div class="gx-title-box">
-            <h1>🌌 Thể loại truyện</h1>
-            <br>
+    <div class="gx-inner">
+        <div class="gx-left">
             <div class="gx-eyebrow">
-                <span class="gx-eyebrow-dot"></span>
-                Khám phá vũ trụ truyện tranh
+                <div class="gx-eyebrow-dot"></div>
+                <span class="gx-eyebrow-label">Web Đọc Truyện</span>
+                <div class="gx-eyebrow-line"></div>
             </div>
+			<div>
+				
+                <span class="gx-t1"></span>
+                <span class="gx-t2">Thể Loại</span>
+                <span class="gx-t3">マンガ-Truyện-만화</span>
+            </div>
+			<br />
+			<br />
+			<br />
+            <p class="gx-sub">
+				Mỗi thể loại là một vũ trụ riêng —<br />
+                bước vào và khám phá thứ khiến bạn không thể rời mắt.
+            </p>
+      
+            <a asp-controller="Story" asp-action="Index" class="gx-cta">Khám phá ngay →</a>
         </div>
 
-        <p class="gx-header-sub">
-            Hành trình qua từng dải ngân hà thể loại — từ hành động nghẹt thở đến lãng mạn ngọt ngào.
-        </p>
+        <div class="gx-right">
+            <div class="gx-stat gx-stat-g1">
+                <div class="gx-stat-glow"></div>
+                <span class="gx-stat-num gx-num-pink">@totalGenres</span>
+                <span class="gx-stat-lbl">Thư Viện Thể Loại</span>
+            </div>
+            <div class="gx-stat gx-stat-g2">
+                <div class="gx-stat-glow"></div>
+                <span class="gx-stat-num gx-num-purple">@totalStories</span>
+                <span class="gx-stat-lbl">Bộ truyện</span>
+            </div>
+            <div class="gx-stat gx-stat-g3">
+                <div class="gx-stat-glow"></div>
+                <span class="gx-stat-num gx-num-cyan">∞</span>
+                <span class="gx-stat-lbl">Miễn phí</span>
+            </div>
+        </div>
+    </div>
 
+    <div class="gx-bottom">
+        <div class="gx-ticker-track" id="gxTrack"></div>
+    </div>
+</div>
+
+
+@* ══ PHẦN 2 — LƯỚI THỂ LOẠI ══ *@
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success mb-3">@TempData["Success"]</div>
+}
+
+<div class="genres-grid-section">
+    <div class="genres-grid-hd">
+        <div class="genres-grid-title">
+            <div class="genres-accent-bar"></div>
+            <span>Tất cả thể loại</span>
+            <span class="genres-count-badge">@totalGenres thể loại</span>
+        </div>
         @if (isAdmin)
         {
-            <a asp-action="Create" class="gx-header-add">
-                <i class="bi bi-plus-lg"></i> Thêm thể loại mới
-            </a>
+            <a asp-action="Create" class="btn btn-success btn-sm">➕ Thêm thể loại</a>
         }
     </div>
 
-    <!-- ── Stats ── -->
-    <div class="gx-stats">
-        <div class="gx-stat-item">
-            <div class="gx-stat-num">@Model.Count</div>
-            <div class="gx-stat-lbl">Thể loại</div>
-        </div>
-        <div class="gx-stat-item">
-            <div class="gx-stat-num">@Model.Sum(g => g.StoryCount)</div>
-            <div class="gx-stat-lbl">Bộ truyện</div>
-        </div>
-        <div class="gx-stat-item">
-            <div class="gx-stat-num">100%</div>
-            <div class="gx-stat-lbl">Miễn phí</div>
-        </div>
+    @{
+        var cardVariants = new[] { "gv-purple", "gv-pink", "gv-cyan", "gv-orange", "gv-green", "gv-amber" };
+        int idx = 0;
+    }
+
+    <div class="genres-grid">
+        @foreach (var g in Model)
+        {
+            var variant = cardVariants[idx % cardVariants.Length];
+            var emoji = emojis[idx % emojis.Length];
+            var byGenreUrl = Url.Action("ByGenre", "Genres", new { id = g.GenreId });
+            var editUrl = Url.Action("Edit", "Genres", new { id = g.GenreId });
+            var deleteUrl = Url.Action("Delete", "Genres", new { id = g.GenreId });
+            idx++;
+
+            <div class="genre-card @variant"
+                 onclick="window.location.href='@byGenreUrl'"
+                 role="link"
+                 tabindex="0"
+                 onkeydown="if(event.key==='Enter')window.location.href='@byGenreUrl'">
+
+                <div class="genre-icon-wrap">@emoji</div>
+
+                <p class="genre-name">@g.Name</p>
+
+                <span class="genre-count">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="7" height="7" />
+                        <rect x="14" y="3" width="7" height="7" />
+                        <rect x="14" y="14" width="7" height="7" />
+                        <rect x="3" y="14" width="7" height="7" />
+                    </svg>
+                    @g.StoryCount truyện
+                </span>
+
+                <span class="genre-view-link">Xem truyện →</span>
+
+                @if (isAdmin)
+                {
+                    <div class="genre-admin-btns">
+                        <a href="@editUrl"
+                           class="genre-admin-btn genre-btn-edit"
+                           title="Sửa thể loại"
+                           onclick="event.stopPropagation()">✏️</a>
+                        <a href="@deleteUrl"
+                           class="genre-admin-btn genre-btn-del"
+                           title="Xóa thể loại"
+                           onclick="event.stopPropagation()">🗑️</a>
+                    </div>
+                }
+            </div>
+        }
     </div>
-
-    <!-- ── Toast ── -->
-    @if (TempData["Success"] != null)
-    {
-        <div class="gx-toast">
-            <i class="bi bi-check-circle-fill"></i> @TempData["Success"]
-        </div>
-    }
-
-    <!-- ── Grid ── -->
-    @if (!Model.Any())
-    {
-        <div class="gx-empty">
-            <div style="font-size:3.5rem;margin-bottom:16px;">🌠</div>
-            <h5>Chưa có thể loại nào</h5>
-            <p class="text-muted">Vũ trụ đang chờ được lấp đầy!</p>
-        </div>
-    }
-    else
-    {
-        <div class="gx-grid">
-            @{int cardIdx = 0;}
-            @foreach (var g in Model)
-            {
-                var p = galaxyPalettes[cardIdx % galaxyPalettes.Length];
-                var em = emojiPool[cardIdx % emojiPool.Length];
-                cardIdx++;
-
-                <div class="gx-card">
-
-                    <!-- Gradient fill on hover -->
-                    <div class="gx-card-bg"
-                         style="background:linear-gradient(135deg,@p.from,@p.to);"></div>
-
-                    <!-- Nebula orb -->
-                    <div class="gx-card-orb"
-                         style="background:radial-gradient(circle,@p.glow 0%,transparent 70%);"></div>
-
-                    <!-- Star particles -->
-                    <div class="gx-card-stars"></div>
-
-                    <!-- Body -->
-                    <div class="gx-card-body">
-                        <div class="gx-card-icon"
-                             style="box-shadow:0 4px 18px @p.glow;">
-                            @em
-                        </div>
-                        <div class="gx-card-name">@g.Name</div>
-                        <div class="gx-card-count">
-                            <i class="bi bi-book" style="font-size:11px;"></i>
-                            @g.StoryCount truyện
-                        </div>
-                    </div>
-
-                    <!-- Footer -->
-                    <div class="gx-card-footer">
-                        <a asp-action="ByGenre" asp-route-id="@g.GenreId"
-                           class="gx-view-btn stretched-link">
-                            Xem truyện <i class="bi bi-arrow-right"></i>
-                        </a>
-
-                        @if (isAdmin)
-                        {
-                            <div class="gx-admin-btns">
-                                <a asp-action="Edit" asp-route-id="@g.GenreId"
-                                   class="gx-admin-btn" title="Sửa"
-                                   onclick="event.stopPropagation();" style="position:relative;z-index:3;">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
-                                <a asp-action="Delete" asp-route-id="@g.GenreId"
-                                   class="gx-admin-btn gx-admin-btn-del" title="Xóa"
-                                   onclick="event.stopPropagation();" style="position:relative;z-index:3;">
-                                    <i class="bi bi-trash"></i>
-                                </a>
-                            </div>
-                        }
-                    </div>
-
-                </div>
-            }
-        </div>
-    }
-
 </div>
 
+
 @section Scripts {
-<script>
-(function () {
-    const canvas = document.getElementById('starCanvas');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    let W, H, stars;
-
-    function resize() {
-        W = canvas.width  = window.innerWidth;
-        H = canvas.height = Math.max(document.body.scrollHeight, window.innerHeight);
-        init();
-    }
-
-    function init() {
-        stars = Array.from({ length: 200 }, () => ({
-            x: Math.random() * W,
-            y: Math.random() * H,
-            r: Math.random() * 1.4 + .3,
-            a: Math.random(),
-            spd: Math.random() * .007 + .002,
-            dir: Math.random() > .5 ? 1 : -1,
-        }));
-    }
-
-    function draw() {
-        ctx.clearRect(0, 0, W, H);
-        stars.forEach(s => {
-            s.a += s.spd * s.dir;
-            if (s.a > 1 || s.a < .05) s.dir *= -1;
-            ctx.beginPath();
-            ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(200,180,255,${s.a})`;
-            ctx.fill();
+    <script>
+        /* ── Ticker ── */
+        const TICKER_ITEMS = [
+            ['Hành động','gx-ti-1'],['Fantasy','gx-ti-2'],    ['Isekai','gx-ti-3'],
+            ['Tình cảm','gx-ti-1'], ['Huyền huyễn','gx-ti-2'],['Kinh dị','gx-ti-4'],
+            ['Tu tiên','gx-ti-3'],  ['Hài hước','gx-ti-4'],   ['Ghibli','gx-ti-5'],
+            ['Trinh thám','gx-ti-2'],['Khoa học','gx-ti-3'],  ['Buồn','gx-ti-1'],
+        ];
+        const track = document.getElementById('gxTrack');
+        [...TICKER_ITEMS, ...TICKER_ITEMS].forEach(([txt, cls]) => {
+            const s = document.createElement('span');
+            s.className = `gx-ticker-item ${cls}`;
+            s.innerHTML = `<span class="gx-ticker-sep">✦</span>${txt}`;
+            track.appendChild(s);
         });
-        requestAnimationFrame(draw);
-    }
 
-    window.addEventListener('resize', resize);
-    resize();
-    draw();
-})();
-</script>
+        /* ── Galaxy canvas (speed-lines + stars) ── */
+        function drawGalaxy() {
+            const canvas = document.getElementById('gx-canvas');
+            if (!canvas) return;
+            const root = canvas.parentElement;
+            const W = root.offsetWidth  || 680;
+            const H = root.offsetHeight || 310;
+            canvas.width = W; canvas.height = H;
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, W, H);
+
+            const cx = W * .68, cy = H * .35;
+            for (let i = 0; i < 56; i++) {
+                const angle = (i / 56) * Math.PI * 2;
+                const r1 = 55 + Math.random() * 25;
+                const r2 = Math.max(W, H) * 1.5;
+                ctx.strokeStyle = `hsla(${260 + Math.random()*60},80%,70%,${.04+Math.random()*.09})`;
+                ctx.lineWidth   = .6 + Math.random() * .8;
+                ctx.beginPath();
+                ctx.moveTo(cx + Math.cos(angle)*r1, cy + Math.sin(angle)*r1);
+                ctx.lineTo(cx + Math.cos(angle)*r2, cy + Math.sin(angle)*r2);
+                ctx.stroke();
+            }
+            for (let i = 0; i < 70; i++) {
+                const h = [0,200,260,300][Math.floor(Math.random()*4)];
+                ctx.fillStyle = `hsla(${h},70%,90%,${.3+Math.random()*.7})`;
+                ctx.beginPath();
+                ctx.arc(Math.random()*W, Math.random()*H*.85, .5+Math.random()*1.8, 0, Math.PI*2);
+                ctx.fill();
+            }
+        }
+        drawGalaxy();
+        window.addEventListener('resize', drawGalaxy);
+    </script>
 }
