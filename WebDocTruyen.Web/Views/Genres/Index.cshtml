@@ -3,41 +3,195 @@
     ViewData["Title"] = "Thể loại";
     Layout = "~/Views/Shared/_Layout.cshtml";
     bool isAdmin = User.IsInRole("Admin");
+
+    var galaxyPalettes = new[] {
+        new { from = "#7c3aed", to = "#ec4899", glow = "rgba(124,58,237,.6)"  },
+        new { from = "#06b6d4", to = "#3b82f6", glow = "rgba(6,182,212,.55)"  },
+        new { from = "#f97316", to = "#ec4899", glow = "rgba(249,115,22,.55)" },
+        new { from = "#10b981", to = "#06b6d4", glow = "rgba(16,185,129,.55)" },
+        new { from = "#8b5cf6", to = "#06b6d4", glow = "rgba(139,92,246,.55)" },
+        new { from = "#f59e0b", to = "#f97316", glow = "rgba(245,158,11,.55)" },
+        new { from = "#ec4899", to = "#8b5cf6", glow = "rgba(236,72,153,.55)" },
+        new { from = "#3b82f6", to = "#10b981", glow = "rgba(59,130,246,.55)" },
+    };
+
+    var emojiPool = new[] {
+        "⚔️","💘","🔮","🌙","🐉","👊","🌸","🕵️","😂","👻",
+        "🚀","⚡","🧠","🔥","🌊","🎭","🎮","🌺","🦋","💫",
+        "🌀","🏯","🎌","🌌","🧩","🐾","🌈","💎","🗡️","🧿"
+    };
 }
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="mb-0">🏷️ Danh sách thể loại</h2>
+<link rel="stylesheet" href="~/css/genre-index.css" />
+
+<div class="galaxy-page">
+
+    <canvas id="starCanvas"></canvas>
+
+    <!-- ── Header ── -->
+    <div class="gx-header">
+        <div class="gx-title-box">
+            <h1>🌌 Thể loại truyện</h1>
+            <br>
+            <div class="gx-eyebrow">
+                <span class="gx-eyebrow-dot"></span>
+                Khám phá vũ trụ truyện tranh
+            </div>
+        </div>
+
+        <p class="gx-header-sub">
+            Hành trình qua từng dải ngân hà thể loại — từ hành động nghẹt thở đến lãng mạn ngọt ngào.
+        </p>
+
         @if (isAdmin)
         {
-            <a asp-action="Create" class="btn btn-success">➕ Thêm thể loại</a>
+            <a asp-action="Create" class="gx-header-add">
+                <i class="bi bi-plus-lg"></i> Thêm thể loại mới
+            </a>
         }
     </div>
 
+    <!-- ── Stats ── -->
+    <div class="gx-stats">
+        <div class="gx-stat-item">
+            <div class="gx-stat-num">@Model.Count</div>
+            <div class="gx-stat-lbl">Thể loại</div>
+        </div>
+        <div class="gx-stat-item">
+            <div class="gx-stat-num">@Model.Sum(g => g.StoryCount)</div>
+            <div class="gx-stat-lbl">Bộ truyện</div>
+        </div>
+        <div class="gx-stat-item">
+            <div class="gx-stat-num">100%</div>
+            <div class="gx-stat-lbl">Miễn phí</div>
+        </div>
+    </div>
+
+    <!-- ── Toast ── -->
     @if (TempData["Success"] != null)
     {
-        <div class="alert alert-success">@TempData["Success"]</div>
+        <div class="gx-toast">
+            <i class="bi bi-check-circle-fill"></i> @TempData["Success"]
+        </div>
     }
 
-    <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 g-3">
-        @foreach (var g in Model)
-        {
-            <div class="col">
-                <div class="card h-100 shadow-sm text-center">
-                    <div class="card-body">
-                        <h5 class="card-title mb-1">@g.Name</h5>
-                        <p class="text-muted small mb-2">@g.StoryCount truyện</p>
-                        <a asp-action="ByGenre" asp-route-id="@g.GenreId" class="btn btn-sm btn-primary">Xem truyện</a>
+    <!-- ── Grid ── -->
+    @if (!Model.Any())
+    {
+        <div class="gx-empty">
+            <div style="font-size:3.5rem;margin-bottom:16px;">🌠</div>
+            <h5>Chưa có thể loại nào</h5>
+            <p class="text-muted">Vũ trụ đang chờ được lấp đầy!</p>
+        </div>
+    }
+    else
+    {
+        <div class="gx-grid">
+            @{int cardIdx = 0;}
+            @foreach (var g in Model)
+            {
+                var p = galaxyPalettes[cardIdx % galaxyPalettes.Length];
+                var em = emojiPool[cardIdx % emojiPool.Length];
+                cardIdx++;
+
+                <div class="gx-card">
+
+                    <!-- Gradient fill on hover -->
+                    <div class="gx-card-bg"
+                         style="background:linear-gradient(135deg,@p.from,@p.to);"></div>
+
+                    <!-- Nebula orb -->
+                    <div class="gx-card-orb"
+                         style="background:radial-gradient(circle,@p.glow 0%,transparent 70%);"></div>
+
+                    <!-- Star particles -->
+                    <div class="gx-card-stars"></div>
+
+                    <!-- Body -->
+                    <div class="gx-card-body">
+                        <div class="gx-card-icon"
+                             style="box-shadow:0 4px 18px @p.glow;">
+                            @em
+                        </div>
+                        <div class="gx-card-name">@g.Name</div>
+                        <div class="gx-card-count">
+                            <i class="bi bi-book" style="font-size:11px;"></i>
+                            @g.StoryCount truyện
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="gx-card-footer">
+                        <a asp-action="ByGenre" asp-route-id="@g.GenreId"
+                           class="gx-view-btn stretched-link">
+                            Xem truyện <i class="bi bi-arrow-right"></i>
+                        </a>
+
                         @if (isAdmin)
                         {
-                            <div class="mt-2 d-flex gap-1 justify-content-center">
-                                <a asp-action="Edit" asp-route-id="@g.GenreId" class="btn btn-sm btn-outline-warning">✏️</a>
-                                <a asp-action="Delete" asp-route-id="@g.GenreId" class="btn btn-sm btn-outline-danger">🗑️</a>
+                            <div class="gx-admin-btns">
+                                <a asp-action="Edit" asp-route-id="@g.GenreId"
+                                   class="gx-admin-btn" title="Sửa"
+                                   onclick="event.stopPropagation();" style="position:relative;z-index:3;">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a asp-action="Delete" asp-route-id="@g.GenreId"
+                                   class="gx-admin-btn gx-admin-btn-del" title="Xóa"
+                                   onclick="event.stopPropagation();" style="position:relative;z-index:3;">
+                                    <i class="bi bi-trash"></i>
+                                </a>
                             </div>
                         }
                     </div>
+
                 </div>
-            </div>
-        }
-    </div>
+            }
+        </div>
+    }
+
 </div>
+
+@section Scripts {
+<script>
+(function () {
+    const canvas = document.getElementById('starCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let W, H, stars;
+
+    function resize() {
+        W = canvas.width  = window.innerWidth;
+        H = canvas.height = Math.max(document.body.scrollHeight, window.innerHeight);
+        init();
+    }
+
+    function init() {
+        stars = Array.from({ length: 200 }, () => ({
+            x: Math.random() * W,
+            y: Math.random() * H,
+            r: Math.random() * 1.4 + .3,
+            a: Math.random(),
+            spd: Math.random() * .007 + .002,
+            dir: Math.random() > .5 ? 1 : -1,
+        }));
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, W, H);
+        stars.forEach(s => {
+            s.a += s.spd * s.dir;
+            if (s.a > 1 || s.a < .05) s.dir *= -1;
+            ctx.beginPath();
+            ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(200,180,255,${s.a})`;
+            ctx.fill();
+        });
+        requestAnimationFrame(draw);
+    }
+
+    window.addEventListener('resize', resize);
+    resize();
+    draw();
+})();
+</script>
+}
