@@ -1,0 +1,493 @@
+﻿/* ══════════════════════════════════════════
+   Manage Users page — khớp phong cách Profile
+   ══════════════════════════════════════════ */
+
+/* ── Wrapper ── */
+.mu-wrap {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 12px 0 56px;
+    animation: muFadeUp .45s cubic-bezier(.22,1,.36,1) both;
+}
+
+@keyframes muFadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(22px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ── Hero ── */
+.mu-hero {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 36px 36px 28px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+}
+
+    .mu-hero::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 5px;
+        background: linear-gradient(90deg, var(--brand), #a78bfa, #60a5fa);
+        border-radius: 20px 20px 0 0;
+        pointer-events: none;
+    }
+
+.mu-hero-icon {
+    width: 72px;
+    height: 72px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, var(--brand), #a78bfa);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    color: #fff;
+    flex-shrink: 0;
+    box-shadow: 0 8px 24px rgba(124,92,248,.28);
+    transition: transform .25s cubic-bezier(.34,1.56,.64,1);
+}
+
+    .mu-hero-icon:hover {
+        transform: scale(1.07) rotate(-2deg);
+    }
+
+.mu-hero-title {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 5px;
+    letter-spacing: -.3px;
+}
+
+.mu-hero-sub {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+    .mu-hero-sub strong {
+        color: var(--brand);
+        font-weight: 600;
+    }
+
+/* ── Alert ── */
+.mu-alert {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-size: 14px;
+    margin-bottom: 16px;
+}
+
+.mu-alert-danger {
+    background: #fff5f5;
+    border: 1px solid #fecaca;
+    color: #991b1b;
+}
+
+/* ── Section label ── */
+.mu-section-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--text-muted);
+    margin: 0 0 10px 2px;
+}
+
+.mu-filter-hint {
+    font-size: 11px;
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--text-muted);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* ── Base card ── */
+.mu-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+/* ── Add form card ── */
+.mu-add-card {
+    padding: 20px 24px;
+}
+
+.mu-add-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 160px auto;
+    gap: 12px;
+    align-items: end;
+}
+
+@media (max-width: 780px) {
+    .mu-add-form {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .mu-field-action {
+        grid-column: span 2;
+    }
+}
+
+/* ── Field ── */
+.mu-field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.mu-field-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: var(--text-muted);
+}
+
+/* ── Input wrap (icon + input) ── */
+.mu-input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.mu-input-icon {
+    position: absolute;
+    left: 11px;
+    color: var(--text-muted);
+    font-size: 14px;
+    pointer-events: none;
+    transition: color .15s;
+    z-index: 1;
+}
+
+.mu-input-wrap:focus-within .mu-input-icon {
+    color: var(--brand);
+}
+
+.mu-input {
+    width: 100%;
+    padding: 9px 12px 9px 34px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 13px;
+    font-family: inherit;
+    color: var(--text-primary);
+    background: var(--bg);
+    outline: none;
+    transition: border-color .15s, box-shadow .15s, background .15s;
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+    .mu-input:focus {
+        border-color: var(--brand);
+        box-shadow: 0 0 0 3px rgba(124,92,248,.12);
+        background: var(--surface);
+    }
+
+.mu-select {
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 16 16'%3E%3Cpath fill='%236b7280' d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 28px;
+}
+
+.mu-select-sm {
+    font-size: 12px;
+    padding: 6px 28px 6px 10px;
+    background-position: right 8px center;
+}
+
+/* ── Filter form ── */
+.mu-filter-form {
+    padding: 16px 20px;
+}
+
+.mu-filter-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.mu-filter-kw {
+    flex: 1;
+    min-width: 200px;
+}
+
+/* ── Buttons ── */
+.mu-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 9px 18px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    border: 1px solid transparent;
+    white-space: nowrap;
+    transition: background .15s, border-color .15s, transform .15s, box-shadow .15s;
+    text-decoration: none;
+}
+
+    .mu-btn:active {
+        transform: scale(.97);
+    }
+
+.mu-btn-primary {
+    background: var(--brand);
+    color: #fff;
+    border-color: var(--brand);
+}
+
+    .mu-btn-primary:hover {
+        background: var(--brand-hover);
+        border-color: var(--brand-hover);
+        box-shadow: 0 4px 12px rgba(124,92,248,.28);
+    }
+
+.mu-btn-ghost {
+    background: var(--bg);
+    color: var(--text-muted);
+    border-color: var(--border);
+}
+
+    .mu-btn-ghost:hover {
+        background: var(--surface);
+        border-color: var(--brand);
+        color: var(--brand);
+    }
+
+.mu-btn-outline {
+    background: transparent;
+    color: var(--brand);
+    border-color: var(--brand);
+}
+
+    .mu-btn-outline:hover {
+        background: var(--brand-light);
+    }
+
+.mu-btn-danger {
+    background: transparent;
+    color: #b91c1c;
+    border-color: #fca5a5;
+}
+
+    .mu-btn-danger:hover {
+        background: #fff0f0;
+        border-color: #b91c1c;
+    }
+
+.mu-btn-sm {
+    padding: 6px 10px;
+    font-size: 13px;
+    border-radius: 8px;
+}
+
+/* ── Users list ── */
+.mu-users-card {
+    border-radius: 16px;
+}
+
+.mu-user-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    transition: background .12s;
+}
+
+    .mu-user-row:last-child {
+        border-bottom: none;
+    }
+
+    .mu-user-row:hover {
+        background: var(--brand-light);
+    }
+
+/* Avatar initials */
+.mu-user-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: var(--brand-light);
+    color: var(--brand);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    flex-shrink: 0;
+    letter-spacing: .5px;
+}
+
+/* Tên + email */
+.mu-user-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.mu-user-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mu-user-email {
+    font-size: 12px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Role pill + time */
+.mu-user-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    flex-shrink: 0;
+    min-width: 80px;
+}
+
+.mu-role-pill {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 10px;
+    border-radius: 20px;
+    letter-spacing: .03em;
+}
+
+.mu-role-admin {
+    background: #fff0f0;
+    color: #b91c1c;
+}
+
+.mu-role-editor {
+    background: #fffbeb;
+    color: #b45309;
+}
+
+.mu-role-user {
+    background: #f3f4f6;
+    color: #4b5563;
+}
+
+.mu-user-time {
+    font-size: 11px;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+/* Hành động (form đổi role + xóa) */
+.mu-user-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.mu-action-form {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+    /* select nhỏ trong action */
+    .mu-action-form .mu-input-wrap {
+        width: auto;
+    }
+
+    .mu-action-form .mu-select-sm {
+        padding-left: 10px;
+    }
+
+/* ── Empty state ── */
+.mu-empty {
+    text-align: center;
+    padding: 56px 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    margin-bottom: 20px;
+}
+
+.mu-empty-icon {
+    font-size: 48px;
+    color: var(--text-muted);
+    display: block;
+    margin-bottom: 14px;
+    opacity: .5;
+}
+
+.mu-empty p {
+    font-size: 15px;
+    color: var(--text-muted);
+    margin: 0 0 16px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+    .mu-hero {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 28px 24px 24px;
+    }
+
+    .mu-user-row {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .mu-user-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    .mu-user-meta {
+        flex-direction: row;
+        align-items: center;
+        gap: 8px;
+    }
+}
