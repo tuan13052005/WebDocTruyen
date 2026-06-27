@@ -2,143 +2,310 @@
 @using System.Security.Claims
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
-    int storyId = (int)ViewBag.StoryId;
+
+    int storyId = (int)(ViewBag.StoryId ?? 0);
     string storyTitle = ViewBag.StoryTitle ?? "";
-    string storyCover = ViewBag.StoryCover ?? "";
+    string storyCover = ViewBag.StoryCover ?? "/images/default.jpg";
     string storyStatus = ViewBag.StoryStatus ?? "ongoing";
     string storyAuthor = ViewBag.StoryAuthor ?? "";
-
-    ViewData["Title"] = "Danh sách Chapter - " + storyTitle;
-    bool isEditor = User.IsInRole("Editor") || User.IsInRole("Admin");
+    double avgRating = (double)(ViewBag.AvgRating ?? 0.0);
+    int favCount = (int)(ViewBag.FavCount ?? 0);
+    int totalImages = (int)(ViewBag.TotalImages ?? 0);
 
     int chapPage = (int)(ViewBag.ChapPage ?? 1);
     int chapPages = (int)(ViewBag.ChapPages ?? 1);
     int chapTotal = (int)(ViewBag.ChapTotal ?? 0);
     int chapSize = (int)(ViewBag.ChapSize ?? 20);
 
-    string chapBaseUrl = Url.Action("ListChapters", new { id = storyId }) + $"?chapSize={chapSize}";
-    string ChapPageUrl(int p) => $"{chapBaseUrl}&chapPage={p}";
+    // Danh sách chapter vừa thêm gần đây nhất (từ controller)
+    var recentChapters = ViewBag.RecentChapters as List<WebDocTruyen.Application.DTOs.Chapter.ChapterSummaryDto>
+                         ?? new List<WebDocTruyen.Application.DTOs.Chapter.ChapterSummaryDto>();
+
+    bool isEditor = User.IsInRole("Editor") || User.IsInRole("Admin");
+
+    ViewData["Title"] = $"Chapter — {storyTitle}";
+
+    string baseUrl = Url.Action("ListChapters", new { id = storyId }) + $"?chapSize={chapSize}";
+    string ChapUrl(int p) => $"{baseUrl}&chapPage={p}";
+
     int ps = Math.Max(1, chapPage - 3);
     int pe = Math.Min(chapPages, ps + 6);
     ps = Math.Max(1, pe - 6);
 }
 
-<div class="container mt-4">
-    <div class="row mb-4">
-        <div class="col-md-2">
-            <img src="@(string.IsNullOrEmpty(storyCover) ? "/images/default.jpg" : storyCover)"
-                 alt="@storyTitle" class="img-fluid rounded shadow-sm" />
-        </div>
-        <div class="col-md-10">
-            <h2>📖 @storyTitle</h2>
-            <p class="text-muted mb-1">Tác giả: @storyAuthor</p>
-            <p class="mb-2">
-                Trạng thái:
-                @if (storyStatus == "completed")
-                {
-                    <span class="badge bg-success">Hoàn thành</span>
-                }
-                else
-                {
+<link rel="stylesheet" href="~/css/List-Chapter.css" />
 
-                    <span class="badge bg-warning text-dark">Đang ra</span>
-                }
-                &nbsp;
-                <span class="badge bg-secondary">@chapTotal chapter</span>
-            </p>
+<!-- Breadcrumb -->
+<nav class="lc-breadcrumb" aria-label="breadcrumb">
+    <a asp-controller="Home" asp-action="Index">Trang chủ</a>
+    <span class="lc-breadcrumb-sep">/</span>
+    <a asp-controller="Story" asp-action="Index">Danh sách truyện</a>
+    <span class="lc-breadcrumb-sep">/</span>
+    <a asp-controller="Story" asp-action="Details" asp-route-id="@storyId">@storyTitle</a>
+    <span class="lc-breadcrumb-sep">/</span>
+    <span class="lc-breadcrumb-cur">Danh sách chapter</span>
+</nav>
+
+<!-- Story hero -->
+<div class="lc-hero">
+    <div class="lc-cover">
+        <a asp-controller="Story" asp-action="Details" asp-route-id="@storyId">
+            <img src="@(string.IsNullOrEmpty(storyCover) ? "/images/default.jpg" : storyCover)"
+                 alt="@storyTitle"
+                 onerror="this.src='/images/default.jpg'" />
+        </a>
+    </div>
+
+    <div class="lc-hero-meta">
+        <h1 class="lc-story-title">@storyTitle</h1>
+        <p class="lc-story-author">
+            <i class="bi bi-person"></i> @storyAuthor
+        </p>
+
+        <div class="lc-badges">
+            @if (storyStatus == "completed")
+            {
+                <span class="lc-badge lc-badge-completed">
+                    <i class="bi bi-check-circle-fill"></i> Hoàn thành
+                </span>
+            }
+            else
+            {
+                <span class="lc-badge lc-badge-ongoing">
+                    <i class="bi bi-arrow-repeat"></i> Đang ra
+                </span>
+            }
+
+            <span class="lc-badge lc-badge-count">
+                <i class="bi bi-collection"></i> @chapTotal chapter
+            </span>
+
+            @if (totalImages > 0)
+            {
+                <span class="lc-badge" style="background:#fdf4ff;color:#7e22ce;border:1px solid #e9d5ff;">
+                    <i class="bi bi-images"></i> @totalImages trang ảnh
+                </span>
+            }
+
+            @if (avgRating > 0)
+            {
+                <span class="lc-badge" style="background:#fefce8;color:#854d0e;border:1px solid #fde68a;">
+                    <i class="bi bi-star-fill"></i> @avgRating.ToString("F1")
+                </span>
+            }
+
+            @if (favCount > 0)
+            {
+                <span class="lc-badge" style="background:#fff0f4;color:#9f1239;border:1px solid #fecdd3;">
+                    <i class="bi bi-heart-fill"></i> @favCount theo dõi
+                </span>
+            }
+        </div>
+
+        <div class="lc-actions">
+            @if (Model != null && Model.Any())
+            {
+                <a asp-action="ReadChapter" asp-controller="Chapter"
+                   asp-route-id="@Model.First().ChapterId"
+                   class="btn btn-primary btn-sm">
+                    <i class="bi bi-book-half me-1"></i> Đọc từ đầu
+                </a>
+                <a asp-action="ReadChapter" asp-controller="Chapter"
+                   asp-route-id="@Model.Last().ChapterId"
+                   class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-skip-forward-fill me-1"></i> Chapter mới nhất
+                </a>
+            }
+            <a asp-action="Details" asp-controller="Story" asp-route-id="@storyId"
+               class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left me-1"></i> Về trang truyện
+            </a>
             @if (isEditor)
             {
                 <a asp-action="AddChapter" asp-controller="Chapter" asp-route-storyId="@storyId"
-                   class="btn btn-success btn-sm">➕ Thêm Chapter mới</a>
+                   class="btn btn-success btn-sm">
+                    <i class="bi bi-plus-lg me-1"></i> Thêm chapter
+                </a>
             }
         </div>
     </div>
+</div>
 
-    <div class="d-flex justify-content-between align-items-center mb-2">
-        <h5 class="mb-0">📑 Danh sách Chapter</h5>
-        <form asp-action="ListChapters" asp-route-id="@storyId" method="get" class="d-flex gap-2">
-            <select name="chapSize" class="form-select form-select-sm" style="width:auto;" onchange="this.form.submit()">
-                @foreach (var s in new[] { 10, 20, 50, 100 })
-                {
-                    if (chapSize == s)
-                    {
-                        <option value="@s" selected>@s / trang</option>
-                    }
-                    else
-                    {
-                        <option value="@s">@s / trang</option>
-                    }
-                }
-            </select>
-        </form>
-    </div>
+<!-- Main layout -->
+<div class="lc-wrap">
 
-    @if (!Model.Any())
-    {
-        <div class="alert alert-info">Truyện này chưa có chapter nào.</div>
-    }
-    else
-    {
-        <table class="table table-striped table-hover shadow-sm align-middle">
-            <thead class="table-dark">
-                <tr>
-                    <th style="width:60px;">Số</th>
-                    <th>Tiêu đề</th>
-                    <th class="text-center" style="width:90px;">Trang</th>
-                    @if (isEditor)
-                    {
-                        <th style="width:160px;">Thao tác</th>
-                    }
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var chap in Model)
-                {
-                    <tr>
-                        <td><span class="badge bg-secondary">@chap.ChapterNumber</span></td>
-                        <td>
-                            <a asp-action="ReadChapter" asp-controller="Chapter"
-                               asp-route-id="@chap.ChapterId"
-                               class="text-decoration-none fw-semibold">
-                                @chap.DisplayTitle
-                            </a>
-                        </td>
-                        <td class="text-center">
-                            <span class="badge bg-info text-dark">@chap.ImageCount</span>
-                        </td>
-                        @if (isEditor)
-                        {
-                            <td class="d-flex gap-1">
-                                <a asp-action="ManageImages" asp-controller="Chapter" asp-route-chapterId="@chap.ChapterId" class="btn btn-sm btn-primary" title="Quản lý ảnh">🖼️</a>
-                                <a asp-action="EditChapter" asp-controller="Chapter" asp-route-id="@chap.ChapterId" class="btn btn-sm btn-warning" title="Sửa">✏️</a>
-                                <a asp-action="DeleteChapter" asp-controller="Chapter" asp-route-id="@chap.ChapterId" class="btn btn-sm btn-danger" title="Xóa">🗑️</a>
-                            </td>
-                        }
-                    </tr>
-                }
-            </tbody>
-        </table>
+    <!-- ── Cột trái: danh sách chapter ── -->
+    <div>
+        <div class="lc-section-hd">
+            <div class="lc-section-title">
+                <div class="lc-section-bar"></div>
+                📑 Danh sách Chapter
+                <span style="font-size:12px;font-weight:400;color:var(--text-muted);">
+                    (trang @chapPage / @chapPages)
+                </span>
+            </div>
+        </div>
 
-        @if (chapPages > 1)
+        @if (Model == null || !Model.Any())
         {
-            <div class="d-flex flex-column align-items-center gap-1 mt-3">
-                <nav>
-                    <ul class="pagination pagination-sm mb-0 flex-wrap justify-content-center">
-                        <li class="page-item @(chapPage == 1 ? "disabled" : "")"><a class="page-link" href="@ChapPageUrl(1)">«</a></li>
-                        <li class="page-item @(chapPage == 1 ? "disabled" : "")"><a class="page-link" href="@ChapPageUrl(chapPage - 1)">‹</a></li>
-                        @for (int p = ps; p <= pe; p++)
-                        {
-                            <li class="page-item @(p == chapPage ? "active" : "")"><a class="page-link" href="@ChapPageUrl(p)">@p</a></li>
-                        }
-                        <li class="page-item @(chapPage == chapPages ? "disabled" : "")"><a class="page-link" href="@ChapPageUrl(chapPage + 1)">›</a></li>
-                        <li class="page-item @(chapPage == chapPages ? "disabled" : "")"><a class="page-link" href="@ChapPageUrl(chapPages)">»</a></li>
-                    </ul>
-                </nav>
-                <p class="text-muted small mb-0">Trang @chapPage / @chapPages · @chapTotal chapter</p>
+            <div class="lc-empty">
+                <div class="lc-empty-icon">📭</div>
+                <p class="mb-1 fw-semibold">Chưa có chapter nào</p>
+                <p class="small mb-0">Hãy thêm chapter đầu tiên cho truyện này.</p>
+                @if (isEditor)
+                {
+                    <a asp-action="AddChapter" asp-controller="Chapter"
+                       asp-route-storyId="@storyId"
+                       class="btn btn-success btn-sm mt-3">
+                        <i class="bi bi-plus-lg me-1"></i> Thêm chapter ngay
+                    </a>
+                }
             </div>
         }
-    }
+        else
+        {
+            <table class="lc-table">
+                <thead>
+                    <tr>
+                        <th style="width:56px;">Số</th>
+                        <th>Tiêu đề</th>
+                        <th class="text-center" style="width:96px;">Trang ảnh</th>
+                        @if (isEditor)
+                        {
+                            <th style="width:150px;">Thao tác</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var chap in Model)
+                    {
+                        <tr>
+                            <td>
+                                <span class="lc-chap-num">@chap.ChapterNumber</span>
+                            </td>
+                            <td>
+                                <a asp-action="ReadChapter" asp-controller="Chapter"
+                                   asp-route-id="@chap.ChapterId"
+                                   class="lc-chap-link">
+                                    @chap.DisplayTitle
+                                </a>
+                            </td>
+                            <td class="text-center">
+                                <span class="lc-page-badge">
+                                    <i class="bi bi-image"></i> @chap.ImageCount
+                                </span>
+                            </td>
+                            @if (isEditor)
+                            {
+                                <td>
+                                    <div class="lc-editor-actions">
+                                        <a asp-action="ManageImages" asp-controller="Chapter"
+                                           asp-route-chapterId="@chap.ChapterId"
+                                           class="btn btn-sm btn-outline-primary"
+                                           title="Quản lý ảnh">
+                                            <i class="bi bi-images"></i>
+                                        </a>
+                                        <a asp-action="EditChapter" asp-controller="Chapter"
+                                           asp-route-id="@chap.ChapterId"
+                                           class="btn btn-sm btn-outline-warning"
+                                           title="Sửa chapter">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <a asp-action="DeleteChapter" asp-controller="Chapter"
+                                           asp-route-id="@chap.ChapterId"
+                                           class="btn btn-sm btn-outline-danger"
+                                           title="Xóa chapter">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
 
-    <a asp-controller="Story" asp-action="Details" asp-route-id="@storyId"
-       class="btn btn-outline-secondary mt-3">← Về trang truyện</a>
-</div>
+            <!-- Phân trang -->
+            @if (chapPages > 1)
+            {
+                <div class="lc-pagination">
+                    <nav aria-label="Chapter pagination">
+                        <ul class="pagination pagination-sm mb-0 flex-wrap justify-content-center">
+                            <li class="page-item @(chapPage == 1 ? "disabled" : "")">
+                                <a class="page-link" href="@ChapUrl(1)" aria-label="Trang đầu">«</a>
+                            </li>
+                            <li class="page-item @(chapPage == 1 ? "disabled" : "")">
+                                <a class="page-link" href="@ChapUrl(chapPage - 1)" aria-label="Trang trước">‹</a>
+                            </li>
+                            @for (int p = ps; p <= pe; p++)
+                            {
+                                <li class="page-item @(p == chapPage ? "active" : "")">
+                                    <a class="page-link" href="@ChapUrl(p)">@p</a>
+                                </li>
+                            }
+                            <li class="page-item @(chapPage == chapPages ? "disabled" : "")">
+                                <a class="page-link" href="@ChapUrl(chapPage + 1)" aria-label="Trang sau">›</a>
+                            </li>
+                            <li class="page-item @(chapPage == chapPages ? "disabled" : "")">
+                                <a class="page-link" href="@ChapUrl(chapPages)" aria-label="Trang cuối">»</a>
+                            </li>
+                        </ul>
+                    </nav>
+                    <p class="text-muted small mb-0">
+                        Trang @chapPage / @chapPages &nbsp;·&nbsp; @chapTotal chapter
+                    </p>
+                </div>
+            }
+        }
+    </div>
+
+    <!-- ── Cột phải: sidebar ── -->
+    <aside class="lc-sidebar">
+
+        <!-- Widget: Số trang / trang -->
+        <div class="lc-widget">
+            <div class="lc-widget-hd">
+                <i class="bi bi-sliders"></i> Hiển thị
+            </div>
+            <form asp-action="ListChapters" asp-route-id="@storyId" method="get" class="lc-size-form">
+                <span class="lc-size-label">Số chapter / trang:</span>
+                <select name="chapSize" class="lc-size-select" onchange="this.form.submit()">
+                    @foreach (var s in new[] { 10, 20, 50, 100 })
+                    {
+                        if (chapSize == s)
+                        {
+                            <option value="@s" selected>@s</option>
+                        }
+                        else
+                        {
+                            <option value="@s">@s</option>
+                        }
+                    }
+                </select>
+            </form>
+        </div>
+
+        <!-- Widget: Thống kê -->
+        <div class="lc-widget">
+            <div class="lc-widget-hd">
+                <i class="bi bi-bar-chart-fill"></i> Thống kê
+            </div>
+            <div class="lc-stats-grid">
+                <div class="lc-stat-item">
+                    <div class="lc-stat-num">@chapTotal</div>
+                    <div class="lc-stat-lbl">Chapter</div>
+                </div>
+                <div class="lc-stat-item">
+                    <div class="lc-stat-num">@totalImages</div>
+                    <div class="lc-stat-lbl">Trang ảnh</div>
+                </div>
+                <div class="lc-stat-item">
+                    <div class="lc-stat-num">@favCount</div>
+                    <div class="lc-stat-lbl">Theo dõi</div>
+                </div>
+                <div class="lc-stat-item">
+                    <div class="lc-stat-num">@(avgRating > 0 ? avgRating.ToString("F1") : "—")</div>
+                    <div class="lc-stat-lbl">Đánh giá</div>
+                </div>
+            </div>
+        </div>

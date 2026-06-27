@@ -4,69 +4,191 @@
     ViewData["Title"] = "Thêm Chapter";
 }
 
-<div class="container mt-4" style="max-width:600px;">
-    <h2>➕ Thêm Chapter mới</h2>
-    @if (!string.IsNullOrEmpty(Model.StoryTitle))
-    {
-        <p class="text-muted">Truyện: <strong>@Model.StoryTitle</strong></p>
-    }
+<link rel="stylesheet" href="~/css/Add-Chapter.css" />
 
+<div class="ac-wrap">
+
+    <!-- ── Hero ── -->
+    <div class="ac-hero">
+        <div class="ac-hero-icon">
+            <i class="bi bi-journal-plus"></i>
+        </div>
+        <div class="ac-hero-meta">
+            <h1 class="ac-hero-title">Thêm Chapter mới</h1>
+            @if (!string.IsNullOrEmpty(Model.StoryTitle))
+            {
+                <p class="ac-hero-sub">
+                    <i class="bi bi-book"></i> @Model.StoryTitle
+                </p>
+            }
+        </div>
+    </div>
+
+    <!-- ── Lỗi validation ── -->
     @if (!ViewData.ModelState.IsValid)
     {
-        <div class="alert alert-danger">
-            @foreach (var err in ViewData.ModelState.Values.SelectMany(v => v.Errors))
-            {
-                <div>@err.ErrorMessage</div>
-            }
+        <div class="ac-alert ac-alert-danger">
+            <i class="bi bi-exclamation-circle-fill"></i>
+            <div>
+                @foreach (var err in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    <div>@err.ErrorMessage</div>
+                }
+            </div>
         </div>
     }
 
-    <form asp-action="AddChapter" asp-controller="Chapter" method="post" enctype="multipart/form-data">
+    <!-- ── Form ── -->
+    <form asp-action="AddChapter" asp-controller="Chapter"
+          method="post" enctype="multipart/form-data" id="acForm">
         @Html.AntiForgeryToken()
         <input type="hidden" name="storyId" value="@Model.StoryId" />
 
-        <div class="mb-3">
-            <label class="form-label">Số Chapter <span class="text-danger">*</span></label>
-            <input asp-for="ChapterNumber" class="form-control" type="number" min="1" required />
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Tiêu đề</label>
-            <input asp-for="Title" class="form-control" placeholder="VD: Khởi đầu..." />
+        <!-- Thông tin chapter -->
+        <p class="ac-section-label">Thông tin chapter</p>
+        <div class="ac-card ac-info-card">
+
+            <div class="ac-field">
+                <label class="ac-field-label">
+                    Số Chapter <span class="ac-required">*</span>
+                </label>
+                <div class="ac-input-wrap">
+                    <i class="bi bi-hash ac-input-icon"></i>
+                    <input asp-for="ChapterNumber"
+                           class="ac-input"
+                           type="number" min="1"
+                           placeholder="1"
+                           required />
+                </div>
+                <span asp-validation-for="ChapterNumber" class="ac-validation"></span>
+            </div>
+
+            <div class="ac-field">
+                <label class="ac-field-label">Tiêu đề</label>
+                <div class="ac-input-wrap">
+                    <i class="bi bi-cursor-text ac-input-icon"></i>
+                    <input asp-for="Title"
+                           class="ac-input"
+                           placeholder="VD: Khởi đầu mới... (tuỳ chọn)" />
+                </div>
+            </div>
+
         </div>
 
-        <div class="mb-3">
-            <label class="form-label">Ảnh các trang <span class="text-muted small">(jpg/png/gif/webp, tối đa 10MB mỗi ảnh, có thể chọn nhiều - tuỳ chọn)</span></label>
-            <input type="file" name="imageFiles" class="form-control" multiple
-                   accept=".jpg,.jpeg,.png,.gif,.webp" id="imageInput" />
-            <div id="previewArea" class="d-flex flex-wrap gap-2 mt-2"></div>
+        <!-- Upload ảnh -->
+        <p class="ac-section-label">Ảnh các trang</p>
+        <div class="ac-card ac-upload-card">
+
+            <div class="ac-upload-zone" id="acDropZone">
+                <div class="ac-upload-icon">
+                    <i class="bi bi-cloud-arrow-up"></i>
+                </div>
+                <p class="ac-upload-title">Kéo thả ảnh vào đây</p>
+                <p class="ac-upload-sub">
+                    hoặc <label for="imageInput" class="ac-upload-link">chọn từ máy tính</label>
+                </p>
+                <p class="ac-upload-hint">jpg / png / gif / webp · tối đa 10MB mỗi ảnh</p>
+                <input type="file" name="imageFiles" id="imageInput"
+                       class="ac-file-input" multiple
+                       accept=".jpg,.jpeg,.png,.gif,.webp" />
+            </div>
+
+            <!-- Preview -->
+            <div id="acPreviewWrap" class="ac-preview-wrap d-none">
+                <div class="ac-preview-header">
+                    <span id="acPreviewCount" class="ac-preview-count">0 ảnh đã chọn</span>
+                    <button type="button" class="ac-clear-btn" id="acClearBtn">
+                        <i class="bi bi-x-lg"></i> Xóa tất cả
+                    </button>
+                </div>
+                <div id="acPreviewGrid" class="ac-preview-grid"></div>
+            </div>
+
         </div>
 
-        <div class="d-flex gap-2">
-            <button type="submit" class="btn btn-success">💾 Lưu Chapter</button>
-            <a asp-action="ListChapters" asp-controller="Chapter" asp-route-id="@Model.StoryId"
-               class="btn btn-secondary">← Quay lại</a>
+        <!-- Hành động -->
+        <div class="ac-actions">
+            <button type="submit" class="ac-btn ac-btn-primary" id="acSubmitBtn">
+                <i class="bi bi-check-lg"></i> Lưu Chapter
+            </button>
+            <a asp-action="ListChapters" asp-controller="Chapter"
+               asp-route-id="@Model.StoryId"
+               class="ac-btn ac-btn-ghost">
+                <i class="bi bi-arrow-left"></i> Quay lại
+            </a>
         </div>
+
     </form>
+
 </div>
 
 @section Scripts {
     <script>
-        document.getElementById('imageInput')?.addEventListener('change', function () {
-            const files = Array.from(this.files);
-            const preview = document.getElementById('previewArea');
-            preview.innerHTML = '';
-            files.forEach(f => {
+        const input       = document.getElementById('imageInput');
+        const dropZone    = document.getElementById('acDropZone');
+        const previewWrap = document.getElementById('acPreviewWrap');
+        const previewGrid = document.getElementById('acPreviewGrid');
+        const countLabel  = document.getElementById('acPreviewCount');
+        const clearBtn    = document.getElementById('acClearBtn');
+
+        // ── Drag & drop ──
+        ['dragenter','dragover'].forEach(ev =>
+            dropZone.addEventListener(ev, e => {
+                e.preventDefault();
+                dropZone.classList.add('ac-drop-active');
+            })
+        );
+        ['dragleave','drop'].forEach(ev =>
+            dropZone.addEventListener(ev, e => {
+                e.preventDefault();
+                dropZone.classList.remove('ac-drop-active');
+            })
+        );
+        dropZone.addEventListener('drop', e => {
+            const dt = e.dataTransfer;
+            if (dt?.files?.length) renderPreviews(dt.files);
+        });
+
+        // ── File input change ──
+        input.addEventListener('change', function () {
+            renderPreviews(this.files);
+        });
+
+        // ── Render previews ──
+        function renderPreviews(files) {
+            const arr = Array.from(files);
+            previewGrid.innerHTML = '';
+
+            if (!arr.length) {
+                previewWrap.classList.add('d-none');
+                return;
+            }
+
+            previewWrap.classList.remove('d-none');
+            countLabel.textContent = arr.length + ' ảnh đã chọn';
+
+            arr.forEach((f, idx) => {
                 const reader = new FileReader();
                 reader.onload = e => {
                     const div = document.createElement('div');
-                    div.style.cssText = 'position:relative;';
+                    div.className = 'ac-preview-item';
                     div.innerHTML = `
-                        <img src="${e.target.result}" style="width:80px;height:80px;object-fit:cover;border-radius:6px;border:2px solid #dee2e6;" />
-                        <small class="d-block text-center text-muted" style="width:80px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${f.name}</small>`;
-                    preview.appendChild(div);
+                        <img src="${e.target.result}" class="ac-preview-img" alt="${f.name}" />
+                        <div class="ac-preview-info">
+                            <span class="ac-preview-page">Trang ${idx + 1}</span>
+                            <span class="ac-preview-name">${f.name}</span>
+                        </div>`;
+                    previewGrid.appendChild(div);
                 };
                 reader.readAsDataURL(f);
             });
+        }
+
+        // ── Clear ──
+        clearBtn.addEventListener('click', () => {
+            input.value = '';
+            previewGrid.innerHTML = '';
+            previewWrap.classList.add('d-none');
         });
     </script>
 }
