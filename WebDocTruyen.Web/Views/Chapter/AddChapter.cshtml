@@ -2,9 +2,12 @@
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "Thêm Chapter";
+    string storyTitle = !string.IsNullOrEmpty(Model.StoryTitle)
+        ? Model.StoryTitle
+        : (ViewBag.StoryTitle as string ?? "");
 }
 
-<link rel="stylesheet" href="~/css/Add-Chapter.css" />
+<link rel="stylesheet" href="~/css/add-chapter.css" />
 
 <div class="ac-wrap">
 
@@ -15,10 +18,10 @@
         </div>
         <div class="ac-hero-meta">
             <h1 class="ac-hero-title">Thêm Chapter mới</h1>
-            @if (!string.IsNullOrEmpty(Model.StoryTitle))
+            @if (!string.IsNullOrEmpty(storyTitle))
             {
                 <p class="ac-hero-sub">
-                    <i class="bi bi-book"></i> @Model.StoryTitle
+                    <i class="bi bi-book"></i> @storyTitle
                 </p>
             }
         </div>
@@ -54,10 +57,11 @@
                 </label>
                 <div class="ac-input-wrap">
                     <i class="bi bi-hash ac-input-icon"></i>
-                    <input asp-for="ChapterNumber"
+                    <input name="ChapterNumber"
                            class="ac-input"
-                           type="number" min="1"
-                           placeholder="1"
+                           type="number"
+                           min="1"
+                           placeholder="Nhập số chapter..."
                            required />
                 </div>
                 <span asp-validation-for="ChapterNumber" class="ac-validation"></span>
@@ -94,7 +98,7 @@
             </div>
 
             <!-- Preview -->
-            <div id="acPreviewWrap" class="ac-preview-wrap d-none">
+            <div id="acPreviewWrap" class="ac-preview-wrap ac-hidden">
                 <div class="ac-preview-header">
                     <span id="acPreviewCount" class="ac-preview-count">0 ảnh đã chọn</span>
                     <button type="button" class="ac-clear-btn" id="acClearBtn">
@@ -132,13 +136,13 @@
         const clearBtn    = document.getElementById('acClearBtn');
 
         // ── Drag & drop ──
-        ['dragenter','dragover'].forEach(ev =>
+        ['dragenter', 'dragover'].forEach(ev =>
             dropZone.addEventListener(ev, e => {
                 e.preventDefault();
                 dropZone.classList.add('ac-drop-active');
             })
         );
-        ['dragleave','drop'].forEach(ev =>
+        ['dragleave', 'drop'].forEach(ev =>
             dropZone.addEventListener(ev, e => {
                 e.preventDefault();
                 dropZone.classList.remove('ac-drop-active');
@@ -160,11 +164,11 @@
             previewGrid.innerHTML = '';
 
             if (!arr.length) {
-                previewWrap.classList.add('d-none');
+                previewWrap.classList.add('ac-hidden');
                 return;
             }
 
-            previewWrap.classList.remove('d-none');
+            previewWrap.classList.remove('ac-hidden');
             countLabel.textContent = arr.length + ' ảnh đã chọn';
 
             arr.forEach((f, idx) => {
@@ -188,7 +192,7 @@
         clearBtn.addEventListener('click', () => {
             input.value = '';
             previewGrid.innerHTML = '';
-            previewWrap.classList.add('d-none');
+            previewWrap.classList.add('ac-hidden');
         });
     </script>
 }
