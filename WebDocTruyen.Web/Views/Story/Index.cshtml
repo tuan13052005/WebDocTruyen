@@ -17,27 +17,32 @@
     int pEnd = Math.Min(totalPages, pStart + 6);
     pStart = Math.Max(1, pEnd - 6);
     string genreQs = string.Join("&", selectedGenres.Select(id => $"genreIds={id}"));
+
+    string PageUrl(int p) =>
+        $"?page={p}&pageSize={pageSize}&keyword={Uri.EscapeDataString(kw)}&status={st}&sort={sr}&{genreQs}";
 }
 
 <link rel="stylesheet" href="~/css/story-index.css" />
 
 <div class="si-wrap">
-
     <div class="si-layout">
 
-        <!-- ── SIDEBAR BỘ LỌC ──────────────────────────────────────── -->
+        <!-- ═══════════════════════════════════════
+         SIDEBAR BỘ LỌC
+         ═══════════════════════════════════════ -->
         <aside class="si-sidebar">
             <form asp-action="Index" method="get" id="filterForm" class="si-filter-form">
 
-                <!-- Search box -->
+                <!-- Search -->
                 <div class="si-search-box">
                     <i class="bi bi-search si-search-icon"></i>
                     <input type="text" name="keyword" value="@kw"
                            class="si-search-input" placeholder="Tìm tên truyện, tác giả..." />
                     @if (!string.IsNullOrEmpty(kw))
                     {
-                        <button type="submit" class="si-search-clear" onclick="document.querySelector('[name=keyword]').value=''"
-                                title="Xóa tìm kiếm">
+                        <button type="button" class="si-search-clear"
+                                onclick="document.querySelector('.si-search-input').value='';document.getElementById('filterForm').submit();"
+                                title="Xóa">
                             <i class="bi bi-x"></i>
                         </button>
                     }
@@ -67,21 +72,21 @@
                     <p class="si-section-label">Sắp xếp</p>
                     <div class="si-sort-list">
                         @{
-                            var sortOptions = new[] {
-                                ("", "Mới thêm", "bi-clock"),
-                                ("updated", "Cập nhật gần đây", "bi-arrow-clockwise"),
-                                ("chapter", "Nhiều chapter", "bi-collection"),
-                                ("follow", "Nhiều theo dõi", "bi-heart"),
-                                ("rating", "Đánh giá cao", "bi-star"),
-                            };
+                            var sortOptions = new[]
+                            {
+                            ("",        "Mới thêm",           "bi-clock"),
+                            ("updated", "Cập nhật gần đây",   "bi-arrow-clockwise"),
+                            ("chapter", "Nhiều chapter nhất", "bi-collection"),
+                            ("follow",  "Nhiều theo dõi",     "bi-heart"),
+                            ("rating",  "Đánh giá cao",       "bi-star"),
+                        };
                         }
                         @foreach (var (val, label, icon) in sortOptions)
                         {
                             <label class="si-sort-item @(sr == val ? "is-active" : "")">
                                 <input type="radio" name="sort" value="@val"
                                 @(sr == val ? "checked" : "") hidden />
-                                <i class="bi @icon"></i>
-                                @label
+                                <i class="bi @icon"></i>@label
                             </label>
                         }
                     </div>
@@ -133,7 +138,9 @@
             </form>
         </aside>
 
-        <!-- ── DANH SÁCH TRUYỆN ──────────────────────────────────── -->
+        <!-- ═══════════════════════════════════════
+         MAIN — Topbar + Grid
+         ═══════════════════════════════════════ -->
         <main class="si-main">
 
             <!-- Topbar -->
@@ -142,7 +149,7 @@
                     @if (!string.IsNullOrEmpty(kw))
                     {
                         <span class="si-result-badge">
-                            Kết quả cho &ldquo;<strong>@kw</strong>&rdquo;
+                            &ldquo;<strong>@kw</strong>&rdquo;
                             <a asp-action="Index" class="si-result-clear">
                                 <i class="bi bi-x-circle-fill"></i>
                             </a>
@@ -152,18 +159,14 @@
                         <strong>@totalStories</strong> truyện
                         @if (totalPages > 1)
                         {
-                            <span class="si-count-page"> · trang @currentPage/@totalPages</span>
+                            <span class="si-count-page"> · trang @currentPage / @totalPages</span>
                         }
                     </span>
                 </div>
-
-                <!-- Active filter chips -->
                 <div class="si-active-chips">
                     @if (!string.IsNullOrEmpty(st))
                     {
-                        <span class="si-chip">
-                            @(st == "completed" ? "Hoàn thành" : "Đang ra")
-                        </span>
+                        <span class="si-chip">@(st == "completed" ? "Hoàn thành" : "Đang ra")</span>
                     }
                     @if (!string.IsNullOrEmpty(sr))
                     {
@@ -177,19 +180,22 @@
                         };
                         <span class="si-chip">@srLabel</span>
                     }
-                    @foreach (var gid in selectedGenres)
+                    @if (ViewBag.Genres != null)
                     {
-                        var genre = ((IEnumerable<WebDocTruyen.Application.DTOs.Genre.GenreDto>)ViewBag.Genres)
-                            .FirstOrDefault(g => g.GenreId == gid);
-                        if (genre != null)
+                        foreach (var gid in selectedGenres)
                         {
-                            <span class="si-chip si-chip--genre">@genre.Name</span>
+                            var genre = ((IEnumerable<WebDocTruyen.Application.DTOs.Genre.GenreDto>)ViewBag.Genres)
+                                .FirstOrDefault(g => g.GenreId == gid);
+                            if (genre != null)
+                            {
+                                <span class="si-chip si-chip--genre">@genre.Name</span>
+                            }
                         }
                     }
                 </div>
             </div>
 
-            <!-- Grid hoặc Empty -->
+            <!-- Grid -->
             @if (Model == null || !Model.Any())
             {
                 <div class="si-empty">
@@ -204,27 +210,49 @@
                 <div class="si-grid">
                     @foreach (var s in Model)
                     {
-                        <article class="si-card">
-                            <a asp-action="Details" asp-route-id="@s.Id" class="si-card-thumb-link">
-                                <div class="si-card-thumb">
-                                    <img src="@s.CoverImage" alt="@s.Title" loading="lazy"
-                                         onerror="this.src='/images/default.jpg'" />
-                                    <span class="si-status-dot @(s.Status == "completed" ? "si-dot--done" : "si-dot--going")"
-                                          title="@(s.Status == "completed" ? "Hoàn thành" : "Đang ra")"></span>
-                                </div>
-                            </a>
-                            <div class="si-card-body">
-                                <a asp-action="Details" asp-route-id="@s.Id" class="si-card-title">@s.Title</a>
-                                <p class="si-card-author">@s.Author</p>
+                        <a class="si-card" asp-action="Details" asp-route-id="@s.Id">
+
+                            <!-- Ảnh bìa full-bleed -->
+                            <img class="si-card-img" src="@s.CoverImage" alt="@s.Title" loading="lazy"
+                                 onerror="this.src='/images/default.jpg'" />
+
+                            <!-- Gradient overlay -->
+                            <div class="si-card-overlay"></div>
+
+                            <!-- Top badges -->
+                            <span class="si-card-status @(s.Status == "completed" ? "si-card-status--done" : "si-card-status--going")">
+                                @(s.Status == "completed" ? "Hoàn thành" : "Đang ra")
+                            </span>
+                            @if (s.ChapterCount > 0)
+                            {
+                                <span class="si-card-chap">
+                                    <i class="bi bi-collection"></i> @s.ChapterCount
+                                </span>
+                            }
+
+                            <!-- Hover CTA -->
+                            <div class="si-card-cta">
+                                <span class="si-cta-btn">
+                                    <i class="bi bi-play-fill"></i> Đọc ngay
+                                </span>
+                            </div>
+
+                            <!-- Info bottom -->
+                            <div class="si-card-info">
+                                <div class="si-card-title">@s.Title</div>
+                                <div class="si-card-author">@s.Author</div>
                                 <div class="si-card-meta">
-                                    <span class="si-meta-item">
-                                        <i class="bi bi-collection"></i> @s.ChapterCount
-                                    </span>
                                     @if (s.AvgRating > 0)
                                     {
                                         <span class="si-meta-item si-meta-star">
                                             <i class="bi bi-star-fill"></i>
                                             @s.AvgRating.ToString("F1")
+                                        </span>
+                                    }
+                                    @if (s.FavoriteCount > 0)
+                                    {
+                                        <span class="si-meta-item">
+                                            <i class="bi bi-heart"></i> @s.FavoriteCount
                                         </span>
                                     }
                                 </div>
@@ -233,8 +261,7 @@
                                     <div class="si-card-genres">
                                         @foreach (var g in s.Genres.Take(2))
                                         {
-                                            <a asp-controller="Genres" asp-action="ByGenre" asp-route-id="@g.GenreId"
-                                               class="si-genre-tag">@g.Name</a>
+                                            <span class="si-genre-tag">@g.Name</span>
                                         }
                                         @if (s.Genres.Count > 2)
                                         {
@@ -243,7 +270,8 @@
                                     </div>
                                 }
                             </div>
-                        </article>
+
+                        </a>
                     }
                 </div>
 
@@ -252,20 +280,16 @@
                 {
                     <nav class="si-pagination" aria-label="Phân trang">
                         <a class="si-page-btn @(currentPage == 1 ? "is-disabled" : "")"
-                           href="?page=@(currentPage - 1)&pageSize=@pageSize&keyword=@kw&status=@st&sort=@sr&@genreQs"
-                           aria-label="Trang trước">
+                           href="@PageUrl(currentPage - 1)" aria-label="Trang trước">
                             <i class="bi bi-chevron-left"></i>
                         </a>
                         @for (int p = pStart; p <= pEnd; p++)
                         {
                             <a class="si-page-btn @(p == currentPage ? "is-current" : "")"
-                               href="?page=@p&pageSize=@pageSize&keyword=@kw&status=@st&sort=@sr&@genreQs">
-                                @p
-                            </a>
+                               href="@PageUrl(p)">@p</a>
                         }
                         <a class="si-page-btn @(currentPage == totalPages ? "is-disabled" : "")"
-                           href="?page=@(currentPage + 1)&pageSize=@pageSize&keyword=@kw&status=@st&sort=@sr&@genreQs"
-                           aria-label="Trang sau">
+                           href="@PageUrl(currentPage + 1)" aria-label="Trang sau">
                             <i class="bi bi-chevron-right"></i>
                         </a>
                     </nav>
@@ -278,18 +302,17 @@
 
 @section Scripts {
     <script>
-        /* Tự submit khi chọn radio pill/sort để UX nhanh hơn */
+        /* Auto-submit khi chọn radio (status / sort / pageSize) */
         document.querySelectorAll(
-            '.si-pill input, .si-sort-item input, .si-genre-chip input'
+            '.si-pill input[type=radio], .si-sort-item input[type=radio]'
         ).forEach(function(inp) {
-            inp.addEventListener('change', function () {
+            inp.addEventListener('change', function() {
                 document.getElementById('filterForm').submit();
             });
         });
-
-        /* Highlight label khi input thay đổi (checkbox genre) */
+        /* Đánh dấu genre chip khi tick checkbox */
         document.querySelectorAll('.si-genre-chip input').forEach(function(inp) {
-            inp.addEventListener('change', function () {
+            inp.addEventListener('change', function() {
                 this.closest('.si-genre-chip').classList.toggle('is-active', this.checked);
             });
         });
