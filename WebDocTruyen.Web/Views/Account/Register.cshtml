@@ -3,41 +3,415 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="container mt-5" style="max-width:420px;">
-    <div class="card shadow-sm">
-        <div class="card-body p-4">
-            <h2 class="mb-4 text-center">📝 Đăng ký</h2>
+<style>
+    .auth-page {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 32px 16px;
+        position: relative;
+        overflow: hidden;
+        background: #0f0c1e;
+        border-radius: 20px;
+        margin: -28px -12px;
+    }
 
-            @if (ViewBag.Error != null)
-            {
-                <div class="alert alert-danger">@ViewBag.Error</div>
+    .auth-bubble {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(124, 92, 248, .18);
+        animation: authFloat linear infinite;
+        pointer-events: none;
+    }
+
+    @@keyframes authFloat {
+        0% {
+            transform: translateY(0) scale(1);
+            opacity: .7;
+        }
+
+        50% {
+            opacity: .35;
+        }
+
+        100% {
+            transform: translateY(-140px) scale(.4);
+            opacity: 0;
+        }
+    }
+
+    @@keyframes authFadeUp {
+        from {
+            opacity: 0;
+            transform: translateY(24px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@keyframes authShimmer {
+        0% {
+            left: -100%;
+        }
+
+        100% {
+            left: 200%;
+        }
+    }
+
+    .auth-card {
+        background: rgba(255,255,255,.04);
+        border: 1px solid rgba(255,255,255,.10);
+        border-radius: 22px;
+        width: 100%;
+        max-width: 420px;
+        padding: 36px 32px 32px;
+        position: relative;
+        z-index: 2;
+        animation: authFadeUp .5s cubic-bezier(.22,1,.36,1) both;
+    }
+
+    .auth-brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        justify-content: center;
+        margin-bottom: 28px;
+        text-decoration: none;
+    }
+
+    .auth-brand-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 11px;
+        background: linear-gradient(135deg, #7c5cf8, #a78bfa);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+    }
+
+    .auth-brand-name {
+        font-size: 17px;
+        font-weight: 600;
+        color: #fff;
+        letter-spacing: -.2px;
+    }
+
+    .auth-card h2 {
+        font-size: 20px;
+        font-weight: 600;
+        color: #fff;
+        text-align: center;
+        margin: 0 0 6px;
+    }
+
+    .auth-sub {
+        font-size: 13px;
+        color: rgba(255,255,255,.4);
+        text-align: center;
+        margin-bottom: 28px;
+    }
+
+    .auth-alert {
+        background: rgba(220,38,38,.12);
+        border: 1px solid rgba(220,38,38,.3);
+        border-radius: 8px;
+        padding: 9px 12px;
+        font-size: 13px;
+        color: #fca5a5;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        animation: authFadeUp .3s ease both;
+    }
+
+    .auth-field {
+        margin-bottom: 15px;
+    }
+
+        .auth-field label {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .07em;
+            color: rgba(255,255,255,.38);
+            margin-bottom: 7px;
+        }
+
+    .auth-field-wrap {
+        position: relative;
+    }
+
+    .auth-field-icon {
+        position: absolute;
+        left: 13px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: rgba(255,255,255,.28);
+        font-size: 15px;
+        pointer-events: none;
+        transition: color .15s;
+    }
+
+    .auth-field input {
+        width: 100%;
+        background: rgba(255,255,255,.06);
+        border: 1px solid rgba(255,255,255,.10);
+        border-radius: 10px;
+        padding: 10px 12px 10px 38px;
+        font-size: 14px;
+        color: #fff;
+        outline: none;
+        transition: border-color .15s, background .15s;
+        font-family: inherit;
+    }
+
+        .auth-field input::placeholder {
+            color: rgba(255,255,255,.2);
+        }
+
+        .auth-field input:focus {
+            border-color: rgba(124,92,248,.7);
+            background: rgba(124,92,248,.08);
+        }
+
+    .auth-field-wrap:focus-within .auth-field-icon {
+        color: #a78bfa;
+    }
+
+    /* Password strength bar */
+    .pw-strength {
+        margin-top: 7px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .pw-bar {
+        flex: 1;
+        height: 3px;
+        background: rgba(255,255,255,.1);
+        border-radius: 3px;
+        overflow: hidden;
+    }
+
+    .pw-fill {
+        height: 100%;
+        border-radius: 3px;
+        width: 0;
+        transition: width .3s, background .3s;
+    }
+
+    .pw-label {
+        font-size: 11px;
+        min-width: 52px;
+        text-align: right;
+    }
+
+    .auth-btn {
+        width: 100%;
+        padding: 12px;
+        border: none;
+        border-radius: 11px;
+        background: linear-gradient(135deg, #7c5cf8, #9d7ffa);
+        color: #fff;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 6px;
+        position: relative;
+        overflow: hidden;
+        transition: opacity .15s;
+        font-family: inherit;
+    }
+
+        .auth-btn:hover {
+            opacity: .9;
+        }
+
+        .auth-btn::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 60%;
+            height: 100%;
+            background: rgba(255,255,255,.15);
+            transform: skewX(-20deg);
+            animation: authShimmer 2.4s ease-in-out infinite;
+        }
+
+    .auth-link-row {
+        text-align: center;
+        font-size: 13px;
+        color: rgba(255,255,255,.32);
+        margin-top: 20px;
+    }
+
+        .auth-link-row a {
+            color: #a78bfa;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+            .auth-link-row a:hover {
+                text-decoration: underline;
             }
 
-            @* FIX: thêm AntiForgeryToken *@
-            <form asp-action="Register" asp-controller="Account" method="post">
-                @Html.AntiForgeryToken()
-                <div class="mb-3">
-                    <label class="form-label">Tên đăng nhập</label>
-                    <input type="text" class="form-control" name="Username" required />
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Email</label>
-                    <input type="email" class="form-control" name="Email" required />
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Mật khẩu</label>
-                    <input type="password" class="form-control" name="Password" required />
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Xác nhận mật khẩu</label>
-                    <input type="password" class="form-control" name="ConfirmPassword" required />
-                </div>
-                <button type="submit" class="btn btn-primary w-100">Đăng ký</button>
-            </form>
+    /* Match indicator */
+    .pw-match {
+        font-size: 12px;
+        margin-top: 5px;
+        min-height: 16px;
+    }
 
-            <p class="mt-3 text-center mb-0">
-                Đã có tài khoản? <a asp-controller="Account" asp-action="Login">Đăng nhập</a>
-            </p>
-        </div>
+        .pw-match.ok {
+            color: #86efac;
+        }
+
+        .pw-match.err {
+            color: #fca5a5;
+        }
+</style>
+
+<div class="auth-page">
+    <div id="authBubbles"></div>
+
+    <div class="auth-card">
+        <a asp-controller="Home" asp-action="Index" class="auth-brand">
+            <div class="auth-brand-icon">📖</div>
+            <span class="auth-brand-name">Web Đọc Truyện</span>
+        </a>
+
+        <h2>Tạo tài khoản</h2>
+        <p class="auth-sub">Miễn phí, đọc không giới hạn</p>
+
+        @if (ViewBag.Error != null)
+        {
+            <div class="auth-alert">
+                <i class="bi bi-exclamation-circle"></i> @ViewBag.Error
+            </div>
+        }
+
+        <form asp-action="Register" asp-controller="Account" method="post">
+            @Html.AntiForgeryToken()
+
+            <div class="auth-field">
+                <label>Tên đăng nhập</label>
+                <div class="auth-field-wrap">
+                    <i class="bi bi-person auth-field-icon"></i>
+                    <input type="text" name="Username" required autocomplete="username" placeholder="Tên của bạn" />
+                </div>
+            </div>
+
+            <div class="auth-field">
+                <label>Email</label>
+                <div class="auth-field-wrap">
+                    <i class="bi bi-envelope auth-field-icon"></i>
+                    <input type="email" name="Email" required autocomplete="email" placeholder="ten@email.com" />
+                </div>
+            </div>
+
+            <div class="auth-field">
+                <label>Mật khẩu</label>
+                <div class="auth-field-wrap">
+                    <i class="bi bi-lock auth-field-icon"></i>
+                    <input type="password" name="Password" id="regPwd" required placeholder="Tối thiểu 6 ký tự" oninput="checkStrength(this.value)" />
+                </div>
+                <div class="pw-strength" id="strengthWrap" style="opacity:0;transition:opacity .2s">
+                    <div class="pw-bar"><div class="pw-fill" id="pwFill"></div></div>
+                    <span class="pw-label" id="pwLabel"></span>
+                </div>
+            </div>
+
+            <div class="auth-field">
+                <label>Xác nhận mật khẩu</label>
+                <div class="auth-field-wrap">
+                    <i class="bi bi-shield-check auth-field-icon"></i>
+                    <input type="password" name="ConfirmPassword" id="regConfirm" required placeholder="Nhập lại mật khẩu" oninput="checkMatch()" />
+                </div>
+                <p class="pw-match" id="matchMsg"></p>
+            </div>
+
+            <button type="submit" class="auth-btn" id="regBtn">Tạo tài khoản</button>
+        </form>
+
+        <p class="auth-link-row">
+            Đã có tài khoản?
+            <a asp-controller="Account" asp-action="Login">Đăng nhập</a>
+        </p>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        (function () {
+            var bw = document.getElementById('authBubbles');
+            var cfg = [
+                { s: 44, l: 8,  d: 7.0, delay: 0   },
+                { s: 62, l: 22, d: 8.5, delay: 1.2 },
+                { s: 30, l: 38, d: 6.2, delay: 0.5 },
+                { s: 52, l: 54, d: 9.0, delay: 2.1 },
+                { s: 70, l: 68, d: 7.8, delay: 0.9 },
+                { s: 26, l: 80, d: 6.6, delay: 1.7 },
+                { s: 48, l: 92, d: 8.2, delay: 0.3 },
+            ];
+            cfg.forEach(function (c) {
+                var b = document.createElement('div');
+                b.className = 'auth-bubble';
+                b.style.cssText = 'width:' + c.s + 'px;height:' + c.s + 'px;left:' + c.l + '%;bottom:-' + c.s + 'px;animation-duration:' + c.d + 's;animation-delay:' + c.delay + 's';
+                bw.appendChild(b);
+            });
+        })();
+
+        function checkStrength(v) {
+            var wrap = document.getElementById('strengthWrap');
+            var fill = document.getElementById('pwFill');
+            var lbl  = document.getElementById('pwLabel');
+            if (!v) { wrap.style.opacity = '0'; return; }
+            wrap.style.opacity = '1';
+            var score = 0;
+            if (v.length >= 6)  score++;
+            if (v.length >= 10) score++;
+            if (/[A-Z]/.test(v)) score++;
+            if (/[0-9]/.test(v)) score++;
+            if (/[^A-Za-z0-9]/.test(v)) score++;
+            var levels = [
+                { pct: '20%', color: '#ef4444', text: 'Rất yếu' },
+                { pct: '40%', color: '#f97316', text: 'Yếu'     },
+                { pct: '60%', color: '#eab308', text: 'Trung bình' },
+                { pct: '80%', color: '#22c55e', text: 'Mạnh'    },
+                { pct: '100%',color: '#16a34a', text: 'Rất mạnh'},
+            ];
+            var lvl = levels[Math.max(0, score - 1)];
+            fill.style.width      = lvl.pct;
+            fill.style.background = lvl.color;
+            lbl.textContent       = lvl.text;
+            lbl.style.color       = lvl.color;
+        }
+
+        function checkMatch() {
+            var pwd  = document.getElementById('regPwd').value;
+            var conf = document.getElementById('regConfirm').value;
+            var msg  = document.getElementById('matchMsg');
+            var btn  = document.getElementById('regBtn');
+            if (!conf) { msg.textContent = ''; return; }
+            if (pwd === conf) {
+                msg.textContent = '✓ Mật khẩu khớp';
+                msg.className   = 'pw-match ok';
+                btn.disabled    = false;
+            } else {
+                msg.textContent = '✗ Mật khẩu không khớp';
+                msg.className   = 'pw-match err';
+                btn.disabled    = true;
+            }
+        }
+    </script>
+}
