@@ -5,107 +5,300 @@
     var genres = (List<WebDocTruyen.Application.DTOs.Genre.GenreDto>)ViewBag.Genres;
 }
 
-<div class="container mt-4" style="max-width:700px;">
-    <h2 class="mb-4">✏️ Sửa truyện</h2>
+<link rel="stylesheet" href="~/css/edit-story.css
+" />
 
-    <form asp-action="Edit" method="post" enctype="multipart/form-data" id="storyForm">
-        @Html.AntiForgeryToken()
-        <input type="hidden" asp-for="StoryId" />
+<div class="es-page">
+    <div class="es-card">
 
-        <div class="mb-3">
-            <label asp-for="Title" class="form-label">Tên truyện</label>
-            <input asp-for="Title" class="form-control" required />
-            <span asp-validation-for="Title" class="text-danger"></span>
-        </div>
-        <div class="mb-3">
-            <label asp-for="Author" class="form-label">Tác giả</label>
-            <input asp-for="Author" class="form-control" required />
-            <span asp-validation-for="Author" class="text-danger"></span>
-        </div>
-        <div class="mb-3">
-            <label asp-for="Description" class="form-label">Mô tả</label>
-            <textarea asp-for="Description" class="form-control" rows="4"></textarea>
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Trạng thái</label>
-            <select asp-for="Status" class="form-select">
-                @if (Model.Status == "ongoing")
-                {
-                    <option value="ongoing" selected>🔄 Đang ra</option>
-                    <option value="completed">✅ Hoàn thành</option>
-                }
-                else
-                {
-                    <option value="ongoing">🔄 Đang ra</option>
-                    <option value="completed" selected>✅ Hoàn thành</option>
-                }
-            </select>
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Ảnh bìa hiện tại</label><br />
-            @if (!string.IsNullOrEmpty(Model.CoverImage))
-            {
-                <img src="@Model.CoverImage" alt="Ảnh bìa" class="img-thumbnail mb-2" style="max-height:200px;" />
-            }
-            <label class="form-label d-block">Chọn ảnh mới <span class="text-danger">*</span></label>
-            <div class="input-group">
-                <label class="btn btn-outline-secondary mb-0" for="coverImageInput" style="flex-shrink:0;">
-                    Chọn tệp
-                </label>
-                <input type="text" id="coverImageFileNameBox" class="form-control" readonly
-                       placeholder="Không có tệp nào được chọn" style="cursor:pointer;" />
-                <input type="file" name="coverImage" id="coverImageInput"
-                       class="d-none" accept=".jpg,.jpeg,.png,.webp" />
+        <!-- ── Header ── -->
+        <div class="es-header">
+            <div class="es-header-grid"></div>
+
+            <!-- Story ID badge -->
+            <div class="es-story-badge">
+                <span>✏️</span>
+                <span>ID #@Model.StoryId</span>
             </div>
-            <div id="coverImageError" class="text-danger small mt-1"></div>
+
+            <div class="es-header-inner">
+                <div class="es-header-icon">✏️</div>
+                <div class="es-header-text">
+                    <h1>Sửa thông tin truyện</h1>
+                    <p>Cập nhật nội dung và ảnh bìa của truyện</p>
+                </div>
+            </div>
         </div>
-        <div class="mb-3">
-            <label class="form-label">Thể loại <span class="text-danger">*</span></label>
-            <div class="border rounded p-2" style="max-height:220px;overflow-y:auto;">
-                @foreach (var genre in genres)
-                {
-                    bool isChecked = Model.SelectedGenreIds.Contains(genre.GenreId);
-                    <div class="form-check">
-                        <input class="form-check-input"
-                               type="checkbox"
-                               name="SelectedGenreIds"
-                               value="@genre.GenreId"
-                               id="g@(genre.GenreId)"
-                        @(isChecked ? "checked" : "") />
-                        <label class="form-check-label" for="g@(genre.GenreId)">@genre.Name</label>
+
+        <!-- ── Form body ── -->
+        <form asp-action="Edit" method="post" enctype="multipart/form-data" id="editStoryForm">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="StoryId" />
+
+            <div class="es-body">
+
+                <!-- ── Thông tin cơ bản ── -->
+                <div class="es-section-lbl">Thông tin cơ bản</div>
+
+                <!-- Tên truyện -->
+                <div class="es-field">
+                    <label class="es-label">
+                        <i class="bi bi-book"></i> Tên truyện
+                        <span class="es-required">*</span>
+                    </label>
+                    <div class="es-input-wrap">
+                        <i class="bi bi-type es-input-icon"></i>
+                        <input asp-for="Title" class="es-input" required />
                     </div>
-                }
+                    <span asp-validation-for="Title" style="color:#dc2626;font-size:12px;font-weight:600;margin-top:6px;display:block;"></span>
+                </div>
+
+                <!-- Tác giả -->
+                <div class="es-field">
+                    <label class="es-label">
+                        <i class="bi bi-person"></i> Tác giả
+                        <span class="es-required">*</span>
+                    </label>
+                    <div class="es-input-wrap">
+                        <i class="bi bi-pen es-input-icon"></i>
+                        <input asp-for="Author" class="es-input" required />
+                    </div>
+                    <span asp-validation-for="Author" style="color:#dc2626;font-size:12px;font-weight:600;margin-top:6px;display:block;"></span>
+                </div>
+
+                <!-- Mô tả -->
+                <div class="es-field">
+                    <label class="es-label">
+                        <i class="bi bi-card-text"></i> Mô tả
+                        <span class="es-hint">Tuỳ chọn</span>
+                    </label>
+                    <textarea asp-for="Description" class="es-textarea"
+                              placeholder="Tóm tắt nội dung, thể loại, điểm nổi bật..."></textarea>
+                </div>
+
+                <!-- ── Phân loại & ảnh bìa ── -->
+                <div class="es-section-lbl">Phân loại & ảnh bìa</div>
+
+                <!-- Trạng thái -->
+                <div class="es-field">
+                    <label class="es-label">
+                        <i class="bi bi-flag"></i> Trạng thái
+                    </label>
+                    <!-- Hidden select for form submit -->
+                    <select asp-for="Status" id="statusSelect" style="display:none;">
+                        <option value="ongoing">ongoing</option>
+                        <option value="completed">completed</option>
+                    </select>
+                    <div class="es-status-group">
+                        <button type="button"
+                                class="es-status-btn @(Model.Status == "ongoing" ? "active-ongoing" : "")"
+                                id="btnOngoing"
+                                onclick="setStatus('ongoing')">
+                            <span class="es-status-icon">🔄</span>
+                            <span class="es-status-meta">
+                                <span class="es-status-title">Đang ra</span>
+                                <span class="es-status-sub">Chưa kết thúc</span>
+                            </span>
+                        </button>
+                        <button type="button"
+                                class="es-status-btn @(Model.Status == "completed" ? "active-completed" : "")"
+                                id="btnCompleted"
+                                onclick="setStatus('completed')">
+                            <span class="es-status-icon">✅</span>
+                            <span class="es-status-meta">
+                                <span class="es-status-title">Hoàn thành</span>
+                                <span class="es-status-sub">Đã kết thúc</span>
+                            </span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Ảnh bìa -->
+                <div class="es-field">
+                    <label class="es-label">
+                        <i class="bi bi-image"></i> Ảnh bìa
+                        <span class="es-required">*</span>
+                        <span class="es-hint">Chọn ảnh mới để thay thế</span>
+                    </label>
+
+                    <div class="es-cover-wrap">
+                        <!-- Ảnh hiện tại -->
+                        <div class="es-cover-img-wrap">
+                            @if (!string.IsNullOrEmpty(Model.CoverImage))
+                            {
+                                <img src="@Model.CoverImage" alt="Ảnh bìa hiện tại" class="es-cover-current" />
+                            }
+                            else
+                            {
+                                <div style="width:100px;height:134px;border-radius:10px;border:2px dashed #a5f3fc;background:#ecfeff;display:flex;align-items:center;justify-content:center;font-size:28px;">🖼️</div>
+                            }
+                            <div class="es-cover-badge">Hiện tại</div>
+                        </div>
+
+                        <!-- Upload mới -->
+                        <div class="es-cover-right">
+                            <div class="es-cover-info-title">Thay ảnh bìa</div>
+                            <div class="es-cover-info-sub">
+                                Chọn hoặc kéo thả ảnh mới.<br />
+                                JPG, PNG, WEBP · Tối đa 5MB
+                            </div>
+
+                            <div class="es-cover-zone" id="coverZone"
+                                 onclick="document.getElementById('coverImageInput').click()"
+                                 ondragover="onDragOver(event)"
+                                 ondragleave="onDragLeave(event)"
+                                 ondrop="onDrop(event)">
+                                <!-- Placeholder -->
+                                <div class="es-cover-ph" id="coverPh">
+                                    <div class="es-cover-ph-icon">📷</div>
+                                    <div class="es-cover-ph-title">Nhấn hoặc kéo thả</div>
+                                    <div class="es-cover-ph-sub">Chọn ảnh mới tại đây</div>
+                                </div>
+                                <!-- Preview -->
+                                <div class="es-cover-preview-row" id="coverPreview">
+                                    <img id="coverPreviewImg" class="es-cover-new-img" src="" alt="Preview" />
+                                    <div class="es-cover-new-info">
+                                        <div class="es-cover-new-name" id="coverPreviewName"></div>
+                                        <div class="es-cover-new-size" id="coverPreviewSize"></div>
+                                        <button type="button" class="es-cover-cancel-btn" onclick="clearCover(event)">
+                                            <i class="bi bi-x"></i> Bỏ chọn
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="es-cover-error" id="coverError">
+                                <i class="bi bi-exclamation-circle"></i> Vui lòng chọn ảnh bìa.
+                            </div>
+                        </div>
+                    </div>
+
+                    <input type="file" name="coverImage" id="coverImageInput"
+                           class="d-none" accept=".jpg,.jpeg,.png,.webp" />
+                </div>
+
+                <!-- Thể loại -->
+                <div class="es-field">
+                    <label class="es-label">
+                        <i class="bi bi-tags"></i> Thể loại
+                        <span class="es-required">*</span>
+                        <span class="es-hint" id="genreCountLabel">
+                            @Model.SelectedGenreIds.Count đã chọn
+                        </span>
+                    </label>
+                    <div class="es-genre-grid" id="genreGrid">
+                        @foreach (var genre in genres)
+                        {
+                            bool isChecked = Model.SelectedGenreIds.Contains(genre.GenreId);
+                            <div class="es-genre-item">
+                                <input class="genre-cb"
+                                       type="checkbox"
+                                       name="SelectedGenreIds"
+                                       value="@genre.GenreId"
+                                       id="g@(genre.GenreId)"
+                                @(isChecked ? "checked" : "")
+                                       onchange="updateGenreCount()" />
+                                <label class="es-genre-label" for="g@(genre.GenreId)">
+                                    <i class="bi bi-check2 es-genre-check-icon"></i>
+                                    @genre.Name
+                                </label>
+                            </div>
+                        }
+                    </div>
+                    <span asp-validation-for="SelectedGenreIds" style="color:#dc2626;font-size:12px;font-weight:600;margin-top:6px;display:block;"></span>
+                </div>
+
+            </div><!-- /es-body -->
+            <!-- ── Footer ── -->
+            <div class="es-actions">
+                <a asp-action="ManageStories" asp-controller="Editor" class="es-btn-back">
+                    <i class="bi bi-arrow-left"></i> Quay lại
+                </a>
+                <button type="submit" class="es-btn-submit" id="submitBtn">
+                    <span>
+                        <i class="bi bi-check-circle"></i>
+                        Lưu thay đổi
+                    </span>
+                </button>
             </div>
-            <span asp-validation-for="SelectedGenreIds" class="text-danger"></span>
-            <div class="form-text">Chọn ít nhất 1 thể loại.</div>
-        </div>
 
-        <div class="d-flex gap-2">
-            <button type="submit" class="btn btn-primary">💾 Lưu thay đổi</button>
-            <a asp-action="ManageStories" asp-controller="Editor" class="btn btn-secondary">← Quay lại</a>
-        </div>
-    </form>
-</div>
-
+        </form>
+    </div><!-- /es-card -->
+</div><!-- /es-page -->
 @section Scripts {
     <script>
-        const coverInput = document.getElementById('coverImageInput');
-        const coverNameBox = document.getElementById('coverImageFileNameBox');
-        const coverError = document.getElementById('coverImageError');
-        const storyForm = document.getElementById('storyForm');
+        // ── Status toggle ──────────────────────────────────────────────────
+        function setStatus(val) {
+            document.getElementById('statusSelect').value = val;
+            const btnO = document.getElementById('btnOngoing');
+            const btnC = document.getElementById('btnCompleted');
+            btnO.className = 'es-status-btn' + (val === 'ongoing'   ? ' active-ongoing'   : '');
+            btnC.className = 'es-status-btn' + (val === 'completed' ? ' active-completed' : '');
+        }
 
-        coverInput?.addEventListener('change', function () {
-            coverNameBox.value = this.files.length > 0 ? this.files[0].name : '';
-            if (this.files.length > 0) coverError.textContent = '';
+        // ── Cover upload ───────────────────────────────────────────────────
+        const coverInput   = document.getElementById('coverImageInput');
+        const coverZone    = document.getElementById('coverZone');
+        const coverPh      = document.getElementById('coverPh');
+        const coverPreview = document.getElementById('coverPreview');
+        const coverPrevImg = document.getElementById('coverPreviewImg');
+        const coverPrevN   = document.getElementById('coverPreviewName');
+        const coverPrevS   = document.getElementById('coverPreviewSize');
+        const coverError   = document.getElementById('coverError');
+
+        function showCoverPreview(file) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                coverPrevImg.src  = e.target.result;
+                coverPrevN.textContent = file.name;
+                coverPrevS.textContent = (file.size / 1024 / 1024).toFixed(2) + ' MB';
+                coverPh.style.display = 'none';
+                coverPreview.classList.add('show');
+                coverZone.classList.add('has-file');
+                coverError.classList.remove('show');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function clearCover(e) {
+            e.stopPropagation();
+            coverInput.value = '';
+            coverPh.style.display = '';
+            coverPreview.classList.remove('show');
+            coverZone.classList.remove('has-file');
+        }
+
+        coverInput.addEventListener('change', function () {
+            if (this.files[0]) showCoverPreview(this.files[0]);
         });
 
-        coverNameBox?.addEventListener('click', () => coverInput.click());
+        function onDragOver(e)  { e.preventDefault(); coverZone.classList.add('dragover'); }
+        function onDragLeave(e) { coverZone.classList.remove('dragover'); }
+        function onDrop(e) {
+            e.preventDefault();
+            coverZone.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const dt = new DataTransfer();
+                dt.items.add(file);
+                coverInput.files = dt.files;
+                showCoverPreview(file);
+            }
+        }
 
-        storyForm?.addEventListener('submit', function (e) {
-            if (!coverInput.files || coverInput.files.length === 0) {
+        // ── Genre count ────────────────────────────────────────────────────
+        function updateGenreCount() {
+            const count = document.querySelectorAll('.genre-cb:checked').length;
+            const lbl   = document.getElementById('genreCountLabel');
+            lbl.textContent = count === 0 ? 'Chưa chọn' : count + ' đã chọn';
+            lbl.style.color = count > 0 ? '#0891b2' : '#a5d8e0';
+        }
+
+        // ── Submit validation ──────────────────────────────────────────────
+        document.getElementById('editStoryForm').addEventListener('submit', function(e) {
+            const checkedGenres = document.querySelectorAll('.genre-cb:checked').length;
+            if (checkedGenres === 0) {
+                document.getElementById('genreGrid').scrollIntoView({ behavior: 'smooth', block: 'center' });
                 e.preventDefault();
-                coverError.textContent = '⚠️ Vui lòng chọn ảnh bìa mới.';
-                coverInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
         });
     </script>

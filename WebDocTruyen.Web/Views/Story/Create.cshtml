@@ -5,89 +5,266 @@
     var genres = (List<WebDocTruyen.Application.DTOs.Genre.GenreDto>)ViewBag.Genres;
 }
 
-<div class="container mt-4" style="max-width:700px;">
-    <h2 class="mb-4">➕ Thêm truyện</h2>
+<link rel="stylesheet" href="~/css/create-story.css" />
 
-    <form asp-action="Create" method="post" enctype="multipart/form-data" id="storyForm">
-        @Html.AntiForgeryToken()
+<div class="cs-page">
+    <div class="cs-card">
 
-        <div class="mb-3">
-            <label asp-for="Title" class="form-label">Tên truyện</label>
-            <input asp-for="Title" class="form-control" required />
-            <span asp-validation-for="Title" class="text-danger"></span>
-        </div>
-        <div class="mb-3">
-            <label asp-for="Author" class="form-label">Tác giả</label>
-            <input asp-for="Author" class="form-control" required />
-            <span asp-validation-for="Author" class="text-danger"></span>
-        </div>
-        <div class="mb-3">
-            <label asp-for="Description" class="form-label">Mô tả</label>
-            <textarea asp-for="Description" class="form-control" rows="4"></textarea>
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Trạng thái</label>
-            <select asp-for="Status" class="form-select">
-                <option value="ongoing">🔄 Đang ra</option>
-                <option value="completed">✅ Hoàn thành</option>
-            </select>
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Ảnh bìa <span class="text-danger">*</span></label>
-            <div class="input-group">
-                <label class="btn btn-outline-secondary mb-0" for="coverImageInput" style="flex-shrink:0;">
-                    Chọn tệp
-                </label>
-                <input type="text" id="coverImageFileNameBox" class="form-control" readonly
-                       placeholder="Không có tệp nào được chọn" style="cursor:pointer;" />
-                <input type="file" name="coverImage" id="coverImageInput"
-                       class="d-none" accept=".jpg,.jpeg,.png,.webp" />
+        <!-- ── Header ── -->
+        <div class="cs-header">
+            <div class="cs-header-grid"></div>
+            <div class="cs-header-inner">
+                <div class="cs-header-icon">✨</div>
+                <div class="cs-header-text">
+                    <h1>Thêm truyện mới</h1>
+                    <p>Điền thông tin để xuất bản lên thư viện</p>
+                </div>
             </div>
-            <div id="coverImageError" class="text-danger small mt-1"></div>
+            <!-- Progress dots -->
+            <div class="cs-steps">
+                <div class="cs-step-dot active" style="width:32px;"></div>
+                <div class="cs-step-dot" style="width:16px;"></div>
+                <div class="cs-step-dot" style="width:16px;"></div>
+            </div>
         </div>
-        <div class="mb-3">
-            <label class="form-label">Thể loại <span class="text-danger">*</span></label>
-            <div class="border rounded p-2" style="max-height:220px;overflow-y:auto;">
-                @foreach (var genre in genres)
-                {
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" name="SelectedGenreIds"
-                               value="@genre.GenreId" id="g@(genre.GenreId)" />
-                        <label class="form-check-label" for="g@(genre.GenreId)">@genre.Name</label>
+
+        <!-- ── Form body ── -->
+        <form asp-action="Create" method="post" enctype="multipart/form-data" id="storyForm">
+            @Html.AntiForgeryToken()
+
+            <div class="cs-body">
+
+                <!-- ── Thông tin cơ bản ── -->
+                <div class="cs-section-lbl">Thông tin cơ bản</div>
+
+                <!-- Tên truyện -->
+                <div class="cs-field">
+                    <label class="cs-label">
+                        <i class="bi bi-book"></i> Tên truyện
+                        <span class="cs-required">*</span>
+                    </label>
+                    <div class="cs-input-wrap">
+                        <i class="bi bi-type cs-input-icon"></i>
+                        <input asp-for="Title" class="cs-input"
+                               placeholder="VD: Naruto, One Piece, Demon Slayer..." required />
                     </div>
-                }
+                    <span asp-validation-for="Title" class="cs-field-error show"></span>
+                </div>
+
+                <!-- Tác giả -->
+                <div class="cs-field">
+                    <label class="cs-label">
+                        <i class="bi bi-person"></i> Tác giả
+                        <span class="cs-required">*</span>
+                    </label>
+                    <div class="cs-input-wrap">
+                        <i class="bi bi-pen cs-input-icon"></i>
+                        <input asp-for="Author" class="cs-input"
+                               placeholder="VD: Masashi Kishimoto..." required />
+                    </div>
+                    <span asp-validation-for="Author" class="cs-field-error show"></span>
+                </div>
+
+                <!-- Mô tả -->
+                <div class="cs-field">
+                    <label class="cs-label">
+                        <i class="bi bi-card-text"></i> Mô tả
+                        <span class="cs-hint">Tuỳ chọn</span>
+                    </label>
+                    <textarea asp-for="Description" class="cs-textarea"
+                              placeholder="Tóm tắt nội dung, thể loại, điểm nổi bật..."></textarea>
+                </div>
+
+                <!-- ── Phân loại ── -->
+                <div class="cs-section-lbl">Phân loại & xuất bản</div>
+
+                <!-- Trạng thái -->
+                <div class="cs-field">
+                    <label class="cs-label">
+                        <i class="bi bi-flag"></i> Trạng thái
+                    </label>
+                    <!-- Hidden select for form submit -->
+                    <select asp-for="Status" id="statusSelect" style="display:none;">
+                        <option value="ongoing">ongoing</option>
+                        <option value="completed">completed</option>
+                    </select>
+                    <div class="cs-status-group">
+                        <button type="button" class="cs-status-btn active-ongoing" id="btnOngoing"
+                                onclick="setStatus('ongoing')">
+                            <span class="cs-status-icon">🔄</span>
+                            <span class="cs-status-meta">
+                                <span class="cs-status-title">Đang ra</span>
+                                <span class="cs-status-sub">Chưa kết thúc</span>
+                            </span>
+                        </button>
+                        <button type="button" class="cs-status-btn" id="btnCompleted"
+                                onclick="setStatus('completed')">
+                            <span class="cs-status-icon">✅</span>
+                            <span class="cs-status-meta">
+                                <span class="cs-status-title">Hoàn thành</span>
+                                <span class="cs-status-sub">Đã kết thúc</span>
+                            </span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Ảnh bìa -->
+                <div class="cs-field">
+                    <label class="cs-label">
+                        <i class="bi bi-image"></i> Ảnh bìa
+                        <span class="cs-required">*</span>
+                    </label>
+                    <div class="cs-cover-zone" id="coverZone"
+                         onclick="document.getElementById('coverImageInput').click()"
+                         ondragover="onDragOver(event)"
+                         ondragleave="onDragLeave(event)"
+                         ondrop="onDrop(event)">
+                        <!-- Placeholder -->
+                        <div class="cs-cover-placeholder" id="coverPlaceholder">
+                            <div class="cs-cover-placeholder-icon">🎨</div>
+                            <div class="cs-cover-placeholder-title">Nhấn hoặc kéo thả ảnh vào đây</div>
+                            <div class="cs-cover-placeholder-sub">JPG, PNG, WEBP · Tối đa 5MB</div>
+                        </div>
+                        <!-- Preview -->
+                        <div class="cs-cover-preview" id="coverPreview">
+                            <img id="coverPreviewImg" class="cs-cover-preview-img" src="" alt="Preview" />
+                            <div class="cs-cover-preview-info">
+                                <div class="cs-cover-preview-name" id="coverPreviewName"></div>
+                                <div class="cs-cover-preview-size" id="coverPreviewSize"></div>
+                                <button type="button" class="cs-cover-change-btn"
+                                        onclick="event.stopPropagation();">
+                                    <i class="bi bi-arrow-repeat"></i> Đổi ảnh
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="file" name="coverImage" id="coverImageInput"
+                           class="d-none" accept=".jpg,.jpeg,.png,.webp" />
+                    <div class="cs-cover-error" id="coverError">
+                        <i class="bi bi-exclamation-circle"></i> Vui lòng chọn ảnh bìa.
+                    </div>
+                </div>
+
+                <!-- Thể loại -->
+                <div class="cs-field">
+                    <label class="cs-label">
+                        <i class="bi bi-tags"></i> Thể loại
+                        <span class="cs-required">*</span>
+                        <span class="cs-hint" id="genreCountLabel">Chưa chọn</span>
+                    </label>
+                    <div class="cs-genre-grid" id="genreGrid">
+                        @foreach (var genre in genres)
+                        {
+                            <div class="cs-genre-item">
+                                <input class="genre-cb" type="checkbox"
+                                       name="SelectedGenreIds"
+                                       value="@genre.GenreId"
+                                       id="g@(genre.GenreId)"
+                                       onchange="updateGenreCount()" />
+                                <label class="cs-genre-label" for="g@(genre.GenreId)">
+                                    <i class="bi bi-check2 cs-genre-check-icon"></i>
+                                    @genre.Name
+                                </label>
+                            </div>
+                        }
+                    </div>
+                    <span asp-validation-for="SelectedGenreIds" class="cs-field-error show"></span>
+                </div>
+
+            </div><!-- /cs-body -->
+            <!-- ── Footer ── -->
+            <div class="cs-actions">
+                <a asp-action="ManageStories" asp-controller="Editor" class="cs-btn-back">
+                    <i class="bi bi-arrow-left"></i> Quay lại
+                </a>
+                <button type="submit" class="cs-btn-submit" id="submitBtn">
+                    <span>
+                        <i class="bi bi-cloud-upload"></i>
+                        Upload
+                    </span>
+                </button>
             </div>
-            <span asp-validation-for="SelectedGenreIds" class="text-danger"></span>
-            <div class="form-text">Chọn ít nhất 1 thể loại.</div>
-        </div>
 
-        <div class="d-flex gap-2">
-            <button type="submit" class="btn btn-success">💾 Lưu</button>
-            <a asp-action="ManageStories" asp-controller="Editor" class="btn btn-secondary">← Quay lại</a>
-        </div>
-    </form>
-</div>
-
+        </form>
+    </div><!-- /cs-card -->
+</div><!-- /cs-page -->
 @section Scripts {
     <script>
-        const coverInput = document.getElementById('coverImageInput');
-        const coverNameBox = document.getElementById('coverImageFileNameBox');
-        const coverError = document.getElementById('coverImageError');
-        const storyForm = document.getElementById('storyForm');
+        // ── Status toggle ──────────────────────────────────────────────────
+        function setStatus(val) {
+            document.getElementById('statusSelect').value = val;
+            const btnO = document.getElementById('btnOngoing');
+            const btnC = document.getElementById('btnCompleted');
+            btnO.className = 'cs-status-btn' + (val === 'ongoing' ? ' active-ongoing' : '');
+            btnC.className = 'cs-status-btn' + (val === 'completed' ? ' active-completed' : '');
+        }
 
-        coverInput?.addEventListener('change', function () {
-            coverNameBox.value = this.files.length > 0 ? this.files[0].name : '';
-            if (this.files.length > 0) coverError.textContent = '';
+        // ── Cover upload ───────────────────────────────────────────────────
+        const coverInput    = document.getElementById('coverImageInput');
+        const coverZone     = document.getElementById('coverZone');
+        const coverPh       = document.getElementById('coverPlaceholder');
+        const coverPreview  = document.getElementById('coverPreview');
+        const coverPrevImg  = document.getElementById('coverPreviewImg');
+        const coverPrevName = document.getElementById('coverPreviewName');
+        const coverPrevSize = document.getElementById('coverPreviewSize');
+        const coverError    = document.getElementById('coverError');
+
+        function showCoverPreview(file) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                coverPrevImg.src = e.target.result;
+                coverPrevName.textContent = file.name;
+                coverPrevSize.textContent = (file.size / 1024 / 1024).toFixed(2) + ' MB';
+                coverPh.style.display = 'none';
+                coverPreview.classList.add('show');
+                coverZone.classList.add('has-file');
+                coverError.classList.remove('show');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        coverInput.addEventListener('change', function () {
+            if (this.files[0]) showCoverPreview(this.files[0]);
         });
 
-        coverNameBox?.addEventListener('click', () => coverInput.click());
-
-        storyForm?.addEventListener('submit', function (e) {
-            if (!coverInput.files || coverInput.files.length === 0) {
-                e.preventDefault();
-                coverError.textContent = '⚠️ Vui lòng chọn ảnh bìa.';
-                coverInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        function onDragOver(e) { e.preventDefault(); coverZone.classList.add('dragover'); }
+        function onDragLeave(e) { coverZone.classList.remove('dragover'); }
+        function onDrop(e) {
+            e.preventDefault();
+            coverZone.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const dt = new DataTransfer();
+                dt.items.add(file);
+                coverInput.files = dt.files;
+                showCoverPreview(file);
             }
+        }
+
+        // ── Genre count ────────────────────────────────────────────────────
+        function updateGenreCount() {
+            const count = document.querySelectorAll('.genre-cb:checked').length;
+            const lbl   = document.getElementById('genreCountLabel');
+            lbl.textContent = count === 0
+                ? 'Chưa chọn'
+                : count + ' đã chọn';
+            lbl.style.color = count > 0 ? '#7c3aed' : '#a78bfa';
+        }
+
+        // ── Submit validation ──────────────────────────────────────────────
+        document.getElementById('storyForm').addEventListener('submit', function(e) {
+            let ok = true;
+            if (!coverInput.files || coverInput.files.length === 0) {
+                coverError.classList.add('show');
+                coverZone.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                ok = false;
+            }
+            const checkedGenres = document.querySelectorAll('.genre-cb:checked').length;
+            if (checkedGenres === 0) {
+                document.getElementById('genreGrid').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                ok = false;
+            }
+            if (!ok) e.preventDefault();
         });
     </script>
 }
