@@ -3,31 +3,234 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="container mt-5 text-center" style="max-width:500px; margin:auto;">
-    <div class="card shadow-sm border-danger">
-        <div class="card-body p-5">
-            <div style="font-size:4rem;">🚫</div>
-            <h2 class="mt-3 text-danger">Không có quyền truy cập</h2>
-            <p class="text-muted mt-3">
-                Bạn không có quyền xem trang này.<br />
-                Vui lòng đăng nhập bằng tài khoản có quyền phù hợp.
-            </p>
-            <div class="mt-4 d-flex gap-2 justify-content-center">
-                <a asp-controller="Home" asp-action="Index" class="btn btn-primary">🏠 Về trang chủ</a>
-                <a asp-controller="Account" asp-action="Login" class="btn btn-outline-secondary">🔑 Đăng nhập</a>
+<style>
+    .ac-wrap {
+        min-height: 60vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 48px 24px;
+    }
+
+    .ac-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        max-width: 460px;
+        width: 100%;
+        overflow: hidden;
+        text-align: center;
+    }
+
+    .ac-top {
+        padding: 40px 36px 32px;
+    }
+
+    .ac-icon-ring {
+        width: 76px;
+        height: 76px;
+        border-radius: 50%;
+        background: #fff0f0;
+        border: 1px solid #fecaca;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 20px;
+    }
+
+        .ac-icon-ring i {
+            font-size: 30px;
+            color: #c0392b;
+        }
+
+    .ac-code {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: .07em;
+        color: #991b1b;
+        background: #fff5f5;
+        border: 1px solid #fecaca;
+        border-radius: 20px;
+        padding: 3px 14px;
+        margin-bottom: 18px;
+    }
+
+    .ac-title {
+        font-size: 20px;
+        font-weight: 600;
+        color: var(--text-primary);
+        line-height: 1.4;
+        margin: 0 0 10px;
+    }
+
+    .ac-desc {
+        font-size: 14px;
+        color: var(--text-muted);
+        line-height: 1.7;
+        margin: 0;
+    }
+
+    .ac-divider {
+        height: 1px;
+        background: var(--border);
+    }
+
+    .ac-bottom {
+        padding: 28px 36px 32px;
+    }
+
+    .ac-steps {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 24px;
+        text-align: left;
+    }
+
+    .ac-step {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 12px 14px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: var(--bg);
+    }
+
+    .ac-step-num {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: #fff5f5;
+        border: 1px solid #fecaca;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        font-weight: 600;
+        color: #991b1b;
+        flex-shrink: 0;
+        margin-top: 1px;
+    }
+
+    .ac-step-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 2px;
+    }
+
+    .ac-step-desc {
+        font-size: 12px;
+        color: var(--text-muted);
+        line-height: 1.5;
+    }
+
+    .ac-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .ac-btn-primary {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 9px 22px;
+        border-radius: 9px;
+        font-size: 13px;
+        font-weight: 500;
+        text-decoration: none;
+        background: #c0392b;
+        color: #fff;
+        transition: opacity .15s;
+    }
+
+        .ac-btn-primary:hover {
+            opacity: .88;
+            color: #fff;
+        }
+
+    .ac-btn-secondary {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 9px 22px;
+        border-radius: 9px;
+        font-size: 13px;
+        font-weight: 500;
+        text-decoration: none;
+        background: var(--bg);
+        color: var(--text-muted);
+        border: 1px solid var(--border);
+        transition: background .15s, color .15s;
+    }
+
+        .ac-btn-secondary:hover {
+            background: var(--surface);
+            color: var(--text-primary);
+        }
+
+    .ac-hint {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-top: 18px;
+        margin-bottom: 0;
+    }
+
+        .ac-hint a {
+            color: #c0392b;
+            text-decoration: none;
+        }
+
+            .ac-hint a:hover {
+                text-decoration: underline;
+            }
+</style>
+
+<div class="ac-wrap">
+    <div class="ac-card">
+
+        <div class="ac-top">
+            <div class="ac-icon-ring">
+                <i class="bi bi-lock-fill"></i>
+            </div>
+            <div class="ac-code">403 — Truy cập bị từ chối</div>
+            <h2 class="ac-title">Bạn không có quyền truy cập trang này</h2>
+            <p class="ac-desc">Tài khoản hiện tại chưa đủ quyền hạn để xem nội dung này.</p>
+        </div>
+
+        <div class="ac-divider"></div>
+
+        <div class="ac-bottom">
+            <div class="ac-steps">
+                <div class="ac-step">
+                    <div class="ac-step-num">1</div>
+                    <div>
+                        <div class="ac-step-title">Kiểm tra tài khoản</div>
+                        <div class="ac-step-desc">Đảm bảo bạn đang đăng nhập đúng tài khoản có vai trò phù hợp (Admin / Editor).</div>
+                    </div>
+                </div>
+                <div class="ac-step">
+                    <div class="ac-step-num">2</div>
+                    <div>
+                        <div class="ac-step-title">Liên hệ quản trị viên</div>
+                        <div class="ac-step-desc">Nếu bạn cho rằng đây là lỗi, hãy liên hệ Admin để được cấp quyền truy cập.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ac-actions">
+                <a asp-controller="Account" asp-action="Login" class="ac-btn-primary">
+                    <i class="bi bi-box-arrow-in-right"></i> Đăng nhập lại
+                </a>
+                <a asp-controller="Home" asp-action="Index" class="ac-btn-secondary">
+                    <i class="bi bi-house"></i> Về trang chủ
+                </a>
             </div>
         </div>
+
     </div>
 </div>
-EOF
-
-# ── LỖI 8: Register.cshtml - thêm AntiForgeryToken
-cat "$OUT/Views/Account/Register.cshtml" | head -5
-echo "---check register---"
-grep -n "AntiForgery\|antiforgery\|__RequestVerification" "$OUT/Views/Account/Register.cshtml" || echo "MISSING AntiForgeryToken!"
-Output
-
-﻿@{
-    ViewData["Title"] = "Đăng ký";
-    Layout = "~/Views/Shared/_Layout.cshtml";
-}
