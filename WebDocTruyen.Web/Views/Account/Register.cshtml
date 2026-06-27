@@ -12,7 +12,7 @@
         padding: 32px 16px;
         position: relative;
         overflow: hidden;
-        background: #0f0c1e;
+        background: #f8f7f5;
         border-radius: 20px;
         margin: -28px -12px;
     }
@@ -20,23 +20,23 @@
     .auth-bubble {
         position: absolute;
         border-radius: 50%;
-        background: rgba(124, 92, 248, .18);
+        background: rgba(124, 58, 237, .12);
         animation: authFloat linear infinite;
         pointer-events: none;
     }
 
     @@keyframes authFloat {
         0% {
-            transform: translateY(0) scale(1);
-            opacity: .7;
+            transform: translateY(0);
+            opacity: .5;
         }
 
         50% {
-            opacity: .35;
+            opacity: .22;
         }
 
         100% {
-            transform: translateY(-140px) scale(.4);
+            transform: translateY(-160px) scale(.3);
             opacity: 0;
         }
     }
@@ -44,7 +44,7 @@
     @@keyframes authFadeUp {
         from {
             opacity: 0;
-            transform: translateY(24px);
+            transform: translateY(16px);
         }
 
         to {
@@ -59,102 +59,125 @@
         }
 
         100% {
-            left: 200%;
+            left: 220%;
         }
     }
 
     .auth-card {
-        background: rgba(255,255,255,.04);
-        border: 1px solid rgba(255,255,255,.10);
-        border-radius: 22px;
+        background: #fff;
+        border: 1px solid #e8e6e3;
+        border-radius: 18px;
         width: 100%;
-        max-width: 420px;
-        padding: 36px 32px 32px;
+        max-width: 400px;
+        overflow: hidden;
         position: relative;
         z-index: 2;
-        animation: authFadeUp .5s cubic-bezier(.22,1,.36,1) both;
+        animation: authFadeUp .45s cubic-bezier(.22,1,.36,1) both;
     }
+
+    .auth-card-header {
+        background: linear-gradient(135deg, #1a0533, #2d1060);
+        padding: 24px 24px 20px;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .auth-card-header::after {
+            content: '';
+            position: absolute;
+            top: -30px;
+            right: -30px;
+            width: 110px;
+            height: 110px;
+            background: radial-gradient(circle, rgba(236,72,153,.4) 0%, transparent 70%);
+            pointer-events: none;
+        }
 
     .auth-brand {
         display: flex;
         align-items: center;
-        gap: 10px;
-        justify-content: center;
-        margin-bottom: 28px;
+        gap: 9px;
+        margin-bottom: 14px;
+        position: relative;
+        z-index: 1;
         text-decoration: none;
     }
 
     .auth-brand-icon {
-        width: 40px;
-        height: 40px;
-        border-radius: 11px;
-        background: linear-gradient(135deg, #7c5cf8, #a78bfa);
+        width: 36px;
+        height: 36px;
+        border-radius: 9px;
+        background: rgba(255,255,255,.12);
+        border: 1px solid rgba(255,255,255,.18);
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 18px;
+        font-size: 16px;
     }
 
     .auth-brand-name {
-        font-size: 17px;
-        font-weight: 600;
+        font-size: 14px;
+        font-weight: 700;
         color: #fff;
-        letter-spacing: -.2px;
     }
 
-    .auth-card h2 {
-        font-size: 20px;
-        font-weight: 600;
+    .auth-card-title {
+        font-size: 18px;
+        font-weight: 800;
         color: #fff;
-        text-align: center;
-        margin: 0 0 6px;
+        position: relative;
+        z-index: 1;
+        margin-bottom: 4px;
     }
 
-    .auth-sub {
-        font-size: 13px;
-        color: rgba(255,255,255,.4);
-        text-align: center;
-        margin-bottom: 28px;
+    .auth-card-sub {
+        font-size: 11.5px;
+        color: rgba(255,255,255,.5);
+        position: relative;
+        z-index: 1;
+    }
+
+    .auth-body {
+        padding: 22px 22px 24px;
     }
 
     .auth-alert {
-        background: rgba(220,38,38,.12);
-        border: 1px solid rgba(220,38,38,.3);
+        background: #fff5f5;
+        border: 1px solid #fecaca;
         border-radius: 8px;
         padding: 9px 12px;
         font-size: 13px;
-        color: #fca5a5;
-        margin-bottom: 16px;
+        color: #c0392b;
+        margin-bottom: 14px;
         display: flex;
         align-items: center;
-        gap: 8px;
-        animation: authFadeUp .3s ease both;
+        gap: 7px;
     }
 
     .auth-field {
-        margin-bottom: 15px;
+        margin-bottom: 13px;
     }
 
         .auth-field label {
             display: block;
-            font-size: 11px;
-            font-weight: 600;
+            font-size: 10.5px;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: .07em;
-            color: rgba(255,255,255,.38);
-            margin-bottom: 7px;
+            letter-spacing: .06em;
+            color: #6b7280;
+            margin-bottom: 6px;
         }
 
-    .auth-field-wrap {
+    .auth-fw {
         position: relative;
     }
 
-    .auth-field-icon {
+    .auth-fi {
         position: absolute;
-        left: 13px;
+        left: 10px;
         top: 50%;
         transform: translateY(-50%);
-        color: rgba(255,255,255,.28);
+        color: #9ca3af;
         font-size: 15px;
         pointer-events: none;
         transition: color .15s;
@@ -162,42 +185,44 @@
 
     .auth-field input {
         width: 100%;
-        background: rgba(255,255,255,.06);
-        border: 1px solid rgba(255,255,255,.10);
-        border-radius: 10px;
-        padding: 10px 12px 10px 38px;
-        font-size: 14px;
-        color: #fff;
+        padding: 9px 12px 9px 34px;
+        border: 1px solid #e8e6e3;
+        border-radius: 9px;
+        font-size: 13px;
+        color: #1a1a1a;
+        background: #fff;
         outline: none;
-        transition: border-color .15s, background .15s;
+        transition: border-color .15s, box-shadow .15s;
         font-family: inherit;
     }
 
         .auth-field input::placeholder {
-            color: rgba(255,255,255,.2);
+            color: #c9cdd5;
         }
 
         .auth-field input:focus {
-            border-color: rgba(124,92,248,.7);
-            background: rgba(124,92,248,.08);
+            border-color: #7c3aed;
+            box-shadow: 0 0 0 3px rgba(124,58,237,.10);
         }
 
-    .auth-field-wrap:focus-within .auth-field-icon {
-        color: #a78bfa;
+    .auth-fw:focus-within .auth-fi {
+        color: #7c3aed;
     }
 
-    /* Password strength bar */
+    /* Strength bar */
     .pw-strength {
-        margin-top: 7px;
+        margin-top: 6px;
         display: flex;
         align-items: center;
         gap: 8px;
+        opacity: 0;
+        transition: opacity .2s;
     }
 
     .pw-bar {
         flex: 1;
         height: 3px;
-        background: rgba(255,255,255,.1);
+        background: #e8e6e3;
         border-radius: 3px;
         overflow: hidden;
     }
@@ -211,25 +236,43 @@
 
     .pw-label {
         font-size: 11px;
-        min-width: 52px;
+        min-width: 56px;
         text-align: right;
     }
 
+    .pw-match {
+        font-size: 12px;
+        margin-top: 5px;
+        min-height: 16px;
+    }
+
+        .pw-match.ok {
+            color: #16a34a;
+        }
+
+        .pw-match.err {
+            color: #c0392b;
+        }
+
     .auth-btn {
         width: 100%;
-        padding: 12px;
-        border: none;
-        border-radius: 11px;
-        background: linear-gradient(135deg, #7c5cf8, #9d7ffa);
+        padding: 11px;
+        background: linear-gradient(135deg, #7c3aed, #ec4899);
         color: #fff;
+        border: none;
+        border-radius: 10px;
         font-size: 14px;
-        font-weight: 600;
+        font-weight: 700;
         cursor: pointer;
-        margin-top: 6px;
+        margin-top: 4px;
         position: relative;
         overflow: hidden;
-        transition: opacity .15s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
         font-family: inherit;
+        transition: opacity .15s;
     }
 
         .auth-btn:hover {
@@ -241,112 +284,102 @@
             position: absolute;
             top: 0;
             left: -100%;
-            width: 60%;
+            width: 55%;
             height: 100%;
-            background: rgba(255,255,255,.15);
+            background: rgba(255,255,255,.18);
             transform: skewX(-20deg);
-            animation: authShimmer 2.4s ease-in-out infinite;
+            animation: authShimmer 2.2s ease-in-out infinite;
         }
 
     .auth-link-row {
         text-align: center;
         font-size: 13px;
-        color: rgba(255,255,255,.32);
-        margin-top: 20px;
+        color: #6b7280;
+        margin-top: 16px;
     }
 
         .auth-link-row a {
-            color: #a78bfa;
+            color: #7c3aed;
             text-decoration: none;
-            font-weight: 500;
+            font-weight: 600;
         }
 
             .auth-link-row a:hover {
                 text-decoration: underline;
             }
-
-    /* Match indicator */
-    .pw-match {
-        font-size: 12px;
-        margin-top: 5px;
-        min-height: 16px;
-    }
-
-        .pw-match.ok {
-            color: #86efac;
-        }
-
-        .pw-match.err {
-            color: #fca5a5;
-        }
 </style>
 
 <div class="auth-page">
     <div id="authBubbles"></div>
 
     <div class="auth-card">
-        <a asp-controller="Home" asp-action="Index" class="auth-brand">
-            <div class="auth-brand-icon">📖</div>
-            <span class="auth-brand-name">Web Đọc Truyện</span>
-        </a>
+        <div class="auth-card-header">
+            <a asp-controller="Home" asp-action="Index" class="auth-brand">
+                <div class="auth-brand-icon">📖</div>
+                <span class="auth-brand-name">Web Đọc Truyện</span>
+            </a>
+            <div class="auth-card-title">Tạo tài khoản</div>
+            <div class="auth-card-sub">Miễn phí, đọc không giới hạn</div>
+        </div>
 
-        <h2>Tạo tài khoản</h2>
-        <p class="auth-sub">Miễn phí, đọc không giới hạn</p>
-
-        @if (ViewBag.Error != null)
-        {
-            <div class="auth-alert">
-                <i class="bi bi-exclamation-circle"></i> @ViewBag.Error
-            </div>
-        }
-
-        <form asp-action="Register" asp-controller="Account" method="post">
-            @Html.AntiForgeryToken()
-
-            <div class="auth-field">
-                <label>Tên đăng nhập</label>
-                <div class="auth-field-wrap">
-                    <i class="bi bi-person auth-field-icon"></i>
-                    <input type="text" name="Username" required autocomplete="username" placeholder="Tên của bạn" />
+        <div class="auth-body">
+            @if (ViewBag.Error != null)
+            {
+                <div class="auth-alert">
+                    <i class="bi bi-exclamation-circle"></i> @ViewBag.Error
                 </div>
-            </div>
+            }
 
-            <div class="auth-field">
-                <label>Email</label>
-                <div class="auth-field-wrap">
-                    <i class="bi bi-envelope auth-field-icon"></i>
-                    <input type="email" name="Email" required autocomplete="email" placeholder="ten@email.com" />
+            <form asp-action="Register" asp-controller="Account" method="post">
+                @Html.AntiForgeryToken()
+
+                <div class="auth-field">
+                    <label>Tên đăng nhập</label>
+                    <div class="auth-fw">
+                        <i class="bi bi-person auth-fi"></i>
+                        <input type="text" name="Username" required autocomplete="username" placeholder="Tên của bạn" />
+                    </div>
                 </div>
-            </div>
 
-            <div class="auth-field">
-                <label>Mật khẩu</label>
-                <div class="auth-field-wrap">
-                    <i class="bi bi-lock auth-field-icon"></i>
-                    <input type="password" name="Password" id="regPwd" required placeholder="Tối thiểu 6 ký tự" oninput="checkStrength(this.value)" />
+                <div class="auth-field">
+                    <label>Email</label>
+                    <div class="auth-fw">
+                        <i class="bi bi-envelope auth-fi"></i>
+                        <input type="email" name="Email" required autocomplete="email" placeholder="ten@email.com" />
+                    </div>
                 </div>
-                <div class="pw-strength" id="strengthWrap" style="opacity:0;transition:opacity .2s">
-                    <div class="pw-bar"><div class="pw-fill" id="pwFill"></div></div>
-                    <span class="pw-label" id="pwLabel"></span>
+
+                <div class="auth-field">
+                    <label>Mật khẩu</label>
+                    <div class="auth-fw">
+                        <i class="bi bi-lock auth-fi"></i>
+                        <input type="password" name="Password" id="regPwd" required placeholder="Tối thiểu 6 ký tự" oninput="checkStrength(this.value)" />
+                    </div>
+                    <div class="pw-strength" id="strengthWrap">
+                        <div class="pw-bar"><div class="pw-fill" id="pwFill"></div></div>
+                        <span class="pw-label" id="pwLabel"></span>
+                    </div>
                 </div>
-            </div>
 
-            <div class="auth-field">
-                <label>Xác nhận mật khẩu</label>
-                <div class="auth-field-wrap">
-                    <i class="bi bi-shield-check auth-field-icon"></i>
-                    <input type="password" name="ConfirmPassword" id="regConfirm" required placeholder="Nhập lại mật khẩu" oninput="checkMatch()" />
+                <div class="auth-field">
+                    <label>Xác nhận mật khẩu</label>
+                    <div class="auth-fw">
+                        <i class="bi bi-shield-check auth-fi"></i>
+                        <input type="password" name="ConfirmPassword" id="regConfirm" required placeholder="Nhập lại mật khẩu" oninput="checkMatch()" />
+                    </div>
+                    <p class="pw-match" id="matchMsg"></p>
                 </div>
-                <p class="pw-match" id="matchMsg"></p>
-            </div>
 
-            <button type="submit" class="auth-btn" id="regBtn">Tạo tài khoản</button>
-        </form>
+                <button type="submit" class="auth-btn" id="regBtn">
+                    <i class="bi bi-person-plus"></i> Tạo tài khoản
+                </button>
+            </form>
 
-        <p class="auth-link-row">
-            Đã có tài khoản?
-            <a asp-controller="Account" asp-action="Login">Đăng nhập</a>
-        </p>
+            <p class="auth-link-row">
+                Đã có tài khoản?
+                <a asp-controller="Account" asp-action="Login">Đăng nhập</a>
+            </p>
+        </div>
     </div>
 </div>
 
@@ -354,19 +387,12 @@
     <script>
         (function () {
             var bw = document.getElementById('authBubbles');
-            var cfg = [
-                { s: 44, l: 8,  d: 7.0, delay: 0   },
-                { s: 62, l: 22, d: 8.5, delay: 1.2 },
-                { s: 30, l: 38, d: 6.2, delay: 0.5 },
-                { s: 52, l: 54, d: 9.0, delay: 2.1 },
-                { s: 70, l: 68, d: 7.8, delay: 0.9 },
-                { s: 26, l: 80, d: 6.6, delay: 1.7 },
-                { s: 48, l: 92, d: 8.2, delay: 0.3 },
-            ];
-            cfg.forEach(function (c) {
+            [{s:60,l:5,d:8,dl:0},{s:35,l:20,d:6,dl:1.4},{s:80,l:38,d:10,dl:0.7},
+             {s:45,l:55,d:7,dl:2.1},{s:65,l:70,d:8.5,dl:1},{s:28,l:83,d:5.5,dl:1.8},
+             {s:50,l:92,d:7.5,dl:0.4}].forEach(function (c) {
                 var b = document.createElement('div');
                 b.className = 'auth-bubble';
-                b.style.cssText = 'width:' + c.s + 'px;height:' + c.s + 'px;left:' + c.l + '%;bottom:-' + c.s + 'px;animation-duration:' + c.d + 's;animation-delay:' + c.delay + 's';
+                b.style.cssText = 'width:'+c.s+'px;height:'+c.s+'px;left:'+c.l+'%;bottom:-'+c.s+'px;animation-duration:'+c.d+'s;animation-delay:'+c.dl+'s';
                 bw.appendChild(b);
             });
         })();
@@ -384,11 +410,11 @@
             if (/[0-9]/.test(v)) score++;
             if (/[^A-Za-z0-9]/.test(v)) score++;
             var levels = [
-                { pct: '20%', color: '#ef4444', text: 'Rất yếu' },
-                { pct: '40%', color: '#f97316', text: 'Yếu'     },
-                { pct: '60%', color: '#eab308', text: 'Trung bình' },
-                { pct: '80%', color: '#22c55e', text: 'Mạnh'    },
-                { pct: '100%',color: '#16a34a', text: 'Rất mạnh'},
+                { pct: '20%', color: '#ef4444', text: 'Rất yếu'    },
+                { pct: '40%', color: '#f97316', text: 'Yếu'         },
+                { pct: '60%', color: '#eab308', text: 'Trung bình'  },
+                { pct: '80%', color: '#22c55e', text: 'Mạnh'        },
+                { pct: '100%',color: '#16a34a', text: 'Rất mạnh'    },
             ];
             var lvl = levels[Math.max(0, score - 1)];
             fill.style.width      = lvl.pct;
