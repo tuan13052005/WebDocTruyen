@@ -7,106 +7,219 @@
     string baseUrl = ViewBag.BaseUrl ?? Url.Action("ManageStories")!;
 }
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="mb-0">📚 Quản lý truyện <span class="badge bg-secondary fs-6">@ViewBag.TotalItems</span></h2>
-        <a asp-action="Create" asp-controller="Story" class="btn btn-success">➕ Thêm truyện mới</a>
+<link rel="stylesheet" href="~/css/Edit-stories.css" />
+
+<div class="ems-wrap">
+
+    <!-- ── Hero ── -->
+    <div class="ems-hero">
+        <div class="ems-hero-icon">
+            <i class="bi bi-journal-richtext"></i>
+        </div>
+        <div class="ems-hero-meta">
+            <h1 class="ems-hero-title">Truyện của tôi</h1>
+            <p class="ems-hero-sub">
+                Tổng cộng <strong>@ViewBag.TotalItems</strong> truyện bạn đang quản lý
+            </p>
+        </div>
+        <a asp-action="Create" asp-controller="Story" class="ems-btn ems-btn-primary ems-hero-cta">
+            <i class="bi bi-plus-lg"></i> Thêm truyện mới
+        </a>
     </div>
 
-    <form asp-action="ManageStories" method="get" class="row g-2 mb-3">
-        <div class="col-md-5">
-            <input type="text" name="keyword" value="@kw" class="form-control" placeholder="🔍 Tìm tiêu đề, tác giả..." />
-        </div>
-        <div class="col-md-3">
-            <select name="status" class="form-select">
-                <option value="">-- Trạng thái --</option>
-                @if (st == "ongoing")
-                {
-                    <option value="ongoing" selected>🔄 Đang ra</option>
-                }
-                else
-                {
-                    <option value="ongoing">🔄 Đang ra</option>
-                }
-                @if (st == "completed")
-                {
-                    <option value="completed" selected>✅ Hoàn thành</option>
-                }
-                else
-                {
-                    <option value="completed">✅ Hoàn thành</option>
-                }
-            </select>
-        </div>
-        <div class="col-md-2">
-            <select name="pageSize" class="form-select">
-                @foreach (var s in new[] { 10, 15, 25 })
-                {
-                    if ((int)ViewBag.PageSize == s)
-                    {
-                        <option value="@s" selected>@s / trang</option>
-                    }
-                    else
-                    {
-                        <option value="@s">@s / trang</option>
-                    }
-                }
-            </select>
-        </div>
-        <div class="col-md-1"><button type="submit" class="btn btn-primary w-100">Lọc</button></div>
-        <div class="col-md-1"><a asp-action="ManageStories" class="btn btn-outline-secondary w-100">↺</a></div>
-    </form>
+    <!-- ── Bộ lọc ── -->
+    <p class="ems-section-label">Tìm kiếm &amp; lọc</p>
+    <div class="ems-card">
+        <form asp-action="ManageStories" method="get" class="ems-filter-form">
+            <div class="ems-filter-row">
+                <div class="ems-input-wrap ems-filter-kw">
+                    <i class="bi bi-search ems-input-icon"></i>
+                    <input type="text" name="keyword" value="@kw"
+                           class="ems-input" placeholder="Tìm tiêu đề, tác giả..." />
+                </div>
 
-    @if (!Model.Any())
-    {
-        <div class="alert alert-info">Chưa có truyện nào. Hãy thêm truyện đầu tiên!</div>
-    }
-    else
-    {
-        <table class="table table-striped table-hover shadow-sm align-middle">
-            <thead class="table-dark">
-                <tr><th>ID</th><th>Tiêu đề</th><th>Tác giả</th><th>Trạng thái</th><th>Chapter</th><th>Đánh giá</th><th>Ngày tạo</th><th>Hành động</th></tr>
-            </thead>
-            <tbody>
-                @foreach (var story in Model)
-                {
-                    <tr>
-                        <td>@story.Id</td>
-                        <td class="fw-semibold">@story.Title</td>
-                        <td>@story.Author</td>
-                        <td>
-                            @if (story.Status == "completed")
+                <div class="ems-input-wrap">
+                    <i class="bi bi-toggles ems-input-icon"></i>
+                    <select name="status" class="ems-input ems-select">
+                        <option value="">Tất cả trạng thái</option>
+                        @if (st == "ongoing")
+                        {
+                            <option value="ongoing" selected>Đang ra</option>
+                        }
+                        else
+                        {
+                            <option value="ongoing">Đang ra</option>
+                        }
+                        @if (st == "completed")
+                        {
+                            <option value="completed" selected>Hoàn thành</option>
+                        }
+                        else
+                        {
+                            <option value="completed">Hoàn thành</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="ems-input-wrap">
+                    <i class="bi bi-list-ol ems-input-icon"></i>
+                    <select name="pageSize" class="ems-input ems-select">
+                        @foreach (var s in new[] { 10, 15, 25 })
+                        {
+                            if ((int)ViewBag.PageSize == s)
                             {
-                                <span class="badge bg-success">Hoàn thành</span>
+                                <option value="@s" selected>@s / trang</option>
                             }
                             else
                             {
-
-                                <span class="badge bg-warning text-dark">Đang ra</span>
+                                <option value="@s">@s / trang</option>
                             }
-                        </td>
-                        <td class="text-center">@story.ChapterCount</td>
-                        <td class="text-center">★ @story.AvgRating.ToString("F1")</td>
-                        <td>@story.CreatedAt.ToString("dd/MM/yyyy")</td>
-                        <td class="d-flex gap-1 flex-wrap">
-                            <a asp-action="Edit" asp-controller="Story" asp-route-id="@story.Id" class="btn btn-sm btn-warning">✏️</a>
-                            <a asp-action="Delete" asp-controller="Story" asp-route-id="@story.Id" class="btn btn-sm btn-danger">🗑️</a>
-                            <a asp-action="AddChapter" asp-controller="Chapter" asp-route-storyId="@story.Id" class="btn btn-sm btn-success">➕</a>
-                            <a asp-action="ListChapters" asp-controller="Chapter" asp-route-id="@story.Id" class="btn btn-sm btn-primary">📋</a>
-                            <a asp-action="Details" asp-controller="Story" asp-route-id="@story.Id" class="btn btn-sm btn-info">👁️</a>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+                        }
+                    </select>
+                </div>
 
+                <button type="submit" class="ems-btn ems-btn-primary">
+                    <i class="bi bi-funnel"></i> Lọc
+                </button>
+                <a asp-action="ManageStories" class="ems-btn ems-btn-ghost">
+                    <i class="bi bi-arrow-counterclockwise"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- ── Danh sách truyện ── -->
+    <p class="ems-section-label">
+        Danh sách
+        @if (!string.IsNullOrEmpty(kw) || !string.IsNullOrEmpty(st))
+        {
+            <span class="ems-filter-hint">
+                — đang lọc
+                @if (!string.IsNullOrEmpty(kw))
+                {
+                    <span>"@kw"</span>
+                }
+                @if (!string.IsNullOrEmpty(st))
+                {
+                    <span class="ems-status-pill ems-status-@st">
+                        @(st == "completed" ? "Hoàn thành" : "Đang ra")
+                    </span>
+                }
+            </span>
+        }
+    </p>
+
+    @if (!Model.Any())
+    {
+        <div class="ems-empty">
+            <i class="bi bi-journal-x ems-empty-icon"></i>
+            <p>Chưa có truyện nào. Hãy thêm truyện đầu tiên!</p>
+            <a asp-action="Create" asp-controller="Story" class="ems-btn ems-btn-primary">
+                <i class="bi bi-plus-lg"></i> Thêm truyện mới
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="ems-card ems-stories-card">
+            @foreach (var story in Model)
+            {
+                <div class="ems-story-row">
+
+                    <!-- Ảnh bìa -->
+                    <img src="@story.CoverImage" alt="@story.Title"
+                         class="ems-story-thumb"
+                         onerror="this.src='/images/default.jpg'" />
+
+                    <!-- Thông tin chính -->
+                    <div class="ems-story-info">
+                        <span class="ems-story-title">@story.Title</span>
+                        <span class="ems-story-author">
+                            <i class="bi bi-person"></i> @story.Author
+                        </span>
+                        <div class="ems-story-tags">
+                            @if (story.Status == "completed")
+                            {
+                                <span class="ems-status-pill ems-status-completed">Hoàn thành</span>
+                            }
+                            else
+                            {
+                                <span class="ems-status-pill ems-status-ongoing">Đang ra</span>
+                            }
+                            @foreach (var g in story.Genres.Take(2))
+                            {
+                                <span class="ems-genre-tag">@g.Name</span>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Số liệu -->
+                    <div class="ems-story-stats">
+                        <div class="ems-stat">
+                            <i class="bi bi-collection"></i>
+                            <span>@story.ChapterCount ch.</span>
+                        </div>
+                        <div class="ems-stat">
+                            <i class="bi bi-star"></i>
+                            <span>@story.AvgRating.ToString("F1")</span>
+                        </div>
+                        <div class="ems-stat">
+                            <i class="bi bi-heart"></i>
+                            <span>@story.FavoriteCount</span>
+                        </div>
+                        <div class="ems-stat">
+                            <i class="bi bi-calendar3"></i>
+                            <span>@story.CreatedAt.ToString("dd/MM/yyyy")</span>
+                        </div>
+                    </div>
+
+                    <!-- Hành động -->
+                    <div class="ems-story-actions">
+                        <a asp-action="Details" asp-controller="Story"
+                           asp-route-id="@story.Id"
+                           class="ems-btn ems-btn-sm ems-btn-ghost"
+                           title="Xem">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        <a asp-action="Edit" asp-controller="Story"
+                           asp-route-id="@story.Id"
+                           class="ems-btn ems-btn-sm ems-btn-outline"
+                           title="Sửa">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <a asp-action="AddChapter" asp-controller="Chapter"
+                           asp-route-storyId="@story.Id"
+                           class="ems-btn ems-btn-sm ems-btn-green"
+                           title="Thêm chapter">
+                            <i class="bi bi-plus-lg"></i>
+                        </a>
+                        <a asp-action="ListChapters" asp-controller="Chapter"
+                           asp-route-id="@story.Id"
+                           class="ems-btn ems-btn-sm ems-btn-outline"
+                           title="Danh sách chapter">
+                            <i class="bi bi-list-ul"></i>
+                        </a>
+                        <a asp-action="Delete" asp-controller="Story"
+                           asp-route-id="@story.Id"
+                           class="ems-btn ems-btn-sm ems-btn-danger"
+                           title="Xóa">
+                            <i class="bi bi-trash3"></i>
+                        </a>
+                    </div>
+
+                </div>
+            }
+        </div>
+
+        <!-- ── Phân trang ── -->
         @await Html.PartialAsync("_Pagination", new ViewDataDictionary(ViewData)
         {
-        ["CurrentPage"] = ViewBag.CurrentPage,
-        ["TotalPages"] = ViewBag.TotalPages,
-        ["TotalItems"] = ViewBag.TotalItems,
-        ["PageSize"] = ViewBag.PageSize,
-        ["BaseUrl"] = baseUrl,
+            ["CurrentPage"] = ViewBag.CurrentPage,
+            ["TotalPages"] = ViewBag.TotalPages,
+            ["TotalItems"] = ViewBag.TotalItems,
+            ["PageSize"] = ViewBag.PageSize,
+            ["BaseUrl"] = baseUrl,
         })
-        }
+    }
+
 </div>

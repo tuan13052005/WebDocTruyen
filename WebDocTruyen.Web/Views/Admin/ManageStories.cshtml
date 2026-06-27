@@ -7,104 +7,203 @@
     string baseUrl = ViewBag.BaseUrl ?? Url.Action("ManageStories")!;
 }
 
-<div class="container mt-4">
-    <h2 class="mb-3">📚 Quản lý truyện (Admin) <span class="badge bg-secondary fs-6">@ViewBag.TotalItems</span></h2>
+<link rel="stylesheet" href="~/css/admin-stories.css" />
 
-    <form asp-action="ManageStories" method="get" class="row g-2 mb-3">
-        <div class="col-md-5">
-            <input type="text" name="keyword" value="@kw" class="form-control" placeholder="🔍 Tìm tiêu đề, tác giả..." />
-        </div>
-        <div class="col-md-3">
-            <select name="status" class="form-select">
-                <option value="">-- Trạng thái --</option>
-                @if (st == "ongoing")
-                {
-                    <option value="ongoing" selected>🔄 Đang ra</option>
-                }
-                else
-                {
-                    <option value="ongoing">🔄 Đang ra</option>
-                }
-                @if (st == "completed")
-                {
-                    <option value="completed" selected>✅ Hoàn thành</option>
-                }
-                else
-                {
-                    <option value="completed">✅ Hoàn thành</option>
-                }
-            </select>
-        </div>
-        <div class="col-md-2">
-            <select name="pageSize" class="form-select">
-                @foreach (var s in new[] { 10, 15, 25 })
-                {
-                    if ((int)ViewBag.PageSize == s)
-                    {
-                        <option value="@s" selected>@s / trang</option>
-                    }
-                    else
-                    {
-                        <option value="@s">@s / trang</option>
-                    }
-                }
-            </select>
-        </div>
-        <div class="col-md-1"><button type="submit" class="btn btn-primary w-100">Lọc</button></div>
-        <div class="col-md-1"><a asp-action="ManageStories" class="btn btn-outline-secondary w-100">↺</a></div>
-    </form>
+<div class="ms-wrap">
 
-    @if (!Model.Any())
-    {
-        <div class="alert alert-info">Không tìm thấy truyện nào.</div>
-    }
-    else
-    {
-        <table class="table table-striped table-hover shadow-sm align-middle">
-            <thead class="table-dark">
-                <tr><th>ID</th><th>Tiêu đề</th><th>Tác giả</th><th>Trạng thái</th><th>Chapter</th><th>Đánh giá</th><th>Ngày tạo</th><th>Hành động</th></tr>
-            </thead>
-            <tbody>
-                @foreach (var story in Model)
-                {
-                    <tr>
-                        <td>@story.Id</td>
-                        <td class="fw-semibold">@story.Title</td>
-                        <td>@story.Author</td>
-                        <td>
-                            @if (story.Status == "completed")
+    <!-- Hero -->
+    <div class="ms-hero">
+        <div class="ms-hero-icon">
+            <i class="bi bi-book-fill"></i>
+        </div>
+        <div class="ms-hero-meta">
+            <h1 class="ms-hero-title">Quản lý truyện</h1>
+            <p class="ms-hero-sub">
+                Tổng cộng <strong>@ViewBag.TotalItems</strong> truyện trong hệ thống
+            </p>
+        </div>
+    </div>
+
+    <!-- Bộ lọc -->
+    <p class="ms-section-label">Tìm kiếm &amp; lọc</p>
+    <div class="ms-card">
+        <form asp-action="ManageStories" method="get" class="ms-filter-form">
+            <div class="ms-filter-row">
+                <div class="ms-input-wrap ms-filter-kw">
+                    <i class="bi bi-search ms-input-icon"></i>
+                    <input type="text" name="keyword" value="@kw"
+                           class="ms-input" placeholder="Tìm tiêu đề, tác giả..." />
+                </div>
+
+                <div class="ms-input-wrap">
+                    <i class="bi bi-toggles ms-input-icon"></i>
+                    <select name="status" class="ms-input ms-select">
+                        <option value="">Tất cả trạng thái</option>
+                        @if (st == "ongoing")
+                        {
+                            <option value="ongoing" selected>Đang ra</option>
+                        }
+                        else
+                        {
+                            <option value="ongoing">Đang ra</option>
+                        }
+                        @if (st == "completed")
+                        {
+                            <option value="completed" selected>Hoàn thành</option>
+                        }
+                        else
+                        {
+                            <option value="completed">Hoàn thành</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="ms-input-wrap">
+                    <i class="bi bi-list-ol ms-input-icon"></i>
+                    <select name="pageSize" class="ms-input ms-select">
+                        @foreach (var s in new[] { 10, 15, 25 })
+                        {
+                            if ((int)ViewBag.PageSize == s)
                             {
-                                <span class="badge bg-success">Hoàn thành</span>
+                                <option value="@s" selected>@s / trang</option>
                             }
                             else
                             {
-
-                                <span class="badge bg-warning text-dark">Đang ra</span>
+                                <option value="@s">@s / trang</option>
                             }
-                        </td>
-                        <td class="text-center">@story.ChapterCount</td>
-                        <td class="text-center">★ @story.AvgRating.ToString("F1")</td>
-                        <td>@story.CreatedAt.ToString("dd/MM/yyyy")</td>
-                        <td class="d-flex gap-1">
-                            <a asp-controller="Story" asp-action="Details" asp-route-id="@story.Id" class="btn btn-sm btn-info">👁️</a>
-                            <form asp-action="DeleteStory" method="post" onsubmit="return confirm('Xóa truyện này?');">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="id" value="@story.Id" />
-                                <button type="submit" class="btn btn-sm btn-danger">🗑️</button>
-                            </form>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+                        }
+                    </select>
+                </div>
 
+                <button type="submit" class="ms-btn ms-btn-primary">
+                    <i class="bi bi-funnel"></i> Lọc
+                </button>
+                <a asp-action="ManageStories" class="ms-btn ms-btn-ghost">
+                    <i class="bi bi-arrow-counterclockwise"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Danh sách truyện -->
+    <p class="ms-section-label">
+        Danh sách
+        @if (!string.IsNullOrEmpty(kw) || !string.IsNullOrEmpty(st))
+        {
+            <span class="ms-filter-hint">
+                — đang lọc
+                @if (!string.IsNullOrEmpty(kw))
+                {
+                    <span>"@kw"</span>
+                }
+                @if (!string.IsNullOrEmpty(st))
+                {
+                    <span class="ms-status-pill ms-status-@st">
+                        @(st == "completed" ? "Hoàn thành" : "Đang ra")
+                    </span>
+                }
+            </span>
+        }
+    </p>
+
+    @if (!Model.Any())
+    {
+        <div class="ms-empty">
+            <i class="bi bi-book ms-empty-icon"></i>
+            <p>Không tìm thấy truyện nào.</p>
+            @if (!string.IsNullOrEmpty(kw) || !string.IsNullOrEmpty(st))
+            {
+                <a asp-action="ManageStories" class="ms-btn ms-btn-ghost">Xóa bộ lọc</a>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="ms-card ms-stories-card">
+            @foreach (var story in Model)
+            {
+                <div class="ms-story-row">
+                    <!-- Ảnh bìa -->
+                    <img src="@story.CoverImage" alt="@story.Title"
+                         class="ms-story-thumb"
+                         onerror="this.src='/images/default.jpg'" />
+
+                    <!-- Thông tin -->
+                    <div class="ms-story-info">
+                        <span class="ms-story-title">@story.Title</span>
+                        <span class="ms-story-author">
+                            <i class="bi bi-person"></i> @story.Author
+                        </span>
+                        <div class="ms-story-tags">
+                            @if (story.Status == "completed")
+                            {
+                                <span class="ms-status-pill ms-status-completed">Hoàn thành</span>
+                            }
+                            else
+                            {
+                                <span class="ms-status-pill ms-status-ongoing">Đang ra</span>
+                            }
+                            @foreach (var g in story.Genres.Take(2))
+                            {
+                                <span class="ms-genre-tag">@g.Name</span>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Số liệu -->
+                    <div class="ms-story-stats">
+                        <div class="ms-stat">
+                            <i class="bi bi-collection"></i>
+                            <span>@story.ChapterCount ch.</span>
+                        </div>
+                        <div class="ms-stat">
+                            <i class="bi bi-star"></i>
+                            <span>@story.AvgRating.ToString("F1")</span>
+                        </div>
+                        <div class="ms-stat">
+                            <i class="bi bi-heart"></i>
+                            <span>@story.FavoriteCount</span>
+                        </div>
+                    </div>
+
+                    <!-- Ngày tạo -->
+                    <div class="ms-story-date">
+                        <span class="ms-date-label">Ngày tạo</span>
+                        <span class="ms-date-val">@story.CreatedAt.ToString("dd/MM/yyyy")</span>
+                    </div>
+
+                    <!-- Hành động -->
+                    <div class="ms-story-actions">
+                        <a asp-controller="Story" asp-action="Details"
+                           asp-route-id="@story.Id"
+                           class="ms-btn ms-btn-sm ms-btn-outline"
+                           title="Xem chi tiết">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        <form asp-action="DeleteStory" method="post" class="ms-action-form"
+                              onsubmit="return confirm('Xóa truyện @story.Title?');">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@story.Id" />
+                            <button type="submit"
+                                    class="ms-btn ms-btn-sm ms-btn-danger"
+                                    title="Xóa truyện">
+                                <i class="bi bi-trash3"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Phân trang -->
         @await Html.PartialAsync("_Pagination", new ViewDataDictionary(ViewData)
         {
-        ["CurrentPage"] = ViewBag.CurrentPage,
-        ["TotalPages"] = ViewBag.TotalPages,
-        ["TotalItems"] = ViewBag.TotalItems,
-        ["PageSize"] = ViewBag.PageSize,
-        ["BaseUrl"] = baseUrl,
+            ["CurrentPage"] = ViewBag.CurrentPage,
+            ["TotalPages"] = ViewBag.TotalPages,
+            ["TotalItems"] = ViewBag.TotalItems,
+            ["PageSize"] = ViewBag.PageSize,
+            ["BaseUrl"] = baseUrl,
         })
-        }
+    }
+
 </div>

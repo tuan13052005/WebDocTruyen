@@ -7,152 +7,264 @@
     string baseUrl = ViewBag.BaseUrl ?? Url.Action("ManageUsers")!;
 }
 
-<div class="container mt-4">
-    <h2 class="mb-3">👥 Quản lý người dùng <span class="badge bg-secondary fs-6">@ViewBag.TotalItems</span></h2>
+<link rel="stylesheet" href="~/css/Admin-users.css" />
 
-    <div class="card mb-3 shadow-sm">
-        <div class="card-header bg-success text-white">➕ Thêm tài khoản mới</div>
-        <div class="card-body">
-            <form asp-action="AddUser" method="post" class="row g-2">
-                @Html.AntiForgeryToken()
-                <div class="col-md-3"><input type="text" name="Username" class="form-control" placeholder="Tên đăng nhập" required /></div>
-                <div class="col-md-3"><input type="email" name="Email" class="form-control" placeholder="Email" required /></div>
-                <div class="col-md-2"><input type="password" name="Password" class="form-control" placeholder="Mật khẩu" required /></div>
-                <div class="col-md-2">
-                    <select name="Role" class="form-select">
-                        <option value="User">User</option>
-                        <option value="Admin">Admin</option>
-                        <option value="Editor">Editor</option>
-                    </select>
-                </div>
-                <div class="col-md-2"><button type="submit" class="btn btn-success w-100">Thêm</button></div>
-            </form>
+<div class="mu-wrap">
+
+    <!-- Hero -->
+    <div class="mu-hero">
+        <div class="mu-hero-icon">
+            <i class="bi bi-people-fill"></i>
+        </div>
+        <div class="mu-hero-meta">
+            <h1 class="mu-hero-title">Quản lý người dùng</h1>
+            <p class="mu-hero-sub">
+                Tổng cộng <strong>@ViewBag.TotalItems</strong> tài khoản trong hệ thống
+            </p>
         </div>
     </div>
 
-    <form asp-action="ManageUsers" method="get" class="row g-2 mb-3">
-        <div class="col-md-5">
-            <input type="text" name="keyword" value="@kw" class="form-control" placeholder="🔍 Tìm theo tên, email..." />
+    @if (TempData["Error"] != null)
+    {
+        <div class="mu-alert mu-alert-danger">
+            <i class="bi bi-exclamation-circle-fill"></i>
+            @TempData["Error"]
         </div>
-        <div class="col-md-3">
-            <select name="role" class="form-select">
-                <option value="">-- Tất cả role --</option>
-                @if (roleF == "Admin")
+    }
+
+    <!-- Thêm tài khoản -->
+    <p class="mu-section-label">Thêm tài khoản mới</p>
+    <div class="mu-card mu-add-card">
+        <form asp-action="AddUser" method="post" class="mu-add-form">
+            @Html.AntiForgeryToken()
+            <div class="mu-field">
+                <label class="mu-field-label">Tên đăng nhập</label>
+                <div class="mu-input-wrap">
+                    <i class="bi bi-person mu-input-icon"></i>
+                    <input type="text" name="Username" class="mu-input" placeholder="username" required />
+                </div>
+            </div>
+            <div class="mu-field">
+                <label class="mu-field-label">Email</label>
+                <div class="mu-input-wrap">
+                    <i class="bi bi-envelope mu-input-icon"></i>
+                    <input type="email" name="Email" class="mu-input" placeholder="email@example.com" required />
+                </div>
+            </div>
+            <div class="mu-field">
+                <label class="mu-field-label">Mật khẩu</label>
+                <div class="mu-input-wrap">
+                    <i class="bi bi-lock mu-input-icon"></i>
+                    <input type="password" name="Password" class="mu-input" placeholder="••••••••" required />
+                </div>
+            </div>
+            <div class="mu-field">
+                <label class="mu-field-label">Vai trò</label>
+                <div class="mu-input-wrap">
+                    <i class="bi bi-shield mu-input-icon"></i>
+                    <select name="Role" class="mu-input mu-select">
+                        <option value="User">User</option>
+                        <option value="Editor">Editor</option>
+                        <option value="Admin">Admin</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mu-field mu-field-action">
+                <button type="submit" class="mu-btn mu-btn-primary">
+                    <i class="bi bi-plus-lg"></i> Thêm
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Bộ lọc -->
+    <p class="mu-section-label">Tìm kiếm &amp; lọc</p>
+    <div class="mu-card">
+        <form asp-action="ManageUsers" method="get" class="mu-filter-form">
+            <div class="mu-filter-row">
+                <div class="mu-input-wrap mu-filter-kw">
+                    <i class="bi bi-search mu-input-icon"></i>
+                    <input type="text" name="keyword" value="@kw"
+                           class="mu-input" placeholder="Tìm theo tên, email..." />
+                </div>
+
+                <div class="mu-input-wrap">
+                    <i class="bi bi-shield mu-input-icon"></i>
+                    <select name="role" class="mu-input mu-select">
+                        <option value="">Tất cả vai trò</option>
+                        @if (roleF == "Admin")
+                        {
+                            <option value="Admin" selected>Admin</option>
+                        }
+                        else
+                        {
+                            <option value="Admin">Admin</option>
+                        }
+                        @if (roleF == "Editor")
+                        {
+                            <option value="Editor" selected>Editor</option>
+                        }
+                        else
+                        {
+                            <option value="Editor">Editor</option>
+                        }
+                        @if (roleF == "User")
+                        {
+                            <option value="User" selected>User</option>
+                        }
+                        else
+                        {
+                            <option value="User">User</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="mu-input-wrap">
+                    <i class="bi bi-list-ol mu-input-icon"></i>
+                    <select name="pageSize" class="mu-input mu-select">
+                        @foreach (var s in new[] { 10, 15, 25, 50 })
+                        {
+                            if ((int)ViewBag.PageSize == s)
+                            {
+                                <option value="@s" selected>@s / trang</option>
+                            }
+                            else
+                            {
+                                <option value="@s">@s / trang</option>
+                            }
+                        }
+                    </select>
+                </div>
+
+                <button type="submit" class="mu-btn mu-btn-primary">
+                    <i class="bi bi-funnel"></i> Lọc
+                </button>
+                <a asp-action="ManageUsers" class="mu-btn mu-btn-ghost">
+                    <i class="bi bi-arrow-counterclockwise"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Danh sách người dùng -->
+    <p class="mu-section-label">
+        Danh sách
+        @if (!string.IsNullOrEmpty(kw) || !string.IsNullOrEmpty(roleF))
+        {
+            <span class="mu-filter-hint">
+                — đang lọc
+                @if (!string.IsNullOrEmpty(kw))
                 {
-                    <option value="Admin" selected>Admin</option>
+                    <span>"@kw"</span>
                 }
-                else
+                @if (!string.IsNullOrEmpty(roleF))
                 {
-                    <option value="Admin">Admin</option>
+                    <span class="mu-role-pill mu-role-@roleF.ToLower()">@roleF</span>
                 }
-                @if (roleF == "Editor")
-                {
-                    <option value="Editor" selected>Editor</option>
-                }
-                else
-                {
-                    <option value="Editor">Editor</option>
-                }
-                @if (roleF == "User")
-                {
-                    <option value="User" selected>User</option>
-                }
-                else
-                {
-                    <option value="User">User</option>
-                }
-            </select>
-        </div>
-        <div class="col-md-2">
-            <select name="pageSize" class="form-select">
-                @foreach (var s in new[] { 10, 15, 25, 50 })
-                {
-                    if ((int)ViewBag.PageSize == s)
-                    {
-                        <option value="@s" selected>@s / trang</option>
-                    }
-                    else
-                    {
-                        <option value="@s">@s / trang</option>
-                    }
-                }
-            </select>
-        </div>
-        <div class="col-md-1"><button type="submit" class="btn btn-primary w-100">Lọc</button></div>
-        <div class="col-md-1"><a asp-action="ManageUsers" class="btn btn-outline-secondary w-100">↺</a></div>
-    </form>
+            </span>
+        }
+    </p>
 
     @if (!Model.Any())
     {
-        <div class="alert alert-info">Không tìm thấy người dùng nào.</div>
+        <div class="mu-empty">
+            <i class="bi bi-person-x mu-empty-icon"></i>
+            <p>Không tìm thấy người dùng nào.</p>
+            @if (!string.IsNullOrEmpty(kw) || !string.IsNullOrEmpty(roleF))
+            {
+                <a asp-action="ManageUsers" class="mu-btn mu-btn-ghost">Xóa bộ lọc</a>
+            }
+        </div>
     }
     else
     {
-        <table class="table table-striped table-hover shadow-sm align-middle">
-            <thead class="table-dark">
-                <tr><th>ID</th><th>Username</th><th>Email</th><th>Role</th><th>LastLogin</th><th>Hành động</th></tr>
-            </thead>
-            <tbody>
-                @foreach (var user in Model)
-                {
-                    <tr>
-                        <td>@user.UserId</td>
-                        <td>@user.Username</td>
-                        <td>@user.Email</td>
-                        <td>
-                            <span class="badge @(user.Role == "Admin" ? "bg-danger" : user.Role == "Editor" ? "bg-warning text-dark" : "bg-secondary")">@user.Role</span>
-                        </td>
-                        <td>@user.LastLogin?.ToString("dd/MM/yyyy HH:mm")</td>
-                        <td class="d-flex gap-1 flex-wrap">
-                            <form asp-action="ChangeRole" method="post" class="d-inline">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="id" value="@user.UserId" />
-                                <select name="role" class="form-select form-select-sm d-inline w-auto">
-                                    @if (user.Role == "User")
-                                    {
-                                        <option value="User" selected>User</option>
-                                    }
-                                    else
-                                    {
-                                        <option value="User">User</option>
-                                    }
-                                    @if (user.Role == "Admin")
-                                    {
-                                        <option value="Admin" selected>Admin</option>
-                                    }
-                                    else
-                                    {
-                                        <option value="Admin">Admin</option>
-                                    }
-                                    @if (user.Role == "Editor")
-                                    {
-                                        <option value="Editor" selected>Editor</option>
-                                    }
-                                    else
-                                    {
-                                        <option value="Editor">Editor</option>
-                                    }
-                                </select>
-                                <button type="submit" class="btn btn-sm btn-primary">Đổi</button>
-                            </form>
-                            <form asp-action="DeleteUser" method="post" class="d-inline" onsubmit="return confirm('Xóa user @user.Username?');">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="id" value="@user.UserId" />
-                                <button type="submit" class="btn btn-sm btn-danger">🗑️</button>
-                            </form>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+        <div class="mu-card mu-users-card">
+            @foreach (var user in Model)
+            {
+                var initials = user.Username?.Length > 0
+                    ? user.Username.Substring(0, Math.Min(2, user.Username.Length)).ToUpper()
+                    : "?";
 
+                <div class="mu-user-row">
+                    <!-- Avatar -->
+                    <div class="mu-user-avatar">@initials</div>
+
+                    <!-- Thông tin -->
+                    <div class="mu-user-info">
+                        <span class="mu-user-name">@user.Username</span>
+                        <span class="mu-user-email">@user.Email</span>
+                    </div>
+
+                    <!-- Role + thời gian -->
+                    <div class="mu-user-meta">
+                        <span class="mu-role-pill mu-role-@user.Role.ToLower()">@user.Role</span>
+                        <span class="mu-user-time">
+                            @user.LastLogin?.ToString("dd/MM/yyyy HH:mm")
+                        </span>
+                    </div>
+
+                    <!-- Hành động -->
+                    <div class="mu-user-actions">
+                        <!-- Đổi role -->
+                        <form asp-action="ChangeRole" method="post" class="mu-action-form">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@user.UserId" />
+                            <select name="role" class="mu-input mu-select mu-select-sm">
+                                @if (user.Role == "User")
+                                {
+                                    <option value="User" selected>User</option>
+                                }
+                                else
+                                {
+                                    <option value="User">User</option>
+                                }
+                                @if (user.Role == "Editor")
+                                {
+                                    <option value="Editor" selected>Editor</option>
+                                }
+                                else
+                                {
+                                    <option value="Editor">Editor</option>
+                                }
+                                @if (user.Role == "Admin")
+                                {
+                                    <option value="Admin" selected>Admin</option>
+                                }
+                                else
+                                {
+                                    <option value="Admin">Admin</option>
+                                }
+                            </select>
+                            <button type="submit" class="mu-btn mu-btn-sm mu-btn-outline"
+                                    title="Đổi vai trò">
+                                <i class="bi bi-arrow-repeat"></i>
+                            </button>
+                        </form>
+
+                        <!-- Xóa -->
+                        <form asp-action="DeleteUser" method="post" class="mu-action-form"
+                              onsubmit="return confirm('Xóa tài khoản @user.Username?');">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@user.UserId" />
+                            <button type="submit" class="mu-btn mu-btn-sm mu-btn-danger"
+                                    title="Xóa tài khoản">
+                                <i class="bi bi-trash3"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Phân trang -->
         @await Html.PartialAsync("_Pagination", new ViewDataDictionary(ViewData)
         {
-        ["CurrentPage"] = ViewBag.CurrentPage,
-        ["TotalPages"] = ViewBag.TotalPages,
-        ["TotalItems"] = ViewBag.TotalItems,
-        ["PageSize"] = ViewBag.PageSize,
-        ["BaseUrl"] = baseUrl,
+            ["CurrentPage"] = ViewBag.CurrentPage,
+            ["TotalPages"] = ViewBag.TotalPages,
+            ["TotalItems"] = ViewBag.TotalItems,
+            ["PageSize"] = ViewBag.PageSize,
+            ["BaseUrl"] = baseUrl,
         })
-        }
+    }
+
 </div>
