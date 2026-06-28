@@ -29,20 +29,20 @@
                 <span class="gx-eyebrow-label">Web Đọc Truyện</span>
                 <div class="gx-eyebrow-line"></div>
             </div>
-			<div>
-				
+            <div>
+
                 <span class="gx-t1"></span>
                 <span class="gx-t2">Thể Loại</span>
                 <span class="gx-t3">マンガ-Truyện-만화</span>
             </div>
-			<br />
-			<br />
-			<br />
+            <br />
+            <br />
+            <br />
             <p class="gx-sub">
-				Mỗi thể loại là một vũ trụ riêng —<br />
+                Mỗi thể loại là một vũ trụ riêng —<br />
                 bước vào và khám phá thứ khiến bạn không thể rời mắt.
             </p>
-      
+
             <a asp-controller="Story" asp-action="Index" class="gx-cta">Khám phá ngay →</a>
         </div>
 
@@ -86,7 +86,9 @@
         </div>
         @if (isAdmin)
         {
-            <a asp-action="Create" class="btn btn-success btn-sm">➕ Thêm thể loại</a>
+            <a asp-action="Create" class="gx-add-btn">
+                <i class="bi bi-plus-lg"></i> Thêm thể loại
+            </a>
         }
     </div>
 
