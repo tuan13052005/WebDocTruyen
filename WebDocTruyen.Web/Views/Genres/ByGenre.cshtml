@@ -14,78 +14,149 @@
     string PageUrl(int p) => Url.Action("ByGenre", new { id = genreId })! + $"?pageSize={size}&page={p}";
 }
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="mb-0">🏷️ @ViewBag.GenreName</h2>
-            <p class="text-muted small mb-0">@items truyện</p>
+<link rel="stylesheet" href="~/css/genres-byGenre.css" />
+
+<div class="container bg-page">
+
+    <!-- ══ HERO ══ -->
+    <div class="bg-hero">
+        <div class="bg-hero-bg"></div>
+        <div class="bg-hero-dots"></div>
+        <div class="bg-hero-glow"></div>
+        <div class="bg-hero-orb1"></div>
+        <div class="bg-hero-orb2"></div>
+        <div class="bg-hero-slash"></div>
+
+        <div class="bg-hero-inner">
+            <div>
+                <div class="bg-eyebrow">
+                    <span class="bg-eyebrow-dot"></span>
+                    Thể loại
+                </div>
+                <h1 class="bg-genre-title">🏷️ @ViewBag.GenreName</h1>
+                <p class="bg-genre-sub">Khám phá tất cả truyện trong thể loại này</p>
+            </div>
+
+            <div class="bg-hero-right">
+                <div class="bg-count-pill">
+                    <span class="bg-count-num">@items</span>
+                    <span class="bg-count-lbl">Bộ truyện</span>
+                </div>
+                <a asp-action="Index" asp-controller="Genres" class="bg-back-btn">
+                    ← Tất cả thể loại
+                </a>
+            </div>
         </div>
-        <a asp-action="Index" asp-controller="Genres" class="btn btn-outline-secondary btn-sm">← Tất cả thể loại</a>
     </div>
 
     @if (!Model.Any())
     {
-        <div class="alert alert-info text-center py-5">
-            <div style="font-size:3rem;">📭</div>
-            <p class="mb-0">Chưa có truyện nào trong thể loại này.</p>
+        <!-- ══ EMPTY ══ -->
+        <div class="bg-empty">
+            <div class="bg-empty-icon">📭</div>
+            <h5>Chưa có truyện nào</h5>
+            <p>Thể loại này chưa được cập nhật truyện. Hãy quay lại sau!</p>
+            <a asp-controller="Story" asp-action="Index" class="bg-empty-btn">
+                <i class="bi bi-compass-fill"></i> Khám phá thể loại khác
+            </a>
         </div>
     }
     else
     {
-        <div class="row row-cols-2 row-cols-sm-3 row-cols-lg-4 g-3">
+        <!-- ══ TOOLBAR ══ -->
+        <div class="bg-toolbar">
+            <div class="bg-toolbar-left">
+                <div class="bg-accent-bar"></div>
+                <span class="bg-section-title">Danh sách truyện</span>
+                <span class="bg-count-badge">@items truyện</span>
+            </div>
+            <div class="bg-page-select">
+                <span>Hiển thị</span>
+                <select onchange="location.href='@(Url.Action("ByGenre", new { id = genreId }))' + '?pageSize=' + this.value + '&page=1'">
+                    @foreach (var s in new[] { 12, 24, 48 })
+                    {
+                        if (size == s)
+                        {
+                            <option value="@s" selected>@s / trang</option>
+                        }
+                        else
+                        {
+                            <option value="@s">@s / trang</option>
+                        }
+                    }
+                </select>
+            </div>
+        </div>
+
+        <!-- ══ GRID ══ -->
+        <div class="bg-grid">
             @foreach (var s in Model)
             {
-                <div class="col">
-                    <div class="card h-100 shadow-sm story-card">
-                        <div class="position-relative">
-                            <img src="@s.CoverImage" class="card-img-top" alt="@s.Title"
-                                 style="height:200px; object-fit:cover;"
-                                 onerror="this.src='/images/default.jpg'" />
-                            <span class="position-absolute top-0 end-0 m-1 badge @(s.Status == "completed" ? "bg-success" : "bg-warning text-dark")"
-                                  style="font-size:.65rem;">
-                                @(s.Status == "completed" ? "Hoàn thành" : "Đang ra")
-                            </span>
-                            <span class="position-absolute bottom-0 start-0 m-1 badge bg-dark" style="font-size:.65rem;">
-                                @s.ChapterCount ch.
-                            </span>
-                        </div>
-                        <div class="card-body p-2 d-flex flex-column">
-                            <h6 class="card-title mb-1 text-truncate fw-semibold" title="@s.Title">@s.Title</h6>
-                            <p class="card-text text-muted small mb-2 text-truncate">@s.Author</p>
-                            <a asp-action="Details" asp-controller="Story" asp-route-id="@s.Id"
-                               class="btn btn-primary btn-sm mt-auto stretched-link">Chi tiết</a>
-                        </div>
+                <div class="bg-card">
+                    <div class="bg-thumb">
+                        <img src="@s.CoverImage"
+                             alt="@s.Title"
+                             loading="lazy"
+                             onerror="this.src='/images/default.jpg'" />
+                        <div class="bg-thumb-overlay"></div>
+
+                        @if (s.Status == "completed")
+                        {
+                            <span class="bg-status bg-status-done">✅ Xong</span>
+                        }
+                        else
+                        {
+                            <span class="bg-status bg-status-ongoing">🔄 Đang ra</span>
+                        }
+
+                        <span class="bg-chap">
+                            <i class="bi bi-collection" style="font-size:9px;"></i>
+                            @s.ChapterCount ch.
+                        </span>
+
+                        @if (s.AvgRating > 0)
+                        {
+                            <span class="bg-rating">★ @s.AvgRating.ToString("F1")</span>
+                        }
+                    </div>
+
+                    <div class="bg-body">
+                        <a asp-action="Details" asp-controller="Story"
+                           asp-route-id="@s.Id"
+                           class="bg-card-title"
+                           title="@s.Title">@s.Title</a>
+                        <p class="bg-card-author">
+                            <i class="bi bi-person" style="font-size:10px;"></i>
+                            @s.Author
+                        </p>
+                        <a asp-action="Details" asp-controller="Story"
+                           asp-route-id="@s.Id"
+                           class="bg-card-btn">
+                            Đọc ngay →
+                        </a>
                     </div>
                 </div>
             }
         </div>
 
+        <!-- ══ PAGINATION ══ -->
         @if (total > 1)
         {
-            <nav class="mt-4">
-                <ul class="pagination justify-content-center flex-wrap">
-                    <li class="page-item @(cur == 1 ? "disabled" : "")"><a class="page-link" href="@PageUrl(1)">«</a></li>
-                    <li class="page-item @(cur == 1 ? "disabled" : "")"><a class="page-link" href="@PageUrl(cur - 1)">‹</a></li>
+            <div class="bg-pagination">
+                <div class="bg-page-nav">
+                    <a class="bg-page-btn @(cur == 1 ? "is-disabled" : "")" href="@PageUrl(1)">«</a>
+                    <a class="bg-page-btn @(cur == 1 ? "is-disabled" : "")" href="@PageUrl(cur - 1)">‹</a>
+
                     @for (int p = ps; p <= pe; p++)
                     {
-                        <li class="page-item @(p == cur ? "active" : "")"><a class="page-link" href="@PageUrl(p)">@p</a></li>
+                        <a class="bg-page-btn @(p == cur ? "is-active" : "")" href="@PageUrl(p)">@p</a>
                     }
-                    <li class="page-item @(cur == total ? "disabled" : "")"><a class="page-link" href="@PageUrl(cur + 1)">›</a></li>
-                    <li class="page-item @(cur == total ? "disabled" : "")"><a class="page-link" href="@PageUrl(total)">»</a></li>
-                </ul>
-                <p class="text-center text-muted small">Trang @cur / @total · @items truyện</p>
-            </nav>
+
+                    <a class="bg-page-btn @(cur == total ? "is-disabled" : "")" href="@PageUrl(cur + 1)">›</a>
+                    <a class="bg-page-btn @(cur == total ? "is-disabled" : "")" href="@PageUrl(total)">»</a>
+                </div>
+                <p class="bg-page-info">Trang @cur / @total &nbsp;·&nbsp; @items truyện</p>
+            </div>
         }
     }
 </div>
-
-<style>
-    .story-card {
-        transition: transform .15s, box-shadow .15s;
-    }
-
-        .story-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(0,0,0,.12) !important;
-        }
-</style>
