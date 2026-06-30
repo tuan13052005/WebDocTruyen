@@ -133,7 +133,7 @@ namespace WebDocTruyen.Web.Controllers
                 ChapterId = chapterId,
                 UserId = CurrentUserId!.Value,
                 Content = content.Trim(),
-                CreatedAt = DateTime.Now
+                CreatedAt = DateTime.UtcNow
             });
             return chapterId.HasValue
                 ? RedirectToAction("ReadChapter", "Chapter", new { id = chapterId })
@@ -173,7 +173,7 @@ namespace WebDocTruyen.Web.Controllers
             int uid = CurrentUserId!.Value;
             var existing = await _ratingRepo.GetByUserAndStoryAsync(uid, storyId);
             if (existing != null) { existing.Score = score; await _ratingRepo.UpdateAsync(existing); }
-            else await _ratingRepo.AddAsync(new Rating { UserId = uid, StoryId = storyId, Score = score, CreatedAt = DateTime.Now });
+            else await _ratingRepo.AddAsync(new Rating { UserId = uid, StoryId = storyId, Score = score, CreatedAt = DateTime.UtcNow });
             double avg = await _ratingRepo.GetAverageAsync(storyId);
             int cnt = await _ratingRepo.CountAsync(storyId);
             return Json(RatingMapper.ToResultDto(avg, cnt, score));
@@ -201,7 +201,7 @@ namespace WebDocTruyen.Web.Controllers
                 Author = dto.Author,
                 Description = dto.Description,
                 Status = dto.Status,
-                CreatedAt = DateTime.Now,
+                CreatedAt = DateTime.UtcNow,
                 CreatedBy = CurrentUserId!.Value,
                 StoryGenres = new List<StoryGenre>()
             };
@@ -250,7 +250,7 @@ namespace WebDocTruyen.Web.Controllers
             existing.Author = dto.Author;
             existing.Description = dto.Description;
             existing.Status = dto.Status;
-            existing.UpdatedAt = DateTime.Now;
+            existing.UpdatedAt = DateTime.UtcNow;
 
             // ── Ảnh bìa: thay ảnh mới và xóa ảnh cũ ──
             if (coverImage?.Length > 0)

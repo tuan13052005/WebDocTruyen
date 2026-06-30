@@ -1,3 +1,5 @@
+using System;
+
 namespace WebDocTruyen.Web.Models
 {
     public class ErrorViewModel
@@ -5,7 +7,7 @@ namespace WebDocTruyen.Web.Models
         public string? RequestId { get; set; }
         public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
 
-        // ── Thông tin lỗi mở rộng ─────────────────────────────────
+        // ── Thông tin lỗi mở rộng ────────────────────────────────
         public int StatusCode { get; set; } = 500;
         public string Title { get; set; } = "Đã xảy ra lỗi";
         public string Message { get; set; } = "Đã xảy ra lỗi khi xử lý yêu cầu của bạn. Vui lòng thử lại sau.";

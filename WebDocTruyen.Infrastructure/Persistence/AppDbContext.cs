@@ -25,6 +25,8 @@ namespace WebDocTruyen.Infrastructure.Persistence
             {
                 e.HasKey(s => s.StoryId);
                 e.HasOne(s => s.CreatedByUser).WithMany().HasForeignKey(s => s.CreatedBy);
+                e.Property(s => s.CreatedAt).HasColumnType("timestamptz");
+                e.Property(s => s.UpdatedAt).HasColumnType("timestamptz");
             });
 
             mb.Entity<Genre>(e =>
@@ -39,7 +41,7 @@ namespace WebDocTruyen.Infrastructure.Persistence
                 e.HasOne(sg => sg.Story)
                     .WithMany(s => s.StoryGenres)
                     .HasForeignKey(sg => sg.StoryId)
-                    .OnDelete(DeleteBehavior.Cascade); 
+                    .OnDelete(DeleteBehavior.Cascade);
                 e.HasOne(sg => sg.Genre)
                     .WithMany(g => g.StoryGenres)
                     .HasForeignKey(sg => sg.GenreId)
@@ -57,6 +59,7 @@ namespace WebDocTruyen.Infrastructure.Persistence
                  .HasForeignKey(c => c.ChapterId)
                  .IsRequired(false)
                  .OnDelete(DeleteBehavior.Restrict);
+                e.Property(c => c.CreatedAt).HasColumnType("timestamptz");
             });
 
             mb.Entity<Favorite>(e =>
@@ -64,7 +67,6 @@ namespace WebDocTruyen.Infrastructure.Persistence
                 e.HasKey(f => f.FavoriteId);
                 e.HasOne(f => f.User).WithMany().HasForeignKey(f => f.UserId);
                 e.HasOne(f => f.Story).WithMany(s => s.Favorites).HasForeignKey(f => f.StoryId);
-
                 e.HasOne(f => f.LastReadChapter)
                  .WithMany()
                  .HasForeignKey(f => f.LastReadChapterId)
@@ -89,9 +91,15 @@ namespace WebDocTruyen.Infrastructure.Persistence
                 e.HasKey(r => r.RatingId);
                 e.HasOne(r => r.User).WithMany(u => u.Ratings).HasForeignKey(r => r.UserId);
                 e.HasOne(r => r.Story).WithMany(s => s.Ratings).HasForeignKey(r => r.StoryId);
+                e.Property(r => r.CreatedAt).HasColumnType("timestamptz");
             });
 
-            mb.Entity<User>(e => e.HasKey(u => u.UserId));
+            mb.Entity<User>(e =>
+            {
+                e.HasKey(u => u.UserId);
+                e.Property(u => u.CreatedAt).HasColumnType("timestamptz");
+                e.Property(u => u.LastLogin).HasColumnType("timestamptz");
+            });
         }
     }
 }

@@ -41,7 +41,7 @@ namespace WebDocTruyen.Application.Services
                 ChapterId = chapterId,
                 UserId = userId,
                 Content = content.Trim(),
-                CreatedAt = DateTime.Now
+                CreatedAt = DateTime.UtcNow
             };
             await _commentRepo.AddAsync(comment);
 

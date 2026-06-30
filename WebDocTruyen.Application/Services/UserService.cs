@@ -41,8 +41,8 @@ namespace WebDocTruyen.Application.Services
                 Username = username.Trim(),
                 Email = email.Trim().ToLower(),
                 Role = "User",
-                CreatedAt = DateTime.Now,
-                LastLogin = DateTime.Now,
+                CreatedAt = DateTime.UtcNow,
+                LastLogin = DateTime.UtcNow,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(password)
             };
 
@@ -56,7 +56,7 @@ namespace WebDocTruyen.Application.Services
             if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
                 return null;
 
-            user.LastLogin = DateTime.Now;
+            user.LastLogin = DateTime.UtcNow;
             _userRepo.Update(user);
             return UserMapper.ToDto(user);
         }
