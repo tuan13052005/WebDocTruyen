@@ -11,251 +11,236 @@
     int myRatingVal = Model.MyRating ?? 0;
 }
 
+<link rel="stylesheet" href="~/css/Story-detail.css" />
+
 @inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
 <input type="hidden" id="ajax-token" value="@Antiforgery.GetAndStoreTokens(Context).RequestToken" />
 
-<div class="container mt-4">
+<div class="sd-wrap">
 
-    <!-- ── Thông tin truyện ───────────────────────────────────────────── -->
-    <div class="row mb-4">
-        <div class="col-md-3 col-sm-4 mb-3">
-            <img src="@Model.CoverImage" alt="@Model.Title" class="img-fluid rounded shadow"
-                 style="width:100%;max-height:380px;object-fit:cover;" />
-        </div>
-        <div class="col-md-9 col-sm-8">
-            <h2 class="fw-bold mb-1">@Model.Title</h2>
-            <p class="text-muted mb-1">✍️ <strong>Tác giả:</strong> @Model.Author</p>
-            <p class="mb-2">
-                @foreach (var g in Model.Genres)
-                {
-                    <a asp-controller="Genres" asp-action="ByGenre" asp-route-id="@g.GenreId"
-                       class="badge bg-info text-dark text-decoration-none me-1">@g.Name</a>
-                }
-            </p>
-            <p class="mb-1">
-                <strong>Trạng thái:</strong>
-                @if (Model.Status == "completed")
-                {
-                    <span class="badge bg-success">✅ Hoàn thành</span>
-                }
-                else
-                {
+    <!-- ── HERO ─────────────────────────────────────────────────────── -->
+    <div class="sd-hero">
+        <div class="sd-hero-bg"></div>
+        <div class="sd-hero-dots"></div>
+        <div class="sd-orb-1"></div>
+        <div class="sd-orb-2"></div>
+        <div class="sd-hero-glow"></div>
 
-                    <span class="badge bg-warning text-dark">🔄 Đang ra</span>
-                }
-                &nbsp;<strong>Chapter:</strong>
-                <span class="badge bg-secondary">@Model.ChapterCount</span>
-            </p>
+        <div class="sd-hero-inner">
 
-            <!-- Rating trung bình (5 sao) -->
-            <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
-                <div id="avgStarRow"
-                     style="font-size:1.3rem; color:#f5a623; white-space:nowrap; user-select:none; letter-spacing:1px;">
-                    @for (int i = 1; i <= 5; i++)
+            <div class="sd-cover-wrap">
+                <img src="@Model.CoverImage" alt="@Model.Title" class="sd-cover" />
+            </div>
+
+            <div class="sd-info">
+                <div class="sd-eyebrow">
+                    <span class="sd-eyebrow-dot"></span>
+                    Chi tiết truyện
+                </div>
+
+                <h1 class="sd-title">@Model.Title</h1>
+                <p class="sd-author"><i class="bi bi-pen-fill"></i> @Model.Author</p>
+
+                @if (Model.Genres.Any())
+                {
+                    <div class="sd-genres">
+                        @foreach (var g in Model.Genres)
+                        {
+                            <a asp-controller="Genres" asp-action="ByGenre" asp-route-id="@g.GenreId"
+                               class="sd-genre-tag">@g.Name</a>
+                        }
+                    </div>
+                }
+
+                <div class="sd-badges">
+                    @if (Model.Status == "completed")
                     {
-                        <span class="avg-star">@(i <= Math.Round(Model.AvgRating) ? "★" : "☆")</span>
+                        <span class="sd-badge sd-badge-done"><i class="bi bi-check-circle-fill"></i> Hoàn thành</span>
                     }
+                    else
+                    {
+                        <span class="sd-badge sd-badge-ongoing"><i class="bi bi-arrow-repeat"></i> Đang ra</span>
+                    }
+                    <span class="sd-badge sd-badge-chap"><i class="bi bi-collection"></i> @Model.ChapterCount chapter</span>
                 </div>
-                <span class="fw-bold fs-5 text-dark" id="avgValBig">@Model.AvgRating.ToString("F1")</span>
-                <span class="text-muted small"> &nbsp;·&nbsp; <span id="ratingCountTxt">@Model.RatingCount</span> lượt đánh giá
-                </span>
-            </div>
 
-            <p class="mb-3">❤️ <span id="favCountTxt">@Model.FavoriteCount</span> lượt theo dõi</p>
-
-            @if (!string.IsNullOrEmpty(Model.Description))
-            {
-                <div class="p-3 bg-light rounded border-start border-primary border-3 mb-3">
-                    <p class="mb-0" style="white-space:pre-line;">@Model.Description</p>
-                </div>
-            }
-
-            <!-- Nút hành động -->
-            <div class="d-flex flex-wrap gap-2 mb-3">
-                @if (isLoggedIn && Model.LastReadChapterId.HasValue)
-                {
-                    <a asp-action="ReadChapter"
-                       asp-controller="Chapter"
-                       asp-route-id="@Model.LastReadChapterId"
-                       class="btn btn-info text-white">
-                        ▶️ Đọc tiếp (Ch.@Model.LastReadChapterNumber)
-                    </a>
-                }
-                @if (Model.Chapters.Any())
-                {
-                    <a asp-action="ReadChapter"
-                       asp-controller="Chapter"
-                       asp-route-id="@Model.Chapters.First().ChapterId"
-                       class="btn btn-primary">
-                        📖 Đọc từ đầu
-                    </a>
-                    <a asp-action="ReadChapter"
-                       asp-controller="Chapter"
-                       asp-route-id="@Model.Chapters.Last().ChapterId"
-                       class="btn btn-outline-primary">
-                        ⏩ Chapter mới nhất
-                    </a>
-                }
-                @if (isLoggedIn)
-                {
-                    <button id="favBtn"
-                            onclick="toggleFav(@Model.Id)"
-                            class="btn @(Model.IsFavorited ? "btn-danger" : "btn-outline-danger")">
-                        @(Model.IsFavorited ? "❤️ Đang theo dõi" : "🤍 Theo dõi")
-                    </button>
-                }
-                @if (ownsStory)
-                {
-                    <a asp-action="Edit"
-                       asp-controller="Story"
-                       asp-route-id="@Model.Id"
-                       class="btn btn-warning">
-                        ✏️ Sửa
-                    </a>
-                    <a asp-action="AddChapter"
-                       asp-controller="Chapter"
-                       asp-route-storyId="@Model.Id"
-                       class="btn btn-success">
-                        ➕ Chapter
-                    </a>
-                }
-            </div>
-
-            <!-- Đánh giá sao của user (5 ô) -->
-            @if (isLoggedIn)
-            {
-                <div class="mb-2">
-                    <p class="mb-1 small text-muted fw-semibold">ĐÁNH GIÁ CỦA BẠN:</p>
-                    <div class="d-flex align-items-center gap-3">
-                        <div id="myStarRow"
-                             data-story="@Model.Id"
-                             data-current="@myRatingVal"
-                             style="font-size:2rem; color:#f5a623; white-space:nowrap;
-                                        cursor:pointer; user-select:none; line-height:1;">
+                <div class="sd-stats-row">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="sd-stars" id="avgStarRow">
                             @for (int i = 1; i <= 5; i++)
                             {
-                                <span class="my-star" data-v="@i" title="@i điểm"
-                                      style="display:inline-block; padding:0 1px; transition:transform .1s;">
-                                    @(i <= myRatingVal ? "★" : "☆")
-                                </span>
+                                <span class="avg-star">@(i <= Math.Round(Model.AvgRating) ? "★" : "☆")</span>
                             }
                         </div>
-                        <span id="myScoreLabel" class="fw-bold text-primary fs-5">
-                            @(Model.MyRating.HasValue? Model.MyRating : "Chưa đánh giá")
-                        </span>
+                        <span class="sd-rating-val" id="avgValBig">@Model.AvgRating.ToString("F1")</span>
+                        <span class="sd-rating-count">(<span id="ratingCountTxt">@Model.RatingCount</span> lượt)</span>
                     </div>
+                    <span class="sd-fav-count">
+                        <i class="bi bi-heart-fill" style="color:#f43f5e;"></i>
+                        <span id="favCountTxt">@Model.FavoriteCount</span> lượt theo dõi
+                    </span>
                 </div>
-            }
+
+                @if (!string.IsNullOrEmpty(Model.Description))
+                {
+                    <div class="sd-desc">
+                        <p>@Model.Description</p>
+                    </div>
+                }
+
+                <div class="sd-actions">
+                    @if (isLoggedIn && Model.LastReadChapterId.HasValue)
+                    {
+                        <a asp-action="ReadChapter" asp-controller="Chapter"
+                           asp-route-id="@Model.LastReadChapterId" class="sd-btn sd-btn-info">
+                            <i class="bi bi-play-fill"></i> Đọc tiếp (Ch.@Model.LastReadChapterNumber)
+                        </a>
+                    }
+                    @if (Model.Chapters.Any())
+                    {
+                        <a asp-action="ReadChapter" asp-controller="Chapter"
+                           asp-route-id="@Model.Chapters.First().ChapterId" class="sd-btn sd-btn-primary">
+                            <i class="bi bi-book-half"></i> Đọc từ đầu
+                        </a>
+                        <a asp-action="ReadChapter" asp-controller="Chapter"
+                           asp-route-id="@Model.Chapters.Last().ChapterId" class="sd-btn sd-btn-outline">
+                            <i class="bi bi-skip-forward-fill"></i> Chapter mới nhất
+                        </a>
+                    }
+                    @if (isLoggedIn)
+                    {
+                        <button id="favBtn"
+                                onclick="toggleFav(@Model.Id)"
+                                class="sd-btn sd-btn-fav @(Model.IsFavorited ? "is-fav" : "")">
+                            <i class="bi @(Model.IsFavorited ? "bi-heart-fill" : "bi-heart")"></i>
+                            @(Model.IsFavorited ? "Đang theo dõi" : "Theo dõi")
+                        </button>
+                    }
+                    @if (ownsStory)
+                    {
+                        <a asp-action="Edit" asp-controller="Story" asp-route-id="@Model.Id" class="sd-btn sd-btn-warning">
+                            <i class="bi bi-pencil-fill"></i> Sửa
+                        </a>
+                        <a asp-action="AddChapter" asp-controller="Chapter" asp-route-storyId="@Model.Id" class="sd-btn sd-btn-success">
+                            <i class="bi bi-plus-lg"></i> Chapter
+                        </a>
+                    }
+                </div>
+
+                @if (isLoggedIn)
+                {
+                    <div class="sd-myrating">
+                        <div class="sd-myrating-label">Đánh giá của bạn</div>
+                        <div class="d-flex align-items-center gap-3 flex-wrap">
+                            <div id="myStarRow" class="sd-my-stars"
+                                 data-story="@Model.Id" data-current="@myRatingVal">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    <span class="sd-my-star my-star" data-v="@i" title="@i điểm">
+                                        @(i <= myRatingVal ? "★" : "☆")
+                                    </span>
+                                }
+                            </div>
+                            <span id="myScoreLabel" class="sd-myscore-label">
+                                @(Model.MyRating.HasValue ? Model.MyRating.ToString() : "Chưa đánh giá")
+                            </span>
+                        </div>
+                    </div>
+                }
+            </div>
         </div>
     </div>
 
-    <!-- ── Mục lục chapter ────────────────────────────────────────────── -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-            <span>📑 Mục lục (@Model.Chapters.Count chapter)</span>
+    <!-- ── MỤC LỤC ──────────────────────────────────────────────────── -->
+    <div class="sd-section">
+        <div class="sd-section-hd">
+            <span class="sd-section-title"><i class="bi bi-journal-bookmark-fill"></i> Mục lục (@Model.Chapters.Count chapter)</span>
             @if (Model.Chapters.Count > 15)
             {
-                <input id="chapSearch" type="text" class="form-control form-control-sm w-auto"
-                       placeholder="Tìm chapter..." style="max-width:180px;" />
+                <input id="chapSearch" type="text" class="sd-chap-search" placeholder="Tìm chapter..." />
             }
         </div>
+
         @if (!Model.Chapters.Any())
         {
-            <div class="card-body text-muted">Truyện này chưa có chapter nào.</div>
+            <div class="sd-empty-chap">📭 Truyện này chưa có chapter nào.</div>
         }
         else
         {
-            <div style="max-height:380px;overflow-y:auto;">
-                <table class="table table-hover mb-0">
-                    <tbody>
-                        @foreach (var chap in Model.Chapters)
+            <div class="sd-chap-list">
+                @foreach (var chap in Model.Chapters)
+                {
+                    <div class="sd-chap-row chap-row">
+                        <span class="sd-chap-num">@chap.ChapterNumber</span>
+                        <a asp-action="ReadChapter" asp-controller="Chapter"
+                           asp-route-id="@chap.ChapterId" class="sd-chap-link chap-link">
+                            @chap.DisplayTitle
+                        </a>
+                        <span class="sd-chap-pages">@chap.ImageCount trang</span>
+                        @if (ownsStory)
                         {
-                            <tr class="chap-row align-middle">
-                                <td class="text-center text-muted small ps-3" style="width:50px;">
-                                    @chap.ChapterNumber
-                                </td>
-                                <td>
-                                    <a asp-action="ReadChapter" asp-controller="Chapter"
-                                       asp-route-id="@chap.ChapterId"
-                                       class="text-decoration-none fw-semibold text-dark chap-link">
-                                        @chap.DisplayTitle
-                                    </a>
-                                </td>
-                                <td class="text-end text-muted small pe-3" style="width:80px;">
-                                    @chap.ImageCount trang
-                                </td>
-                                @if (ownsStory)
-                                {
-                                    <td style="width:120px;" class="pe-2">
-                                        <div class="d-flex gap-1 justify-content-end">
-                                            <a asp-action="ManageImages" asp-controller="Chapter"
-                                               asp-route-chapterId="@chap.ChapterId"
-                                               class="btn btn-xs btn-outline-primary py-0 px-1">🖼️</a>
-                                            <a asp-action="EditChapter" asp-controller="Chapter"
-                                               asp-route-id="@chap.ChapterId"
-                                               class="btn btn-xs btn-outline-warning py-0 px-1">✏️</a>
-                                            <a asp-action="DeleteChapter" asp-controller="Chapter"
-                                               asp-route-id="@chap.ChapterId"
-                                               class="btn btn-xs btn-outline-danger py-0 px-1">🗑️</a>
-                                        </div>
-                                    </td>
-                                }
-                            </tr>
+                            <div class="sd-chap-actions">
+                                <a asp-action="ManageImages" asp-controller="Chapter"
+                                   asp-route-chapterId="@chap.ChapterId"
+                                   class="btn btn-xs btn-outline-primary py-0 px-1">🖼️</a>
+                                <a asp-action="EditChapter" asp-controller="Chapter"
+                                   asp-route-id="@chap.ChapterId"
+                                   class="btn btn-xs btn-outline-warning py-0 px-1">✏️</a>
+                                <a asp-action="DeleteChapter" asp-controller="Chapter"
+                                   asp-route-id="@chap.ChapterId"
+                                   class="btn btn-xs btn-outline-danger py-0 px-1">🗑️</a>
+                            </div>
                         }
-                    </tbody>
-                </table>
+                    </div>
+                }
             </div>
         }
     </div>
 
-    <!-- ── Bình luận ──────────────────────────────────────────────────── -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-header bg-secondary text-white">
-            💬 Bình luận (@Model.Comments.Count)
+    <!-- ── BÌNH LUẬN ────────────────────────────────────────────────── -->
+    <div class="sd-section">
+        <div class="sd-section-hd">
+            <span class="sd-section-title"><i class="bi bi-chat-dots-fill"></i> Bình luận (@Model.Comments.Count)</span>
         </div>
-        <div class="card-body">
+        <div class="sd-comment-body">
             @if (isLoggedIn)
             {
-                <form asp-action="AddComment" asp-controller="Story" method="post" class="mb-4">
+                <form asp-action="AddComment" asp-controller="Story" method="post" class="sd-comment-form mb-3">
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="storyId" value="@Model.Id" />
-                    <textarea name="content" class="form-control mb-2" rows="3"
-                          placeholder="Viết bình luận..." required maxlength="1000"></textarea>
-                    <button type="submit" class="btn btn-primary btn-sm">💬 Gửi</button>
+                    <textarea name="content" placeholder="Viết bình luận..." required maxlength="1000"></textarea>
+                    <button type="submit" class="sd-comment-submit">
+                        <i class="bi bi-send-fill"></i> Gửi
+                    </button>
                 </form>
             }
             else
             {
-                <div class="alert alert-light border mb-3">
+                <div class="sd-login-hint">
                     <a asp-controller="Account" asp-action="Login">Đăng nhập</a> để bình luận.
                 </div>
             }
 
             @if (!Model.Comments.Any())
             {
-                <p class="text-muted text-center">Chưa có bình luận nào.</p>
+                <p class="sd-comment-empty">Chưa có bình luận nào.</p>
             }
 
             @foreach (var c in Model.Comments)
             {
-                <div class="d-flex gap-3 mb-3 pb-3 border-bottom">
-                    <div class="rounded-circle bg-primary text-white d-flex align-items-center
-                                    justify-content-center fw-bold flex-shrink-0"
-                         style="width:42px;height:42px;font-size:1.1rem;">
+                <div class="sd-comment-item">
+                    <div class="sd-comment-avatar">
                         @(c.Username?.FirstOrDefault().ToString().ToUpper() ?? "?")
                     </div>
                     <div class="flex-grow-1">
                         <div class="d-flex justify-content-between align-items-start">
                             <div>
-                                <strong>@c.Username</strong>
-                                <span class="text-muted small ms-2">
-                                    @c.CreatedAt.ToString("dd/MM/yyyy HH:mm")
-                                </span>
+                                <span class="sd-comment-user">@c.Username</span>
+                                <span class="sd-comment-time">@c.CreatedAt.ToString("dd/MM/yyyy HH:mm")</span>
                             </div>
                             @if (isLoggedIn && (c.UserId == uid || User.IsInRole("Admin")))
                             {
-                                <form asp-action="DeleteComment" asp-controller="Story"
-                                      method="post" class="d-inline">
+                                <form asp-action="DeleteComment" asp-controller="Story" method="post" class="d-inline">
                                     @Html.AntiForgeryToken()
                                     <input type="hidden" name="commentId" value="@c.CommentId" />
                                     <input type="hidden" name="storyId" value="@Model.Id" />
@@ -266,7 +251,7 @@
                                 </form>
                             }
                         </div>
-                        <p class="mb-0 mt-1" style="white-space:pre-line;">@c.Content</p>
+                        <p class="sd-comment-text">@c.Content</p>
                     </div>
                 </div>
             }
@@ -305,8 +290,10 @@
                 });
                 if (!resp.ok) return;
                 const d = await resp.json();
-                btn.className   = d.favorited ? 'btn btn-danger' : 'btn btn-outline-danger';
-                btn.textContent = d.favorited ? '❤️ Đang theo dõi' : '🤍 Theo dõi';
+                btn.classList.toggle('is-fav', d.favorited);
+                btn.innerHTML = d.favorited
+                    ? '<i class="bi bi-heart-fill"></i> Đang theo dõi'
+                    : '<i class="bi bi-heart"></i> Theo dõi';
                 document.getElementById('favCountTxt').textContent = d.count;
             } finally { btn.disabled = false; }
         }
@@ -364,14 +351,4 @@
             });
         })();
     </script>
-    <style>
-        .btn-xs {
-            font-size: .75rem;
-            line-height: 1.4;
-        }
-
-        .chap-row:hover {
-            background: #f0f4ff;
-        }
-    </style>
 }
