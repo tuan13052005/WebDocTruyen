@@ -1,8 +1,4 @@
-﻿using System;
-using WebDocTruyen.Domain.Entities;
-using WebDocTruyen.Domain.Interfaces;
-
-namespace WebDocTruyen.Domain.Entities
+﻿namespace WebDocTruyen.Domain.Entities
 {
     public class Comment
     {
@@ -14,6 +10,6 @@ namespace WebDocTruyen.Domain.Entities
         public int? ChapterId { get; set; }          // null = comment truyện, có giá trị = comment chapter
         public Chapter? Chapter { get; set; }
         public string Content { get; set; } = "";
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

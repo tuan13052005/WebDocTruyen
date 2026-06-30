@@ -49,7 +49,7 @@ namespace WebDocTruyen.Application.Services
                     UserId = userId,
                     StoryId = storyId,
                     Score = score,
-                    CreatedAt = DateTime.Now
+                    CreatedAt = DateTime.UtcNow
                 });
             }
 

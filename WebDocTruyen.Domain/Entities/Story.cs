@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
-
-namespace WebDocTruyen.Domain.Entities
+﻿namespace WebDocTruyen.Domain.Entities
 {
     public class Story
     {
@@ -16,7 +8,7 @@ namespace WebDocTruyen.Domain.Entities
         public string Description { get; set; } = "";
         public string Status { get; set; } = "ongoing";
         public string CoverImage { get; set; } = "/images/default.jpg";
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public int? CreatedBy { get; set; }
         public DateTime? UpdatedAt { get; set; }
 

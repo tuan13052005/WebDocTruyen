@@ -102,8 +102,8 @@ namespace WebDocTruyen.Web.Controllers
                 Username = Username,
                 Email = Email,
                 Role = Role,
-                CreatedAt = DateTime.Now,
-                LastLogin = DateTime.Now,
+                CreatedAt = DateTime.UtcNow,
+                LastLogin = DateTime.UtcNow,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(Password)
             });
             TempData["Success"] = "Thêm tài khoản thành công!";

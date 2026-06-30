@@ -46,7 +46,7 @@ namespace WebDocTruyen.Web.Controllers
                 return View();
             }
 
-            user.LastLogin = DateTime.Now;
+            user.LastLogin = DateTime.UtcNow;
             _userRepo.Update(user);
 
             var claims = new List<Claim>
@@ -119,8 +119,8 @@ namespace WebDocTruyen.Web.Controllers
                 Username = Username,
                 Email = Email,
                 Role = "User",
-                CreatedAt = DateTime.Now,
-                LastLogin = DateTime.Now,
+                CreatedAt = DateTime.UtcNow,
+                LastLogin = DateTime.UtcNow,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(Password)
             });
 

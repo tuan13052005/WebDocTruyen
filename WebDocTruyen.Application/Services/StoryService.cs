@@ -86,7 +86,7 @@ namespace WebDocTruyen.Application.Services
                 Author = dto.Author,
                 Description = dto.Description,
                 Status = dto.Status,
-                CreatedAt = DateTime.Now,
+                CreatedAt = DateTime.UtcNow,
                 CreatedBy = createdBy,
                 StoryGenres = new List<StoryGenre>()
             };
@@ -113,7 +113,7 @@ namespace WebDocTruyen.Application.Services
             existing.Author = dto.Author;
             existing.Description = dto.Description;
             existing.Status = dto.Status;
-            existing.UpdatedAt = DateTime.Now;
+            existing.UpdatedAt = DateTime.UtcNow;
 
             if (coverImageStream != null && !string.IsNullOrEmpty(coverImageFileName))
                 existing.CoverImage = await SaveCoverImageAsync(existing.StoryId, coverImageStream, coverImageFileName);
