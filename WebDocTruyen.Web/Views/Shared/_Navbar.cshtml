@@ -1,0 +1,123 @@
+﻿@using System.Security.Claims
+@{
+    var username = User.FindFirst(ClaimTypes.Name)?.Value ?? "";
+    var initials = username.Length > 0 ? username.Substring(0, Math.Min(2, username.Length)).ToUpper() : "?";
+    bool isAuth = User.Identity?.IsAuthenticated == true;
+}
+
+<nav class="wdt-nav" id="wdtNav">
+    <div class="container">
+
+        <!-- Hamburger (mobile) -->
+        <button class="wdt-burger" id="wdtBurger" aria-label="Mở menu" aria-expanded="false">
+            <span></span><span></span><span></span>
+        </button>
+
+        <a class="wdt-brand" asp-controller="Home" asp-action="Index">
+            <div class="wdt-brand-icon">
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                    <path d="M3 14V7l6-4 6 4v7l-6 4-6-4z" stroke="#fff" stroke-width="1.5" stroke-linejoin="round" />
+                    <path d="M3 7l6 4 6-4M9 11v7" stroke="#fff" stroke-width="1.5" />
+                </svg>
+            </div>
+            Web Đọc Truyện
+        </a>
+
+        <div class="wdt-nav-links d-none d-md-flex">
+            <a asp-controller="Home" asp-action="Index" class="wdt-nav-link">Trang chủ</a>
+            <a asp-controller="Story" asp-action="Index" class="wdt-nav-link">Danh sách</a>
+            <a asp-controller="Genres" asp-action="Index" class="wdt-nav-link">Thể loại</a>
+            <a asp-controller="Account" asp-action="MyFavorites" class="wdt-nav-link">Theo dõi</a>
+        </div>
+
+        <div class="wdt-nav-right">
+            <!-- Search (desktop) -->
+            <form asp-controller="Story" asp-action="Index" method="get" class="wdt-search d-none d-lg-block">
+                <i class="bi bi-search"></i>
+                <input type="text" name="keyword" placeholder="Tìm truyện..." autocomplete="off" />
+            </form>
+
+            @if (isAuth)
+            {
+                <!-- User dropdown (desktop) -->
+                <div class="dropdown d-none d-sm-block">
+                    <button class="wdt-user-btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        <div class="wdt-avatar">@initials</div>
+                        <span class="d-none d-sm-inline">@username</span>
+                        <i class="bi bi-chevron-down" style="font-size:11px;color:#999;margin-left:2px"></i>
+                    </button>
+                    <ul class="dropdown-menu wdt-dropdown-menu dropdown-menu-end">
+                        <li>
+                            <a class="dropdown-item" asp-controller="Account" asp-action="Profile">
+                                <i class="bi bi-person"></i> Trang cá nhân
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" asp-controller="Account" asp-action="Settings">
+                                <i class="bi bi-gear"></i> Cài đặt
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" asp-controller="Account" asp-action="ChangePassword">
+                                <i class="bi bi-key"></i> Đổi mật khẩu
+                            </a>
+                        </li>
+
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <li><hr class="dropdown-divider" /></li>
+                            <li>
+                                <a class="dropdown-item" asp-controller="Admin" asp-action="Dashboard">
+                                    <i class="bi bi-speedometer2"></i> Dashboard
+                                    <span class="wdt-role-badge role-admin">Admin</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" asp-controller="Admin" asp-action="ManageUsers">
+                                    <i class="bi bi-people"></i> Người dùng
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" asp-controller="Admin" asp-action="ManageStories">
+                                    <i class="bi bi-book"></i> Quản lý truyện
+                                </a>
+                            </li>
+                        }
+                        else if (User.IsInRole("Editor"))
+                        {
+                            <li><hr class="dropdown-divider" /></li>
+                            <li>
+                                <a class="dropdown-item" asp-controller="Editor" asp-action="Dashboard">
+                                    <i class="bi bi-speedometer2"></i> Dashboard
+                                    <span class="wdt-role-badge role-editor">Editor</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" asp-controller="Editor" asp-action="ManageStories">
+                                    <i class="bi bi-book"></i> Truyện của tôi
+                                </a>
+                            </li>
+                        }
+
+                        <li><hr class="dropdown-divider" /></li>
+                        <li>
+                            <form asp-controller="Account" asp-action="Logout" method="post" class="m-0 p-0">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="dropdown-item text-danger">
+                                    <i class="bi bi-box-arrow-right"></i> Đăng xuất
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+                <!-- Avatar riêng cho màn hình rất nhỏ, mở qua drawer -->
+                <div class="wdt-avatar d-sm-none" id="wdtAvatarMobile" role="button">@initials</div>
+            }
+            else
+            {
+                <a asp-controller="Account" asp-action="Login" class="btn-nav-login d-none d-sm-inline-flex">Đăng nhập</a>
+                <a asp-controller="Account" asp-action="Register" class="btn-nav-register d-none d-sm-inline-flex">Đăng ký</a>
+            }
+        </div>
+    </div>
+</nav>

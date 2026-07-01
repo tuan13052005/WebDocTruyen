@@ -5,8 +5,8 @@
     var genres = (List<WebDocTruyen.Application.DTOs.Genre.GenreDto>)ViewBag.Genres;
 }
 
-<link rel="stylesheet" href="~/css/edit-story.css
-" />
+<link rel="stylesheet" href="~/css/edit-story.css" />
+<link rel="stylesheet" href="~/css/story-effects.css" />
 
 <div class="es-page">
     <div class="es-card">
@@ -48,7 +48,7 @@
                     </label>
                     <div class="es-input-wrap">
                         <i class="bi bi-type es-input-icon"></i>
-                        <input asp-for="Title" class="es-input" required />
+                        <input asp-for="Title" class="es-input glow-focus" required />
                     </div>
                     <span asp-validation-for="Title" style="color:#dc2626;font-size:12px;font-weight:600;margin-top:6px;display:block;"></span>
                 </div>
@@ -61,7 +61,7 @@
                     </label>
                     <div class="es-input-wrap">
                         <i class="bi bi-pen es-input-icon"></i>
-                        <input asp-for="Author" class="es-input" required />
+                        <input asp-for="Author" class="es-input glow-focus" required />
                     </div>
                     <span asp-validation-for="Author" style="color:#dc2626;font-size:12px;font-weight:600;margin-top:6px;display:block;"></span>
                 </div>
@@ -213,7 +213,7 @@
                 <a asp-action="ManageStories" asp-controller="Editor" class="es-btn-back">
                     <i class="bi bi-arrow-left"></i> Quay lại
                 </a>
-                <button type="submit" class="es-btn-submit" id="submitBtn">
+                <button type="submit" class="cs-btn-submit pulse-cta" id="submitBtn">
                     <span>
                         <i class="bi bi-check-circle"></i>
                         Lưu thay đổi
@@ -302,4 +302,5 @@
             }
         });
     </script>
+    <script src="~/js/story-effects.js"></script>
 }

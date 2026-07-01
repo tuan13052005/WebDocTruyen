@@ -20,6 +20,7 @@
 }
 
 <link rel="stylesheet" href="~/css/story-index.css" />
+<link rel="stylesheet" href="~/css/story-effects.css" />
 
 <div class="si-wrap">
     <div class="si-layout">
@@ -230,10 +231,10 @@
                 <div class="si-grid">
                     @foreach (var s in Model)
                     {
-                        <article class="si-card">
+                        <article class="si-card reveal-card tilt-card glow-border">
                             <a asp-action="Details" asp-route-id="@s.Id" class="si-card-thumb-link">
                                 <div class="si-card-thumb">
-                                    <img src="@s.CoverImage" alt="@s.Title" loading="lazy"
+                                    <img src="@s.CoverImage" alt="@s.Title" loading="lazy" class="img-shimmer"
                                          onerror="this.src='/images/default.jpg'" />
                                     <span class="si-status-dot @(s.Status == "completed" ? "si-dot--done" : "si-dot--going")">
                                         @(s.Status == "completed" ? "✅ Xong" : "🔄 Đang ra")
@@ -319,4 +320,5 @@
             });
         });
     </script>
+    <script src="~/js/story-effects.js"></script>
 }

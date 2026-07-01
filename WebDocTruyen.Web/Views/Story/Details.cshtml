@@ -12,6 +12,7 @@
 }
 
 <link rel="stylesheet" href="~/css/Story-detail.css" />
+<link rel="stylesheet" href="~/css/story-effects.css" />
 
 @inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
 <input type="hidden" id="ajax-token" value="@Antiforgery.GetAndStoreTokens(Context).RequestToken" />
@@ -38,7 +39,7 @@
                     Chi tiết truyện
                 </div>
 
-                <h1 class="sd-title">@Model.Title</h1>
+                <h1 class="sd-title shine-text">@Model.Title</h1>
                 <p class="sd-author"><i class="bi bi-pen-fill"></i> @Model.Author</p>
 
                 @if (Model.Genres.Any())
@@ -170,10 +171,10 @@
             <div class="sd-chap-list">
                 @foreach (var chap in Model.Chapters)
                 {
-                    <div class="sd-chap-row chap-row">
+                    <div class="sd-chap-row chap-row chap-slide-in">
                         <span class="sd-chap-num">@chap.ChapterNumber</span>
                         <a asp-action="ReadChapter" asp-controller="Chapter"
-                           asp-route-id="@chap.ChapterId" class="sd-chap-link chap-link">
+                           asp-route-id="@Model.Chapters.First().ChapterId" class="sd-btn sd-btn-primary pulse-cta">
                             @chap.DisplayTitle
                         </a>
                         <span class="sd-chap-pages">@chap.ImageCount trang</span>
@@ -351,4 +352,5 @@
             });
         })();
     </script>
+    <script src="~/js/story-effects.js"></script>
 }

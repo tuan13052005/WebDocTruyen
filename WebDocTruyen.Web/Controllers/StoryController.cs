@@ -132,7 +132,9 @@ namespace WebDocTruyen.Web.Controllers
         [Authorize(Roles = "Editor")]
         public async Task<IActionResult> Create()
         {
-            ViewBag.Genres = (await _genreService.GetAllAsync()).ToList();
+            ViewBag.Genres = (await _genreService.GetAllAsync())
+                .OrderBy(g => g.Name, StringComparer.OrdinalIgnoreCase)
+                .ToList();
             return View(new StoryFormDto());
         }
 
@@ -141,7 +143,9 @@ namespace WebDocTruyen.Web.Controllers
         {
             if (!ModelState.IsValid)
             {
-                ViewBag.Genres = (await _genreService.GetAllAsync()).ToList();
+                ViewBag.Genres = (await _genreService.GetAllAsync())
+                    .OrderBy(g => g.Name, StringComparer.OrdinalIgnoreCase)
+                    .ToList();
                 return View(dto);
             }
 
@@ -156,7 +160,6 @@ namespace WebDocTruyen.Web.Controllers
         [Authorize(Roles = "Editor")]
         public async Task<IActionResult> Edit(int id)
         {
-            // GetFormDtoAsync không tự check quyền sở hữu → kiểm tra qua GetDetailAsync
             var detail = await _storyService.GetDetailAsync(id, CurrentUserId);
             if (detail == null) return NotFound();
             if (detail.CreatedBy != CurrentUserId) return Forbid();
@@ -164,7 +167,9 @@ namespace WebDocTruyen.Web.Controllers
             var dto = await _storyService.GetFormDtoAsync(id);
             if (dto == null) return NotFound();
 
-            ViewBag.Genres = (await _genreService.GetAllAsync()).ToList();
+            ViewBag.Genres = (await _genreService.GetAllAsync())
+                .OrderBy(g => g.Name, StringComparer.OrdinalIgnoreCase)
+                .ToList();
             return View(dto);
         }
 
@@ -173,7 +178,9 @@ namespace WebDocTruyen.Web.Controllers
         {
             if (!ModelState.IsValid)
             {
-                ViewBag.Genres = (await _genreService.GetAllAsync()).ToList();
+                ViewBag.Genres = (await _genreService.GetAllAsync())
+                    .OrderBy(g => g.Name, StringComparer.OrdinalIgnoreCase)
+                    .ToList();
                 return View(dto);
             }
 

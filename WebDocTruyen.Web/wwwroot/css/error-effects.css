@@ -1,0 +1,157 @@
+﻿/* ══════════════════════════════════════════
+   error-effects.css
+   Hiệu ứng riêng cho trang Error (404/403/500...)
+   ══════════════════════════════════════════ */
+
+/* ── Icon lớn trên đầu: nảy nhẹ liên tục ── */
+.err-icon-bounce {
+    display: inline-block;
+    animation: errBounce 2.2s ease-in-out infinite;
+}
+
+@keyframes errBounce {
+    0%, 100% {
+        transform: translateY(0) rotate(0deg);
+    }
+
+    50% {
+        transform: translateY(-8px) rotate(-4deg);
+    }
+}
+
+/* ── Mã lỗi (404/500...): hiệu ứng glitch nhẹ ── */
+.err-code-glitch {
+    position: relative;
+    display: inline-block;
+    animation: errGlitchShift 4s infinite;
+}
+
+    .err-code-glitch::before,
+    .err-code-glitch::after {
+        content: attr(data-text);
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        overflow: hidden;
+        opacity: .6;
+    }
+
+    .err-code-glitch::before {
+        color: #ec4899;
+        clip-path: inset(0 0 55% 0);
+        animation: errGlitchTop 3.4s infinite linear alternate-reverse;
+    }
+
+    .err-code-glitch::after {
+        color: #06b6d4;
+        clip-path: inset(55% 0 0 0);
+        animation: errGlitchBottom 2.6s infinite linear alternate-reverse;
+    }
+
+@keyframes errGlitchShift {
+    0%, 92%, 100% {
+        transform: translate(0,0);
+    }
+
+    93% {
+        transform: translate(-1px, 1px);
+    }
+
+    95% {
+        transform: translate(1px, -1px);
+    }
+
+    97% {
+        transform: translate(-1px, 0);
+    }
+}
+
+@keyframes errGlitchTop {
+    0% {
+        transform: translate(0,0);
+    }
+
+    50% {
+        transform: translate(-2px,-1px);
+    }
+
+    100% {
+        transform: translate(2px,1px);
+    }
+}
+
+@keyframes errGlitchBottom {
+    0% {
+        transform: translate(0,0);
+    }
+
+    50% {
+        transform: translate(2px,1px);
+    }
+
+    100% {
+        transform: translate(-2px,-1px);
+    }
+}
+
+/* ── Card lỗi: bay lên nhẹ khi vào trang ── */
+.err-card-in {
+    opacity: 0;
+    transform: translateY(24px) scale(.97);
+    animation: errCardIn .55s cubic-bezier(.22,1,.36,1) forwards;
+}
+
+@keyframes errCardIn {
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* ── Nút hành động: nhịp bóng mời bấm ── */
+.err-btn-pulse {
+    animation: errBtnPulse 2.4s ease-in-out infinite;
+}
+
+@keyframes errBtnPulse {
+    0%, 100% {
+        box-shadow: 0 4px 16px rgba(124,58,237,.3);
+    }
+
+    50% {
+        box-shadow: 0 4px 26px rgba(124,58,237,.55);
+    }
+}
+
+/* ── Nền: các chấm trôi nổi nhẹ phía sau card ── */
+.err-bg-dot {
+    position: absolute;
+    border-radius: 50%;
+    opacity: .12;
+    pointer-events: none;
+    animation: errDotFloat linear infinite;
+}
+
+@keyframes errDotFloat {
+    0% {
+        transform: translateY(0) scale(1);
+    }
+
+    50% {
+        transform: translateY(-18px) scale(1.08);
+    }
+
+    100% {
+        transform: translateY(0) scale(1);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .err-icon-bounce, .err-code-glitch, .err-code-glitch::before,
+    .err-code-glitch::after, .err-card-in, .err-btn-pulse, .err-bg-dot {
+        animation: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+    }
+}

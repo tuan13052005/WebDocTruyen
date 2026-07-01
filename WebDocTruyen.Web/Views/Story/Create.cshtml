@@ -6,9 +6,10 @@
 }
 
 <link rel="stylesheet" href="~/css/create-story.css" />
+<link rel="stylesheet" href="~/css/story-effects.css" />
 
 <div class="cs-page">
-    <div class="cs-card">
+    <div class="cs-card reveal-card is-visible">
 
         <!-- ── Header ── -->
         <div class="cs-header">
@@ -16,7 +17,7 @@
             <div class="cs-header-inner">
                 <div class="cs-header-icon">✨</div>
                 <div class="cs-header-text">
-                    <h1>Thêm truyện mới</h1>
+                    <h1 class="shine-text">Thêm truyện mới</h1>
                     <p>Điền thông tin để xuất bản lên thư viện</p>
                 </div>
             </div>
@@ -45,7 +46,7 @@
                     </label>
                     <div class="cs-input-wrap">
                         <i class="bi bi-type cs-input-icon"></i>
-                        <input asp-for="Title" class="cs-input"
+                        <input asp-for="Title" class="cs-input glow-focus"
                                placeholder="VD: Naruto, One Piece, Demon Slayer..." required />
                     </div>
                     <span asp-validation-for="Title" class="cs-field-error show"></span>
@@ -59,7 +60,7 @@
                     </label>
                     <div class="cs-input-wrap">
                         <i class="bi bi-pen cs-input-icon"></i>
-                        <input asp-for="Author" class="cs-input"
+                        <input asp-for="Author" class="cs-input glow-focus"
                                placeholder="VD: Masashi Kishimoto..." required />
                     </div>
                     <span asp-validation-for="Author" class="cs-field-error show"></span>
@@ -71,7 +72,7 @@
                         <i class="bi bi-card-text"></i> Mô tả
                         <span class="cs-hint">Tuỳ chọn</span>
                     </label>
-                    <textarea asp-for="Description" class="cs-textarea"
+                    <textarea asp-for="Description" class="cs-textarea glow-focus"
                               placeholder="Tóm tắt nội dung, thể loại, điểm nổi bật..."></textarea>
                 </div>
 
@@ -114,7 +115,7 @@
                         <i class="bi bi-image"></i> Ảnh bìa
                         <span class="cs-required">*</span>
                     </label>
-                    <div class="cs-cover-zone" id="coverZone"
+                    <div class="cs-cover-zone glow-border" id="coverZone"
                          onclick="document.getElementById('coverImageInput').click()"
                          ondragover="onDragOver(event)"
                          ondragleave="onDragLeave(event)"
@@ -177,7 +178,7 @@
                 <a asp-action="ManageStories" asp-controller="Editor" class="cs-btn-back">
                     <i class="bi bi-arrow-left"></i> Quay lại
                 </a>
-                <button type="submit" class="cs-btn-submit" id="submitBtn">
+                <button type="submit" class="cs-btn-submit pulse-cta" id="submitBtn">
                     <span>
                         <i class="bi bi-cloud-upload"></i>
                         Upload
@@ -267,4 +268,5 @@
             if (!ok) e.preventDefault();
         });
     </script>
+    <script src="~/js/story-effects.js"></script>
 }

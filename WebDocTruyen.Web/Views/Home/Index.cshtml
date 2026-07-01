@@ -6,6 +6,8 @@
     int totalCount = Model?.Count ?? 0;
 }
 <link rel="stylesheet" href="~/css/home-index.css" />
+<link rel="stylesheet" href="~/css/story-effects.css" />
+<link rel="stylesheet" href="~/css/home-effects.css" />
 
 <!-- ══════════════════════════════════════════════
      SECTION 1 — HERO
@@ -32,7 +34,7 @@
                 Đội ngũ hỗ trợ nhanh,dịch thuật đúng truyện gốc!
             </p>
             <div class="hero-actions">
-                <a asp-controller="Story" asp-action="Index" class="btn-grad">
+                <a asp-controller="Story" asp-action="Index" class="btn-grad pulse-cta">
                     <i class="bi bi-compass-fill"></i> Khám phá ngay
                 </a>
                 <a asp-controller="Genres" asp-action="Index" class="btn-outline-hero">
@@ -56,6 +58,21 @@
             </div>
         </div>
     </div>
+
+    <!-- Dải thể loại tự trôi ngang -->
+    @if (ViewBag.Genres != null)
+    {
+        <div class="home-ticker-wrap">
+            <div class="home-ticker-track">
+                @foreach (var g in (IEnumerable<WebDocTruyen.Application.DTOs.Genre.GenreDto>)ViewBag.Genres)
+                {
+                    <a asp-controller="Genres" asp-action="ByGenre" asp-route-id="@g.GenreId" class="home-ticker-item">
+                        <span class="home-ticker-sep">✦</span>@g.Name
+                    </a>
+                }
+            </div>
+        </div>
+    }
 </div>
 
 <!-- ══════════════════════════════════════════════
@@ -97,10 +114,10 @@
                 @foreach (var s in newStories)
                 {
                     bool isNew = idx < 4;
-                    <div class="scard">
+                    <div class="scard reveal-card tilt-card glow-border">
                         <div class="scard-thumb">
                             <img src="@s.CoverImage" alt="@s.Title"
-                                 onerror="this.src='/images/default.jpg'" loading="lazy" />
+                                 onerror="this.src='/images/default.jpg'" loading="lazy" class="img-shimmer" />
                             <div class="scard-thumb-overlay"></div>
 
                             @if (isNew)
@@ -285,4 +302,6 @@
         }
     </script>
     @Html.AntiForgeryToken()
+    <script src="~/js/story-effects.js"></script>
+    <script src="~/js/home-effects.js"></script>
 }

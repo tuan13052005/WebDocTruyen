@@ -4,8 +4,12 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="error-container">
-    <h1>@Model.StatusCode - @Model.Title</h1>
+<link rel="stylesheet" href="~/css/error-effects.css" />
+
+<div class="error-container err-card-in" style="position:relative;">
+    <span class="err-bg-dot" style="width:80px;height:80px;background:#ef4444;top:-16px;right:-20px;animation-duration:6.5s;"></span>
+
+    <h1 class="err-code-glitch" data-text="@Model.StatusCode">@Model.StatusCode - @Model.Title</h1>
     <p>@Model.Message</p>
 
     @if (Model.ShowRequestId)
@@ -34,7 +38,7 @@
     }
 
     <div class="error-actions">
-        <a href="/" class="btn btn-primary">Về trang chủ</a>
+        <a href="/" class="btn btn-primary err-btn-pulse">Về trang chủ</a>
         <a href="javascript:history.back()" class="btn btn-secondary">Quay lại</a>
     </div>
 </div>
@@ -49,9 +53,11 @@
         background: #fafafa;
         font-family: Arial, sans-serif;
     }
-    .error-container h1 {
-        color: #c00;
-    }
+
+        .error-container h1 {
+            color: #c00;
+        }
+
     .error-details {
         margin-top: 20px;
         background: #fff3f3;
@@ -59,19 +65,23 @@
         border: 1px solid #f5c2c2;
         border-radius: 5px;
     }
+
     .error-actions {
         margin-top: 20px;
     }
-    .error-actions .btn {
-        margin-right: 10px;
-        padding: 8px 16px;
-        text-decoration: none;
-        border-radius: 4px;
-    }
+
+        .error-actions .btn {
+            margin-right: 10px;
+            padding: 8px 16px;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+
     .btn-primary {
         background-color: #007bff;
         color: white;
     }
+
     .btn-secondary {
         background-color: #6c757d;
         color: white;

@@ -1,0 +1,135 @@
+﻿/* ══════════════════════════════════════════
+   home-effects.css
+   Hiệu ứng tự chuyển động riêng cho Views/Home/Index
+   ══════════════════════════════════════════ */
+
+/* ── Quả cầu sáng: parallax theo chuột (kết hợp animation trôi sẵn có) ── */
+.hero-orb {
+    transition: transform .35s ease-out;
+}
+
+/* ── Số liệu hero: hiệu ứng khi đếm xong ── */
+.hstat-num.counted {
+    animation: countPop .4s ease;
+}
+
+@keyframes countPop {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.18);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* ── Dải thể loại tự trôi ngang (marquee) ── */
+.home-ticker-wrap {
+    position: relative;
+    overflow: hidden;
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px solid rgba(255,255,255,.1);
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+
+.home-ticker-track {
+    display: flex;
+    gap: 0;
+    white-space: nowrap;
+    width: max-content;
+    animation: homeTickerMove 26s linear infinite;
+}
+
+    .home-ticker-track:hover {
+        animation-play-state: paused;
+    }
+
+@keyframes homeTickerMove {
+    from {
+        transform: translateX(0);
+    }
+
+    to {
+        transform: translateX(-50%);
+    }
+}
+
+.home-ticker-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 16px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .03em;
+    color: rgba(255,255,255,.55);
+    text-decoration: none;
+    transition: color .15s;
+}
+
+    .home-ticker-item:hover {
+        color: #fff;
+    }
+
+.home-ticker-sep {
+    color: rgba(255,255,255,.25);
+    font-size: 9px;
+}
+
+/* ── Typewriter cho dòng phụ đề hero (tuỳ chọn) ── */
+.typewriter {
+    display: inline-block;
+    border-right: 2px solid rgba(255,255,255,.55);
+    padding-right: 3px;
+    animation: blinkCursor .8s step-end infinite;
+}
+
+@keyframes blinkCursor {
+    50% {
+        border-color: transparent;
+    }
+}
+
+/* ── Nút khám phá: nhịp đập nhẹ để thu hút bấm ── */
+.btn-grad.pulse-cta {
+    animation: pulseCtaHome 2.4s ease-in-out infinite;
+}
+
+@keyframes pulseCtaHome {
+    0%, 100% {
+        box-shadow: 0 4px 20px rgba(124,58,237,.5);
+    }
+
+    50% {
+        box-shadow: 0 4px 34px rgba(236,72,153,.7);
+    }
+}
+
+/* ── Ô tìm kiếm sidebar: viền sáng lan khi focus ── */
+.search-box input:focus,
+.sp-input:focus {
+    animation: focusRippleHome .5s ease;
+}
+
+@keyframes focusRippleHome {
+    0% {
+        box-shadow: 0 0 0 0 rgba(124,58,237,.45);
+    }
+
+    100% {
+        box-shadow: 0 0 0 8px rgba(124,58,237,0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .home-ticker-track, .hero-orb, .btn-grad.pulse-cta, .typewriter {
+        animation: none !important;
+        transition: none !important;
+    }
+}

@@ -1,0 +1,244 @@
+﻿/* ══════════════════════════════════════════
+   story-effects.css
+   Hiệu ứng động dùng riêng cho Views/Story/*
+   ══════════════════════════════════════════ */
+
+/* ── Scroll-reveal cho card truyện (Index) ── */
+.reveal-card {
+    opacity: 0;
+    transform: translateY(28px) scale(.96);
+    transition: opacity .55s cubic-bezier(.22,1,.36,1), transform .55s cubic-bezier(.22,1,.36,1);
+}
+
+    .reveal-card.is-visible {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+
+/* ── Tilt + glow khi hover card (dùng JS gắn biến --rx --ry) ── */
+.tilt-card {
+    --rx: 0deg;
+    --ry: 0deg;
+    transform: perspective(700px) rotateX(var(--rx)) rotateY(var(--ry));
+    transition: transform .15s ease-out, box-shadow .25s ease;
+    will-change: transform;
+}
+
+    .tilt-card:hover {
+        box-shadow: 0 22px 50px rgba(124,58,237,.28), 0 0 0 1px rgba(167,139,250,.35);
+    }
+
+/* Viền sáng chạy quanh card khi hover */
+.glow-border {
+    position: relative;
+    isolation: isolate;
+}
+
+    .glow-border::before {
+        content: '';
+        position: absolute;
+        inset: -2px;
+        border-radius: inherit;
+        padding: 2px;
+        background: conic-gradient(from var(--angle,0deg), #7c3aed, #ec4899, #06b6d4, #7c3aed);
+        -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        opacity: 0;
+        transition: opacity .25s ease;
+        z-index: -1;
+        animation: glowSpin 3s linear infinite paused;
+    }
+
+    .glow-border:hover::before {
+        opacity: 1;
+        animation-play-state: running;
+    }
+
+@keyframes glowSpin {
+    to {
+        --angle: 360deg;
+    }
+}
+
+@property --angle {
+    syntax: '<angle>';
+    inherits: false;
+    initial-value: 0deg;
+}
+
+/* ── Tiêu đề có ánh sáng chạy qua (hero title) ── */
+.shine-text {
+    position: relative;
+    background: linear-gradient(90deg, currentColor 40%, #fff 50%, currentColor 60%);
+    background-size: 250% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shineMove 3.2s ease-in-out infinite;
+}
+
+@keyframes shineMove {
+    0% {
+        background-position: 200% 0;
+    }
+
+    60%, 100% {
+        background-position: -60% 0;
+    }
+}
+
+/* ── Sao đánh giá lấp lánh ── */
+.sd-my-star, .avg-star {
+    display: inline-block;
+    transition: transform .15s cubic-bezier(.34,1.56,.64,1), filter .15s;
+}
+
+    .sd-my-star:hover {
+        transform: scale(1.35) rotate(-8deg);
+        filter: drop-shadow(0 0 6px rgba(251,191,36,.8));
+    }
+
+@keyframes starPop {
+    0% {
+        transform: scale(1);
+    }
+
+    40% {
+        transform: scale(1.5) rotate(10deg);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.star-pop {
+    animation: starPop .35s ease;
+}
+
+/* ── Nút Theo dõi: hiệu ứng tim nổ khi bấm ── */
+.fav-burst-wrap {
+    position: relative;
+    display: inline-flex;
+}
+
+.fav-particle {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #f43f5e;
+    pointer-events: none;
+    opacity: 0;
+    animation: favBurst .6s ease-out forwards;
+}
+
+@keyframes favBurst {
+    0% {
+        opacity: 1;
+        transform: translate(-50%,-50%) scale(1);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(0);
+    }
+}
+
+/* ── Skeleton shimmer khi ảnh bìa chưa load ── */
+.img-shimmer {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(90deg, #eee 25%, #f5f5f5 37%, #eee 63%);
+    background-size: 400% 100%;
+    animation: shimmerBg 1.4s ease infinite;
+}
+
+@keyframes shimmerBg {
+    0% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0 50%;
+    }
+}
+
+/* ── Nút CTA: bóng nảy nhẹ liên tục để thu hút ── */
+.pulse-cta {
+    animation: pulseCta 2.4s ease-in-out infinite;
+}
+
+@keyframes pulseCta {
+    0%, 100% {
+        box-shadow: 0 4px 18px rgba(124,58,237,.35);
+    }
+
+    50% {
+        box-shadow: 0 4px 30px rgba(124,58,237,.65);
+    }
+}
+
+/* ── Danh sách chapter: trượt vào khi hiện (Details) ── */
+.chap-slide-in {
+    opacity: 0;
+    transform: translateX(-16px);
+    transition: opacity .4s ease, transform .4s cubic-bezier(.22,1,.36,1);
+}
+
+    .chap-slide-in.is-visible {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+/* ── Trang Create/Edit/Delete: input focus có viền phát sáng lan ── */
+.glow-focus:focus {
+    animation: focusRipple .5s ease;
+}
+
+@keyframes focusRipple {
+    0% {
+        box-shadow: 0 0 0 0 rgba(124,58,237,.4);
+    }
+
+    100% {
+        box-shadow: 0 0 0 8px rgba(124,58,237,0);
+    }
+}
+
+/* ── Trang Delete: icon lắc nhẹ cảnh báo ── */
+.shake-warn {
+    animation: shakeWarn 1.8s ease-in-out infinite;
+}
+
+@keyframes shakeWarn {
+    0%, 100% {
+        transform: rotate(0);
+    }
+
+    5%, 15% {
+        transform: rotate(-8deg);
+    }
+
+    10%, 20% {
+        transform: rotate(8deg);
+    }
+
+    25% {
+        transform: rotate(0);
+    }
+}
+
+/* ── Giảm hiệu ứng cho người dùng yêu cầu (accessibility) ── */
+@media (prefers-reduced-motion: reduce) {
+    .reveal-card, .chap-slide-in, .tilt-card, .shine-text,
+    .pulse-cta, .shake-warn, .fav-particle, .img-shimmer {
+        animation: none !important;
+        transition: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+    }
+}

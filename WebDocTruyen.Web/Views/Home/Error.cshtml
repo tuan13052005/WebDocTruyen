@@ -4,13 +4,18 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="container mt-5 text-center" style="max-width:600px; margin:auto;">
-    <div class="card shadow-sm border-danger">
+<link rel="stylesheet" href="~/css/error-effects.css" />
+
+<div class="container mt-5 text-center" style="max-width:600px; margin:auto; position:relative;">
+    <span class="err-bg-dot" style="width:90px;height:90px;background:#7c3aed;top:-20px;left:-30px;animation-duration:6s;"></span>
+    <span class="err-bg-dot" style="width:60px;height:60px;background:#ec4899;bottom:0;right:-20px;animation-duration:7.5s;animation-delay:.6s;"></span>
+
+    <div class="card shadow-sm border-danger err-card-in">
         <div class="card-body p-5">
-            <div style="font-size:4rem;">
+            <div class="err-icon-bounce" style="font-size:4rem;">
                 @(Model.StatusCode == 404 ? "🔍" : Model.StatusCode == 403 ? "🚫" : "⚠️")
             </div>
-            <h1 class="mt-3 text-danger">@Model.StatusCode</h1>
+            <h1 class="mt-3 text-danger err-code-glitch" data-text="@Model.StatusCode">@Model.StatusCode</h1>
             <h2 class="mb-3">@Model.Title</h2>
             <p class="text-muted">@Model.Message</p>
 
@@ -41,7 +46,7 @@
             }
 
             <div class="mt-4 d-flex gap-2 justify-content-center">
-                <a asp-controller="Home" asp-action="Index" class="btn btn-primary">🏠 Về trang chủ</a>
+                <a asp-controller="Home" asp-action="Index" class="btn btn-primary err-btn-pulse">🏠 Về trang chủ</a>
                 <a href="javascript:history.back()" class="btn btn-outline-secondary">← Quay lại</a>
             </div>
         </div>

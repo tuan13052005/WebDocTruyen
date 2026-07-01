@@ -1,0 +1,82 @@
+﻿@using System.Security.Claims
+@{
+    var username = User.FindFirst(ClaimTypes.Name)?.Value ?? "";
+    var initials = username.Length > 0 ? username.Substring(0, Math.Min(2, username.Length)).ToUpper() : "?";
+    bool isAuth = User.Identity?.IsAuthenticated == true;
+}
+
+<div class="wdt-drawer-overlay" id="wdtDrawerOverlay"></div>
+<aside class="wdt-drawer" id="wdtDrawer">
+    <div class="wdt-drawer-head">
+        @if (isAuth)
+        {
+            <div class="wdt-drawer-user">
+                <div class="wdt-avatar">@initials</div>
+                <div>
+                    <div class="wdt-drawer-name">@username</div>
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <span class="wdt-role-badge role-admin">Admin</span>
+                    }
+                    else if (User.IsInRole("Editor"))
+                    {
+                        <span class="wdt-role-badge role-editor">Editor</span>
+                    }
+                </div>
+            </div>
+        }
+        else
+        {
+            <span class="wdt-drawer-title">Menu</span>
+        }
+        <button class="wdt-drawer-close" id="wdtDrawerClose" aria-label="Đóng menu">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    </div>
+
+    <form asp-controller="Story" asp-action="Index" method="get" class="wdt-search wdt-search-mobile">
+        <i class="bi bi-search"></i>
+        <input type="text" name="keyword" placeholder="Tìm truyện..." autocomplete="off" />
+    </form>
+
+    <nav class="wdt-drawer-links">
+        <a asp-controller="Home" asp-action="Index"><i class="bi bi-house"></i> Trang chủ</a>
+        <a asp-controller="Story" asp-action="Index"><i class="bi bi-collection"></i> Danh sách</a>
+        <a asp-controller="Genres" asp-action="Index"><i class="bi bi-tags"></i> Thể loại</a>
+        <a asp-controller="Account" asp-action="MyFavorites"><i class="bi bi-bookmark-heart"></i> Theo dõi</a>
+
+        @if (isAuth)
+        {
+            <hr />
+            <a asp-controller="Account" asp-action="Profile"><i class="bi bi-person"></i> Trang cá nhân</a>
+            <a asp-controller="Account" asp-action="Settings"><i class="bi bi-gear"></i> Cài đặt</a>
+            <a asp-controller="Account" asp-action="ChangePassword"><i class="bi bi-key"></i> Đổi mật khẩu</a>
+
+            @if (User.IsInRole("Admin"))
+            {
+                <a asp-controller="Admin" asp-action="Dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a>
+                <a asp-controller="Admin" asp-action="ManageUsers"><i class="bi bi-people"></i> Người dùng</a>
+                <a asp-controller="Admin" asp-action="ManageStories"><i class="bi bi-book"></i> Quản lý truyện</a>
+            }
+            else if (User.IsInRole("Editor"))
+            {
+                <a asp-controller="Editor" asp-action="Dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a>
+                <a asp-controller="Editor" asp-action="ManageStories"><i class="bi bi-book"></i> Truyện của tôi</a>
+            }
+
+            <hr />
+            <form asp-controller="Account" asp-action="Logout" method="post" class="m-0 p-0">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="wdt-drawer-logout">
+                    <i class="bi bi-box-arrow-right"></i> Đăng xuất
+                </button>
+            </form>
+        }
+        else
+        {
+            <hr />
+            <a asp-controller="Account" asp-action="Login"><i class="bi bi-box-arrow-in-right"></i> Đăng nhập</a>
+            <a asp-controller="Account" asp-action="Register"><i class="bi bi-person-plus"></i> Đăng ký</a>
+        }
+    </nav>
+</aside>

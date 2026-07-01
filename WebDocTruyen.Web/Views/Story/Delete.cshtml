@@ -5,6 +5,7 @@
 }
 
 <link rel="stylesheet" href="~/css/story-delete.css">
+<link rel="stylesheet" href="~/css/story-effects.css">
 
 <div class="del-page">
     <div class="del-card">
@@ -19,7 +20,7 @@
             <div class="del-orb del-orb-2"></div>
 
             <div class="del-icon-wrap">
-                <div class="del-icon-ring">🗑️</div>
+                <div class="del-icon-ring shake-warn">🗑️</div>
             </div>
             <h1 class="del-header-title">Xóa truyện vĩnh viễn</h1>
             <p class="del-header-sub">Hành động này không thể hoàn tác</p>
@@ -101,4 +102,6 @@
         </div>
     </div>
 </div>
-
+@section Scripts {
+    <script src="~/js/story-effects.js"></script>
+}
