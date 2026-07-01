@@ -2,13 +2,9 @@
 
   <ItemGroup>
     <Compile Remove="Images\**" />
-    <Compile Remove="wwwroot\images\NewFolder\**" />
     <Content Remove="Images\**" />
-    <Content Remove="wwwroot\images\NewFolder\**" />
     <EmbeddedResource Remove="Images\**" />
-    <EmbeddedResource Remove="wwwroot\images\NewFolder\**" />
     <None Remove="Images\**" />
-    <None Remove="wwwroot\images\NewFolder\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -23,10 +19,6 @@
     <ProjectReference Include="..\WebDocTruyen.Application\WebDocTruyen.Application.csproj" />
     <ProjectReference Include="..\WebDocTruyen.Domain\WebDocTruyen.Domain.csproj" />
     <ProjectReference Include="..\WebDocTruyen.Infrastructure\WebDocTruyen.Infrastructure.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="wwwroot\images\stories\" />
   </ItemGroup>
 
   <PropertyGroup>
