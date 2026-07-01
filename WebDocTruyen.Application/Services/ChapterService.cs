@@ -1,9 +1,11 @@
-﻿using WebDocTruyen.Application.DTOs.Chapter;
+﻿// WebDocTruyen.Application/Services/ChapterService.cs
+using WebDocTruyen.Application.DTOs.Chapter;
 using WebDocTruyen.Application.DTOs.Story;
 using WebDocTruyen.Application.Interfaces;
 using WebDocTruyen.Application.Mapper;
 using WebDocTruyen.Domain.Entities;
 using WebDocTruyen.Domain.Interfaces;
+using WebDocTruyen.Infrastructure.Storage;
 
 namespace WebDocTruyen.Application.Services
 {
@@ -13,6 +15,7 @@ namespace WebDocTruyen.Application.Services
         private readonly IStoryRepository _storyRepo;
         private readonly ICommentService _commentService;
         private readonly IFavoriteService _favoriteService;
+        private readonly ISupabaseStorageService _storage;
 
         private static readonly string[] AllowedExt = { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
         private const long MaxImageSize = 10 * 1024 * 1024; // 10 MB
@@ -21,12 +24,14 @@ namespace WebDocTruyen.Application.Services
             IChapterRepository chapterRepo,
             IStoryRepository storyRepo,
             ICommentService commentService,
-            IFavoriteService favoriteService)
+            IFavoriteService favoriteService,
+            ISupabaseStorageService storage)
         {
             _chapterRepo = chapterRepo;
             _storyRepo = storyRepo;
             _commentService = commentService;
             _favoriteService = favoriteService;
+            _storage = storage;
         }
 
         // ── Helpers ───────────────────────────────────────────────────────
@@ -37,19 +42,13 @@ namespace WebDocTruyen.Application.Services
             return story?.CreatedBy == currentUserId;
         }
 
-        private static string ImageFolder(int storyId, int chapterNumber) =>
-            Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "stories",
-                storyId.ToString(), chapterNumber.ToString());
-
-        private static async Task<string> SaveImageFileAsync(
-            Stream content, string fileName, int storyId, int chapterNumber)
+        private async Task<string> SaveImageFileAsync(
+            Stream content, string fileName, int storyId, int chapterId)
         {
-            var folder = ImageFolder(storyId, chapterNumber);
-            Directory.CreateDirectory(folder);
-            var fn = Guid.NewGuid() + Path.GetExtension(fileName);
-            using var fs = new FileStream(Path.Combine(folder, fn), FileMode.Create);
-            await content.CopyToAsync(fs);
-            return $"/images/stories/{storyId}/{chapterNumber}/{fn}";
+            var ext = Path.GetExtension(fileName);
+            var path = $"stories/{storyId}/chapters/{chapterId}/{Guid.NewGuid()}{ext}";
+            var contentType = _storage.GetContentType(fileName);
+            return await _storage.UploadAsync(content, path, contentType);
         }
 
         // ── Danh sách chapter ─────────────────────────────────────────────
@@ -82,28 +81,8 @@ namespace WebDocTruyen.Application.Services
             var allChapters = (await _chapterRepo.GetByStoryIdAsync(chapter.StoryId))
                               .OrderBy(c => c.ChapterNumber).ToList();
 
-            // Ảnh: ưu tiên DB, fallback đọc từ disk nếu DB rỗng
+            // Ảnh lấy từ DB (đã là URL Supabase)
             var imageEntities = chapter.ChapterImages.OrderBy(i => i.PageNumber).ToList();
-            if (!imageEntities.Any())
-            {
-                var folder = ImageFolder(chapter.StoryId, chapter.ChapterNumber);
-                if (Directory.Exists(folder))
-                {
-                    int pn = 1;
-                    foreach (var fp in Directory.GetFiles(folder)
-                        .Where(f => AllowedExt.Contains(Path.GetExtension(f).ToLower()))
-                        .OrderBy(f => f))
-                    {
-                        imageEntities.Add(new ChapterImage
-                        {
-                            ImageId = 0,
-                            ChapterId = chapter.ChapterId,
-                            PageNumber = pn++,
-                            ImageUrl = $"/images/stories/{chapter.StoryId}/{chapter.ChapterNumber}/{Path.GetFileName(fp)}"
-                        });
-                    }
-                }
-            }
 
             var allDtos = allChapters.Select(ChapterMapper.ToSummary).ToList();
             int idx = allChapters.FindIndex(c => c.ChapterId == chapterId);
@@ -150,7 +129,6 @@ namespace WebDocTruyen.Application.Services
                 Title = dto.Title
             };
             await _chapterRepo.AddAsync(chapter);
-            Directory.CreateDirectory(ImageFolder(storyId, chapter.ChapterNumber));
             return chapter.ChapterId;
         }
 
@@ -164,21 +142,7 @@ namespace WebDocTruyen.Application.Services
             if (dup != null && dup.ChapterId != dto.ChapterId)
                 throw new InvalidOperationException($"Chapter {dto.ChapterNumber} đã tồn tại.");
 
-            if (old.ChapterNumber != dto.ChapterNumber)
-            {
-                var oldDir = ImageFolder(old.StoryId, old.ChapterNumber);
-                var newDir = ImageFolder(old.StoryId, dto.ChapterNumber);
-                if (Directory.Exists(oldDir)) Directory.Move(oldDir, newDir);
-                else Directory.CreateDirectory(newDir);
-
-                var imgs = await _chapterRepo.GetImagesByChapterIdAsync(old.ChapterId);
-                foreach (var img in imgs)
-                {
-                    img.ImageUrl = img.ImageUrl.Replace($"/{old.ChapterNumber}/", $"/{dto.ChapterNumber}/");
-                    await _chapterRepo.UpdateImageAsync(img);
-                }
-            }
-
+            // Không cần move ảnh nữa vì path dùng ChapterId (cố định), không dùng ChapterNumber
             old.Title = dto.Title;
             old.ChapterNumber = dto.ChapterNumber;
             await _chapterRepo.UpdateAsync(old);
@@ -199,8 +163,8 @@ namespace WebDocTruyen.Application.Services
             if (chapter == null) return false;
             if (!await OwnsStoryAsync(chapter.StoryId, currentUserId)) return false;
 
-            var dir = ImageFolder(chapter.StoryId, chapter.ChapterNumber);
-            if (Directory.Exists(dir)) Directory.Delete(dir, true);
+            // Xóa toàn bộ ảnh trên Supabase của chapter này
+            await _storage.DeleteFolderAsync($"stories/{chapter.StoryId}/chapters/{chapterId}");
 
             await _chapterRepo.DeleteAsync(chapterId);
             return true;
@@ -234,7 +198,7 @@ namespace WebDocTruyen.Application.Services
                 if (!AllowedExt.Contains(Path.GetExtension(fileName).ToLower())) continue;
                 if (length > MaxImageSize) continue;
 
-                var url = await SaveImageFileAsync(content, fileName, chapter.StoryId, chapter.ChapterNumber);
+                var url = await SaveImageFileAsync(content, fileName, chapter.StoryId, chapterId);
                 newImgs.Add(new ChapterImage { ChapterId = chapterId, ImageUrl = url, PageNumber = nextPage++ });
             }
 
@@ -252,13 +216,12 @@ namespace WebDocTruyen.Application.Services
 
             if (newImage.HasValue)
             {
-                var oldFile = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot",
-                    image.ImageUrl.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
-                if (File.Exists(oldFile)) File.Delete(oldFile);
+                var oldPath = _storage.GetPathFromPublicUrl(image.ImageUrl);
+                if (oldPath != null) await _storage.DeleteAsync(oldPath);
 
                 image.ImageUrl = await SaveImageFileAsync(
                     newImage.Value.Content, newImage.Value.FileName,
-                    chapter.StoryId, chapter.ChapterNumber);
+                    chapter.StoryId, chapter.ChapterId);
             }
 
             image.PageNumber = pageNumber;
@@ -273,9 +236,8 @@ namespace WebDocTruyen.Application.Services
             var chapter = await _chapterRepo.GetByIdAsync(image.ChapterId);
             if (chapter == null || !await OwnsStoryAsync(chapter.StoryId, currentUserId)) return false;
 
-            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot",
-                image.ImageUrl.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
-            if (File.Exists(filePath)) File.Delete(filePath);
+            var path = _storage.GetPathFromPublicUrl(image.ImageUrl);
+            if (path != null) await _storage.DeleteAsync(path);
 
             int chapterId = image.ChapterId;
             await _chapterRepo.DeleteImageAsync(imageId);
@@ -296,10 +258,7 @@ namespace WebDocTruyen.Application.Services
             if (chapter == null) return false;
             if (!await OwnsStoryAsync(chapter.StoryId, currentUserId)) return false;
 
-            var dir = ImageFolder(chapter.StoryId, chapter.ChapterNumber);
-            if (Directory.Exists(dir))
-                foreach (var f in Directory.GetFiles(dir)) File.Delete(f);
-
+            await _storage.DeleteFolderAsync($"stories/{chapter.StoryId}/chapters/{chapterId}");
             await _chapterRepo.DeleteAllImagesAsync(chapterId);
             return true;
         }
@@ -315,7 +274,6 @@ namespace WebDocTruyen.Application.Services
             return true;
         }
 
-        /// <summary>Lấy thông tin ảnh nếu user có quyền (sở hữu truyện hoặc admin).</summary>
         public async Task<ChapterImageDto?> GetImageDtoAsync(int imageId, int currentUserId)
         {
             var image = await _chapterRepo.GetImageByIdAsync(imageId);

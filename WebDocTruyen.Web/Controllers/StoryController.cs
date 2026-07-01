@@ -1,34 +1,31 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using WebDocTruyen.Application.DTOs.Story;
-using WebDocTruyen.Application.Mapper;
-using WebDocTruyen.Application.Services;
-using WebDocTruyen.Domain.Entities;
-using WebDocTruyen.Domain.Interfaces;
+using WebDocTruyen.Application.Interfaces;
 
 namespace WebDocTruyen.Web.Controllers
 {
     public class StoryController : Controller
     {
-        private readonly IStoryRepository _storyRepo;
-        private readonly IGenreRepository _genreRepo;
-        private readonly ICommentRepository _commentRepo;
-        private readonly IFavoriteRepository _favoriteRepo;
-        private readonly IRatingRepository _ratingRepo;
-        private readonly StoryService _storyService;
+        private readonly IStoryService _storyService;
+        private readonly IGenreService _genreService;
+        private readonly ICommentService _commentService;
+        private readonly IFavoriteService _favoriteService;
+        private readonly IRatingService _ratingService;
 
-        public StoryController(IStoryRepository storyRepo, IGenreRepository genreRepo,
-            ICommentRepository commentRepo, IFavoriteRepository favoriteRepo,
-            IRatingRepository ratingRepo, StoryService storyService)
+        public StoryController(
+            IStoryService storyService,
+            IGenreService genreService,
+            ICommentService commentService,
+            IFavoriteService favoriteService,
+            IRatingService ratingService)
         {
-            _storyRepo = storyRepo;
-            _genreRepo = genreRepo;
-            _commentRepo = commentRepo;
-            _favoriteRepo = favoriteRepo;
-            _ratingRepo = ratingRepo;
             _storyService = storyService;
+            _genreService = genreService;
+            _commentService = commentService;
+            _favoriteService = favoriteService;
+            _ratingService = ratingService;
         }
 
         private int? CurrentUserId =>
@@ -60,9 +57,9 @@ namespace WebDocTruyen.Web.Controllers
             };
 
             int total = stories.Count();
-            ViewBag.Genres = (await _genreRepo.GetAllGenreAsync())
+
+            ViewBag.Genres = (await _genreService.GetAllAsync())
                 .OrderBy(g => g.Name, StringComparer.OrdinalIgnoreCase)
-                .Select(GenreMapper.ToDto)
                 .ToList();
             ViewBag.GenreIds = genreIds ?? new List<int>();
             ViewBag.Keyword = keyword;
@@ -79,40 +76,8 @@ namespace WebDocTruyen.Web.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Details(int id)
         {
-            var story = await _storyRepo.GetByIdAsync(id);
-            if (story == null) return NotFound();
-
-            var commentEntities = await _commentRepo.GetByStoryIdAsync(id);
-            var comments = commentEntities.Select(CommentMapper.ToDto).ToList();
-            var avgRating = await _ratingRepo.GetAverageAsync(id);
-            var ratingCount = await _ratingRepo.CountAsync(id);
-            var favCount = await _favoriteRepo.CountAsync(id);
-
-            bool isFav = false;
-            int? myRating = null;
-            int? lastReadChapterId = null;
-            int? lastReadChapterNumber = null;
-
-            if (CurrentUserId.HasValue)
-            {
-                var fav = await _favoriteRepo.GetAsync(CurrentUserId.Value, id);
-                isFav = fav != null;
-
-                if (fav?.LastReadChapterId != null)
-                {
-                    lastReadChapterId = fav.LastReadChapterId;
-                    lastReadChapterNumber = story.Chapters
-                        .FirstOrDefault(c => c.ChapterId == fav.LastReadChapterId)?.ChapterNumber;
-                }
-
-                var myR = await _ratingRepo.GetByUserAndStoryAsync(CurrentUserId.Value, id);
-                myRating = myR?.Score;
-            }
-
-            var dto = StoryMapper.ToDetailDto(story, comments, avgRating,
-                ratingCount, favCount, isFav, myRating, CurrentUserId,
-                lastReadChapterId, lastReadChapterNumber);
-
+            var dto = await _storyService.GetDetailAsync(id, CurrentUserId);
+            if (dto == null) return NotFound();
             return View(dto);
         }
 
@@ -127,14 +92,9 @@ namespace WebDocTruyen.Web.Controllers
                     ? RedirectToAction("ReadChapter", "Chapter", new { id = chapterId })
                     : RedirectToAction("Details", new { id = storyId });
             }
-            await _commentRepo.AddAsync(new Comment
-            {
-                StoryId = storyId,
-                ChapterId = chapterId,
-                UserId = CurrentUserId!.Value,
-                Content = content.Trim(),
-                CreatedAt = DateTime.UtcNow
-            });
+
+            await _commentService.AddAsync(storyId, CurrentUserId!.Value, content, chapterId);
+
             return chapterId.HasValue
                 ? RedirectToAction("ReadChapter", "Chapter", new { id = chapterId })
                 : RedirectToAction("Details", new { id = storyId });
@@ -143,10 +103,9 @@ namespace WebDocTruyen.Web.Controllers
         [HttpPost, Authorize, ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteComment(int commentId, int storyId, int? chapterId = null)
         {
-            var comment = await _commentRepo.GetByIdAsync(commentId);
-            if (comment == null) return NotFound();
-            if (comment.UserId != CurrentUserId && !User.IsInRole("Admin")) return Forbid();
-            await _commentRepo.DeleteAsync(commentId);
+            bool ok = await _commentService.DeleteAsync(commentId, CurrentUserId!.Value, User.IsInRole("Admin"));
+            if (!ok) return Forbid();
+
             return chapterId.HasValue
                 ? RedirectToAction("ReadChapter", "Chapter", new { id = chapterId })
                 : RedirectToAction("Details", new { id = storyId });
@@ -156,34 +115,24 @@ namespace WebDocTruyen.Web.Controllers
         [HttpPost, Authorize]
         public async Task<IActionResult> ToggleFavorite(int storyId)
         {
-            int uid = CurrentUserId!.Value;
-            var fav = await _favoriteRepo.GetAsync(uid, storyId);
-            if (fav != null) await _favoriteRepo.DeleteAsync(fav.FavoriteId);
-            else await _favoriteRepo.AddAsync(new Favorite { UserId = uid, StoryId = storyId });
-            int count = await _favoriteRepo.CountAsync(storyId);
-            bool nowFavorited = fav == null;
-            return Json(FavoriteMapper.ToStatusDto(nowFavorited, count));
+            var result = await _favoriteService.ToggleAsync(CurrentUserId!.Value, storyId);
+            return Json(result);
         }
 
-        // ── Rating (AJAX) — FIX: validate 1-10 thay vì 1-5 ──────────────
+        // ── Rating (AJAX) — 1..5 ─────────────────────────────────────────
         [HttpPost, Authorize]
         public async Task<IActionResult> Rate(int storyId, int score)
         {
             if (score < 1 || score > 5) return BadRequest(new { error = "Điểm phải từ 1–5" });
-            int uid = CurrentUserId!.Value;
-            var existing = await _ratingRepo.GetByUserAndStoryAsync(uid, storyId);
-            if (existing != null) { existing.Score = score; await _ratingRepo.UpdateAsync(existing); }
-            else await _ratingRepo.AddAsync(new Rating { UserId = uid, StoryId = storyId, Score = score, CreatedAt = DateTime.UtcNow });
-            double avg = await _ratingRepo.GetAverageAsync(storyId);
-            int cnt = await _ratingRepo.CountAsync(storyId);
-            return Json(RatingMapper.ToResultDto(avg, cnt, score));
+            var result = await _ratingService.RateAsync(CurrentUserId!.Value, storyId, score);
+            return Json(result);
         }
 
-        // ── Create / Edit / Delete (Editor) ──────────────────────────────
+        // ── Create (Editor) ──────────────────────────────────────────────
         [Authorize(Roles = "Editor")]
         public async Task<IActionResult> Create()
         {
-            ViewBag.Genres = (await _genreRepo.GetAllGenreAsync()).Select(GenreMapper.ToDto).ToList();
+            ViewBag.Genres = (await _genreService.GetAllAsync()).ToList();
             return View(new StoryFormDto());
         }
 
@@ -192,123 +141,67 @@ namespace WebDocTruyen.Web.Controllers
         {
             if (!ModelState.IsValid)
             {
-                ViewBag.Genres = (await _genreRepo.GetAllGenreAsync()).Select(GenreMapper.ToDto).ToList();
+                ViewBag.Genres = (await _genreService.GetAllAsync()).ToList();
                 return View(dto);
             }
-            var story = new Story
-            {
-                Title = dto.Title,
-                Author = dto.Author,
-                Description = dto.Description,
-                Status = dto.Status,
-                CreatedAt = DateTime.UtcNow,
-                CreatedBy = CurrentUserId!.Value,
-                StoryGenres = new List<StoryGenre>()
-            };
-            await _storyRepo.AddAsync(story);
 
-            if (coverImage?.Length > 0)
-            {
-                var folder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "stories", story.StoryId.ToString());
-                Directory.CreateDirectory(folder);
-                var fn = Guid.NewGuid() + Path.GetExtension(coverImage.FileName);
-                using var s = new FileStream(Path.Combine(folder, fn), FileMode.Create);
-                await coverImage.CopyToAsync(s);
-                story.CoverImage = $"/images/stories/{story.StoryId}/{fn}";
-            }
-            story.StoryGenres = dto.SelectedGenreIds
-                .Select(g => new StoryGenre { GenreId = g, StoryId = story.StoryId }).ToList();
-            await _storyRepo.UpdateAsync(story);
+            using var stream = coverImage?.Length > 0 ? coverImage.OpenReadStream() : null;
+            await _storyService.CreateAsync(dto, CurrentUserId!.Value, stream, coverImage?.FileName);
+
             TempData["Success"] = "Thêm truyện thành công!";
             return RedirectToAction("ManageStories", "Editor");
         }
 
+        // ── Edit (Editor) ─────────────────────────────────────────────────
         [Authorize(Roles = "Editor")]
         public async Task<IActionResult> Edit(int id)
         {
-            var story = await _storyRepo.GetByIdAsync(id);
-            if (story == null) return NotFound();
-            if (story.CreatedBy != CurrentUserId) return Forbid();
-            ViewBag.Genres = (await _genreRepo.GetAllGenreAsync()).Select(GenreMapper.ToDto).ToList();
-            return View(StoryMapper.ToFormDto(story));
+            // GetFormDtoAsync không tự check quyền sở hữu → kiểm tra qua GetDetailAsync
+            var detail = await _storyService.GetDetailAsync(id, CurrentUserId);
+            if (detail == null) return NotFound();
+            if (detail.CreatedBy != CurrentUserId) return Forbid();
+
+            var dto = await _storyService.GetFormDtoAsync(id);
+            if (dto == null) return NotFound();
+
+            ViewBag.Genres = (await _genreService.GetAllAsync()).ToList();
+            return View(dto);
         }
 
         [HttpPost, Authorize(Roles = "Editor"), ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(StoryFormDto dto, IFormFile? coverImage)
         {
-            var existing = await _storyRepo.GetByIdAsync(dto.StoryId);
-            if (existing == null) return NotFound();
-            if (existing.CreatedBy != CurrentUserId) return Forbid();
-
             if (!ModelState.IsValid)
             {
-                ViewBag.Genres = (await _genreRepo.GetAllGenreAsync()).Select(GenreMapper.ToDto).ToList();
+                ViewBag.Genres = (await _genreService.GetAllAsync()).ToList();
                 return View(dto);
             }
 
-            existing.Title = dto.Title;
-            existing.Author = dto.Author;
-            existing.Description = dto.Description;
-            existing.Status = dto.Status;
-            existing.UpdatedAt = DateTime.UtcNow;
+            using var stream = coverImage?.Length > 0 ? coverImage.OpenReadStream() : null;
+            bool ok = await _storyService.UpdateAsync(dto, CurrentUserId!.Value, stream, coverImage?.FileName);
+            if (!ok) return Forbid();
 
-            // ── Ảnh bìa: thay ảnh mới và xóa ảnh cũ ──
-            if (coverImage?.Length > 0)
-            {
-                // Xóa ảnh cũ nếu tồn tại
-                if (!string.IsNullOrEmpty(existing.CoverImage))
-                {
-                    var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot",
-                        existing.CoverImage.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
-                    if (System.IO.File.Exists(oldPath))
-                        System.IO.File.Delete(oldPath);
-                }
-
-                // Lưu ảnh mới
-                var folder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot",
-                    "images", "stories", existing.StoryId.ToString());
-                Directory.CreateDirectory(folder);
-                var fn = Guid.NewGuid() + Path.GetExtension(coverImage.FileName);
-                using var s = new FileStream(Path.Combine(folder, fn), FileMode.Create);
-                await coverImage.CopyToAsync(s);
-                existing.CoverImage = $"/images/stories/{existing.StoryId}/{fn}";
-            }
-
-            // ── Diff thể loại: chỉ thêm cái mới chọn, chỉ xóa cái bị bỏ chọn ──
-            var selectedIds = (dto.SelectedGenreIds ?? new List<int>()).Distinct().ToList();
-            var currentIds = existing.StoryGenres.Select(sg => sg.GenreId).ToList();
-
-            var toRemove = existing.StoryGenres.Where(sg => !selectedIds.Contains(sg.GenreId)).ToList();
-            foreach (var sg in toRemove)
-                existing.StoryGenres.Remove(sg);
-
-            var toAdd = selectedIds.Where(id => !currentIds.Contains(id)).ToList();
-            foreach (var gid in toAdd)
-                existing.StoryGenres.Add(new StoryGenre { StoryId = existing.StoryId, GenreId = gid });
-
-            await _storyRepo.UpdateAsync(existing);
             TempData["Success"] = "Cập nhật thành công!";
             return RedirectToAction("ManageStories", "Editor");
         }
 
+        // ── Delete (Editor) ───────────────────────────────────────────────
         [Authorize(Roles = "Editor")]
         public async Task<IActionResult> Delete(int id)
         {
-            var story = await _storyRepo.GetByIdAsync(id);
-            if (story == null) return NotFound();
-            if (story.CreatedBy != CurrentUserId) return Forbid();
-            return View(StoryMapper.ToDto(story));
+            var detail = await _storyService.GetDetailAsync(id, null);
+            if (detail == null) return NotFound();
+            if (detail.CreatedBy != CurrentUserId) return Forbid();
+
+            return View(detail); // StoryDetailDto kế thừa StoryDto, view nhận StoryDto vẫn hoạt động
         }
 
         [HttpPost, ActionName("Delete"), Authorize(Roles = "Editor"), ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var story = await _storyRepo.GetByIdAsync(id);
-            if (story == null) return NotFound();
-            if (story.CreatedBy != CurrentUserId) return Forbid();
-            await _storyRepo.DeleteAsync(id);
-            var folder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "stories", id.ToString());
-            if (Directory.Exists(folder)) Directory.Delete(folder, true);
+            bool ok = await _storyService.DeleteAsync(id, CurrentUserId!.Value);
+            if (!ok) return Forbid();
+
             TempData["Success"] = "Xóa truyện thành công!";
             return RedirectToAction("ManageStories", "Editor");
         }

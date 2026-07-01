@@ -1,8 +1,10 @@
-﻿using WebDocTruyen.Application.DTOs.Story;
+﻿// WebDocTruyen.Application/Services/StoryService.cs
+using WebDocTruyen.Application.DTOs.Story;
 using WebDocTruyen.Application.Interfaces;
 using WebDocTruyen.Application.Mapper;
 using WebDocTruyen.Domain.Entities;
 using WebDocTruyen.Domain.Interfaces;
+using WebDocTruyen.Infrastructure.Storage;
 
 namespace WebDocTruyen.Application.Services
 {
@@ -13,19 +15,22 @@ namespace WebDocTruyen.Application.Services
         private readonly IFavoriteService _favoriteService;
         private readonly IRatingService _ratingService;
         private readonly IGenreRepository _genreRepo;
+        private readonly ISupabaseStorageService _storage;
 
         public StoryService(
             IStoryRepository storyRepo,
             ICommentService commentService,
             IFavoriteService favoriteService,
             IRatingService ratingService,
-            IGenreRepository genreRepo)
+            IGenreRepository genreRepo,
+            ISupabaseStorageService storage)
         {
             _storyRepo = storyRepo;
             _commentService = commentService;
             _favoriteService = favoriteService;
             _ratingService = ratingService;
             _genreRepo = genreRepo;
+            _storage = storage;
         }
 
         public async Task<IEnumerable<StoryDto>> GetAllStoriesAsync()
@@ -52,7 +57,6 @@ namespace WebDocTruyen.Application.Services
             return stories.Select(StoryMapper.ToDto);
         }
 
-        // ── Chi tiết truyện (Details page) ───────────────────────────────
         public async Task<StoryDetailDto?> GetDetailAsync(int storyId, int? currentUserId)
         {
             var story = await _storyRepo.GetByIdAsync(storyId);
@@ -70,7 +74,6 @@ namespace WebDocTruyen.Application.Services
                 favCount, isFav, ratingInfo.MyRating, currentUserId);
         }
 
-        // ── Form Create/Edit ───────────────────────────────────────────
         public async Task<StoryFormDto?> GetFormDtoAsync(int storyId)
         {
             var story = await _storyRepo.GetByIdAsync(storyId);
@@ -116,7 +119,13 @@ namespace WebDocTruyen.Application.Services
             existing.UpdatedAt = DateTime.UtcNow;
 
             if (coverImageStream != null && !string.IsNullOrEmpty(coverImageFileName))
+            {
+                // Xóa ảnh bìa cũ trên Supabase (nếu có)
+                var oldPath = _storage.GetPathFromPublicUrl(existing.CoverImage);
+                if (oldPath != null) await _storage.DeleteAsync(oldPath);
+
                 existing.CoverImage = await SaveCoverImageAsync(existing.StoryId, coverImageStream, coverImageFileName);
+            }
 
             var toRemove = existing.StoryGenres
                 .Where(sg => !dto.SelectedGenreIds.Contains(sg.GenreId))
@@ -143,21 +152,19 @@ namespace WebDocTruyen.Application.Services
 
             await _storyRepo.DeleteAsync(storyId);
 
-            var folder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "stories", storyId.ToString());
-            if (Directory.Exists(folder)) Directory.Delete(folder, true);
+            // Xóa toàn bộ ảnh của truyện trên Supabase (bìa + ảnh chapter)
+            await _storage.DeleteFolderAsync($"stories/{storyId}");
 
             return true;
         }
 
         // ── Helper ────────────────────────────────────────────────────
-        private static async Task<string> SaveCoverImageAsync(int storyId, Stream content, string fileName)
+        private async Task<string> SaveCoverImageAsync(int storyId, Stream content, string fileName)
         {
-            var folder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "stories", storyId.ToString());
-            Directory.CreateDirectory(folder);
-            var fn = Guid.NewGuid() + Path.GetExtension(fileName);
-            using var fs = new FileStream(Path.Combine(folder, fn), FileMode.Create);
-            await content.CopyToAsync(fs);
-            return $"/images/stories/{storyId}/{fn}";
+            var ext = Path.GetExtension(fileName);
+            var path = $"stories/{storyId}/cover/{Guid.NewGuid()}{ext}";
+            var contentType = _storage.GetContentType(fileName);
+            return await _storage.UploadAsync(content, path, contentType);
         }
     }
 }

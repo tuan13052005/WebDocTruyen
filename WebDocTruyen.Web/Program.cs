@@ -6,6 +6,7 @@ using WebDocTruyen.Application.Services;
 using WebDocTruyen.Domain.Interfaces;
 using WebDocTruyen.Infrastructure.Persistence;
 using WebDocTruyen.Infrastructure.Repositories;
+using WebDocTruyen.Infrastructure.Storage;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,6 +32,9 @@ builder.Services.AddScoped<IFavoriteService, FavoriteService>();
 builder.Services.AddScoped<IRatingService, RatingService>();
 builder.Services.AddScoped<IChapterService, ChapterService>();
 builder.Services.AddScoped<IStoryService, StoryService>();
+
+builder.Services.AddHttpClient();
+builder.Services.AddScoped<ISupabaseStorageService, SupabaseStorageService>();
 
 // Concrete class ??ng ký thêm cho các Controller ?ang inject tr?c ti?p
 // (nên refactor d?n sang interface)
