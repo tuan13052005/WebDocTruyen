@@ -1,0 +1,183 @@
+﻿/* ══════════════════════════════════════════════════
+   ManageImages-Preview.css
+   Layout "danh sách trái + xem trước phải" cho trang
+   Chapter/ManageImages.cshtml
+   ══════════════════════════════════════════════════ */
+
+/* ── Layout tổng: list trái + preview phải ── */
+.mi-editor-layout {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 18px;
+    margin-bottom: 20px;
+}
+
+/* ── Cột trái: danh sách thumbnail ── */
+.mi-thumb-col {
+    max-height: 640px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #c4b5fd transparent;
+    padding-right: 4px;
+}
+
+    .mi-thumb-col::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .mi-thumb-col::-webkit-scrollbar-thumb {
+        background: #c4b5fd;
+        border-radius: 4px;
+    }
+
+.mi-thumb-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.mi-thumb-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #fff;
+    border: 2px solid #e0d9ff;
+    border-radius: 10px;
+    padding: 6px;
+    transition: border-color .15s, box-shadow .15s, background .15s;
+}
+
+    .mi-thumb-item:hover {
+        border-color: #a78bfa;
+    }
+
+    .mi-thumb-item.active {
+        border-color: #7c5cf8;
+        box-shadow: 0 0 0 3px rgba(124,92,248,.18);
+        background: #faf7ff;
+    }
+
+.mi-thumb-drag {
+    color: #9ca3af;
+    font-size: 14px;
+    cursor: grab;
+    flex-shrink: 0;
+}
+
+    .mi-thumb-drag:active {
+        cursor: grabbing;
+    }
+
+.mi-thumb-img-wrap {
+    width: 56px;
+    height: 56px;
+    flex-shrink: 0;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #f3f4f6;
+    cursor: pointer;
+}
+
+    .mi-thumb-img-wrap img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+.mi-thumb-page {
+    flex: 1;
+    font-size: 12px;
+    font-weight: 600;
+    color: #5b21b6;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.mi-thumb-del-form {
+    flex-shrink: 0;
+}
+
+.mi-thumb-del-btn {
+    border: none;
+    background: transparent;
+    color: #dc2626;
+    padding: 4px 6px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background .13s;
+}
+
+    .mi-thumb-del-btn:hover {
+        background: #fee2e2;
+    }
+
+/* ── Cột phải: xem trước ảnh lớn ── */
+.mi-preview-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: #faf7ff;
+    border: 1px solid #e0d9ff;
+    border-radius: 14px;
+    padding: 16px;
+    min-height: 400px;
+}
+
+.mi-preview-frame {
+    width: 100%;
+    max-height: 640px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f3f4f6;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+    .mi-preview-frame img {
+        max-width: 100%;
+        max-height: 640px;
+        object-fit: contain;
+        display: block;
+    }
+
+.mi-preview-caption {
+    font-size: 13px;
+    font-weight: 700;
+    color: #5b21b6;
+}
+
+/* Sortable drag states dùng chung với thumbnail list */
+.sortable-ghost .mi-thumb-item {
+    opacity: .3;
+    border: 2px dashed #7c5cf8 !important;
+}
+
+.sortable-chosen .mi-thumb-item {
+    box-shadow: 0 0 0 3px #7c5cf8 !important;
+}
+
+.sortable-drag .mi-thumb-item {
+    box-shadow: 0 12px 28px rgba(124,92,248,.35) !important;
+}
+
+/* ── Responsive ── */
+@media (max-width: 760px) {
+    .mi-editor-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .mi-thumb-col {
+        max-height: 300px;
+    }
+
+    .mi-preview-frame,
+    .mi-preview-frame img {
+        max-height: 380px;
+    }
+}

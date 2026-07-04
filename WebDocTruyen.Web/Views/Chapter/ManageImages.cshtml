@@ -13,6 +13,7 @@
 }
 
 <link rel="stylesheet" href="~/css/ManageImages-Chapters.css" />
+<link rel="stylesheet" href="~/css/ManageImages-Preview.css" />
 
 <!-- Breadcrumb-->
 <nav class="mi-breadcrumb" aria-label="breadcrumb">
@@ -89,7 +90,7 @@
             </div>
         </div>
 
-        <!-- Grid ảnh-->
+        <!-- Danh sách trang + xem trước-->
         @if (!Model.Images.Any())
         {
             <div class="mi-empty">
@@ -116,34 +117,46 @@
                 </div>
             </div>
 
-            <div class="mi-grid" id="imageGrid">
-                @foreach (var img in Model.Images)
-                {
-                    <div class="mi-img-item" data-id="@img.ImageId">
-                        <span class="mi-page-badge" data-page>Trang @img.PageNumber</span>
-                        <div class="mi-drag-handle" title="Kéo để sắp xếp">
-                            <i class="bi bi-grip-vertical"></i>
-                        </div>
-                        <img src="@img.ImageUrl"
-                             alt="Trang @img.PageNumber"
-                             loading="lazy"
-                             onclick="openLightbox('@img.ImageUrl', @img.PageNumber)"
-                             title="Bấm để xem lớn" />
-                        <div class="mi-img-footer">
-                            <form asp-action="DeleteImage" method="post"
-                                  onsubmit="return confirm('Xóa trang @img.PageNumber?');"
-                                  class="d-inline">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="imageId" value="@img.ImageId" />
-                                <input type="hidden" name="chapterId" value="@Model.ChapterId" />
-                                <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2"
-                                        title="Xóa ảnh này">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </form>
-                        </div>
+            <div class="mi-editor-layout">
+
+                <!-- ── Cột con trái: danh sách thumbnail (kéo thả để sắp xếp) ── -->
+                <div class="mi-thumb-col">
+                    <div class="mi-thumb-list" id="imageGrid">
+                        @foreach (var img in Model.Images)
+                        {
+                            <div class="mi-thumb-item" data-id="@img.ImageId" data-url="@img.ImageUrl">
+                                <div class="mi-thumb-drag" title="Kéo để sắp xếp">
+                                    <i class="bi bi-grip-vertical"></i>
+                                </div>
+                                <div class="mi-thumb-img-wrap" onclick="selectImage(this.closest('.mi-thumb-item'))">
+                                    <img src="@img.ImageUrl" alt="Trang @img.PageNumber" loading="lazy" />
+                                </div>
+                                <span class="mi-thumb-page" data-page onclick="selectImage(this.closest('.mi-thumb-item'))">
+                                    Trang @img.PageNumber
+                                </span>
+                                <form asp-action="DeleteImage" method="post"
+                                      onsubmit="return confirm('Xóa trang @img.PageNumber?');"
+                                      class="mi-thumb-del-form">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="imageId" value="@img.ImageId" />
+                                    <input type="hidden" name="chapterId" value="@Model.ChapterId" />
+                                    <button type="submit" class="mi-thumb-del-btn" title="Xóa ảnh này">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        }
                     </div>
-                }
+                </div>
+
+                <!-- ── Cột con phải: xem trước ảnh lớn ── -->
+                <div class="mi-preview-col">
+                    <div class="mi-preview-frame" id="previewFrame">
+                        <img id="previewMainImg" src="@Model.Images.First().ImageUrl" alt="" />
+                    </div>
+                    <div class="mi-preview-caption" id="previewCaption">Trang @Model.Images.First().PageNumber</div>
+                </div>
+
             </div>
         }
 
@@ -191,24 +204,19 @@
                 </div>
             </div>
         </div>
-<!-- Lightbox-->
-<div class="mi-lightbox" id="lightbox" onclick="closeLightbox()">
-    <div class="mi-lightbox-inner">
-        <img class="mi-lightbox-img" id="lightboxImg" src="" alt="" />
-        <p class="mi-lightbox-caption" id="lightboxCaption"></p>
-    </div>
+    </aside>
 </div>
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
     <script>
         // ── Upload: preview & đếm file ─────────────────────────────────
-        const imageInput    = document.getElementById('imageInput');
-        const previewArea   = document.getElementById('previewArea');
-        const uploadBtn     = document.getElementById('uploadBtn');
-        const fileCountLbl  = document.getElementById('fileCountLabel');
-        const fileSizeInfo  = document.getElementById('fileSizeInfo');
-        const dropZone      = document.getElementById('dropZone');
+        const imageInput = document.getElementById('imageInput');
+        const previewArea = document.getElementById('previewArea');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const fileCountLbl = document.getElementById('fileCountLabel');
+        const fileSizeInfo = document.getElementById('fileSizeInfo');
+        const dropZone = document.getElementById('dropZone');
 
         function renderPreviews(files) {
         previewArea.innerHTML = '';
@@ -238,7 +246,7 @@
         });
 
         // Drag-and-drop vào dropzone
-        dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+        dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
         dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
         dropZone.addEventListener('drop', e => {
         e.preventDefault();
@@ -251,13 +259,27 @@
         renderPreviews(Array.from(dt.files));
         });
 
-        // ── Sortable drag-and-drop sắp xếp ảnh ────────────────────────
+        // ── Chọn ảnh để xem trước bên phải ──────────────────────────────
+        function selectImage(item) {
+        if (!item) return;
+        document.querySelectorAll('.mi-thumb-item').forEach(el => el.classList.remove('active'));
+        item.classList.add('active');
+        document.getElementById('previewMainImg').src = item.dataset.url;
+        document.getElementById('previewCaption').textContent =
+        item.querySelector('[data-page]')?.textContent.trim() || '';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+        document.querySelector('.mi-thumb-item')?.classList.add('active');
+        });
+
+        // ── Sortable: kéo thả sắp xếp danh sách trang (cột trái) ────────
         const grid = document.getElementById('imageGrid');
         if (grid) {
         Sortable.create(grid, {
         animation: 220,
         easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
-        handle: '.mi-drag-handle',
+        handle: '.mi-thumb-drag',
         ghostClass: 'sortable-ghost',
         chosenClass: 'sortable-chosen',
         dragClass: 'sortable-drag',
@@ -265,8 +287,8 @@
         fallbackTolerance: 3,
         swapThreshold: 0.65,
         onEnd: function () {
-        // Cập nhật số trang hiển thị
-        grid.querySelectorAll('.mi-img-item').forEach((el, idx) => {
+        // Cập nhật số trang hiển thị theo thứ tự mới
+        grid.querySelectorAll('.mi-thumb-item').forEach((el, idx) => {
         el.querySelector('[data-page]').textContent = `Trang ${idx + 1}`;
         });
         document.getElementById('saveOrderBtn').classList.add('visible');
@@ -276,7 +298,7 @@
 
         // ── Lưu thứ tự ảnh ────────────────────────────────────────────
         document.getElementById('saveOrderBtn')?.addEventListener('click', async function () {
-        const ids = Array.from(grid.querySelectorAll('.mi-img-item'))
+        const ids = Array.from(grid.querySelectorAll('.mi-thumb-item'))
         .map(el => parseInt(el.dataset.id));
         this.disabled = true;
         this.innerHTML = '<i class="bi bi-hourglass-split"></i> Đang lưu…';
@@ -309,26 +331,6 @@
         this.style.background = 'linear-gradient(135deg,#dc2626,#f87171)';
         this.disabled = false;
         }
-        });
-
-        // ── Lightbox ───────────────────────────────────────────────────
-        const lightbox = document.getElementById('lightbox');
-
-        function openLightbox(url, page) {
-        document.getElementById('lightboxImg').src = url;
-        document.getElementById('lightboxCaption').textContent = `Trang ${page}`;
-        lightbox.classList.add('open');
-        document.body.style.overflow = 'hidden';
-        }
-
-        function closeLightbox() {
-        lightbox.classList.remove('open');
-        document.getElementById('lightboxImg').src = '';
-        document.body.style.overflow = '';
-        }
-
-        document.addEventListener('keydown', e => {
-        if (e.key === 'Escape') closeLightbox();
         });
     </script>
 
