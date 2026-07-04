@@ -185,11 +185,24 @@
                             @Model.SelectedGenreIds.Count đã chọn
                         </span>
                     </label>
+
+                    <!-- Ô tìm kiếm thể loại -->
+                    <div class="es-genre-search-wrap">
+                        <i class="bi bi-search es-genre-search-icon"></i>
+                        <input type="text" id="genreSearchInput" class="es-genre-search-input"
+                               placeholder="Tìm thể loại..." autocomplete="off"
+                               oninput="filterGenres(this.value)" />
+                        <button type="button" class="es-genre-search-clear" id="genreSearchClear"
+                                onclick="clearGenreSearch()" tabindex="-1">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+
                     <div class="es-genre-grid" id="genreGrid">
                         @foreach (var genre in genres)
                         {
                             bool isChecked = Model.SelectedGenreIds.Contains(genre.GenreId);
-                            <div class="es-genre-item">
+                            <div class="es-genre-item" data-name="@genre.Name.ToLower()">
                                 <input class="genre-cb"
                                        type="checkbox"
                                        name="SelectedGenreIds"
@@ -204,6 +217,8 @@
                             </div>
                         }
                     </div>
+                    <p class="es-genre-empty" id="genreEmptyMsg">Không tìm thấy thể loại phù hợp.</p>
+
                     <span asp-validation-for="SelectedGenreIds" style="color:#dc2626;font-size:12px;font-weight:600;margin-top:6px;display:block;"></span>
                 </div>
 
@@ -213,7 +228,7 @@
                 <a asp-action="ManageStories" asp-controller="Editor" class="es-btn-back">
                     <i class="bi bi-arrow-left"></i> Quay lại
                 </a>
-                <button type="submit" class="cs-btn-submit pulse-cta" id="submitBtn">
+                <button type="submit" class="es-btn-submit pulse-cta" id="submitBtn">
                     <span>
                         <i class="bi bi-check-circle"></i>
                         Lưu thay đổi
@@ -291,6 +306,29 @@
             const lbl   = document.getElementById('genreCountLabel');
             lbl.textContent = count === 0 ? 'Chưa chọn' : count + ' đã chọn';
             lbl.style.color = count > 0 ? '#0891b2' : '#a5d8e0';
+        }
+
+        // ── Tìm kiếm thể loại ────────────────────────────────────────────
+        function filterGenres(query) {
+            const q = query.trim().toLowerCase();
+            const items = document.querySelectorAll('#genreGrid .es-genre-item');
+            let visibleCount = 0;
+
+            items.forEach(item => {
+                const match = item.dataset.name.includes(q);
+                item.style.display = match ? '' : 'none';
+                if (match) visibleCount++;
+            });
+
+            document.getElementById('genreEmptyMsg').style.display = visibleCount === 0 ? 'block' : 'none';
+            document.getElementById('genreSearchClear').classList.toggle('show', q.length > 0);
+        }
+
+        function clearGenreSearch() {
+            const input = document.getElementById('genreSearchInput');
+            input.value = '';
+            filterGenres('');
+            input.focus();
         }
 
         // ── Submit validation ──────────────────────────────────────────────

@@ -7,6 +7,7 @@
 
 <link rel="stylesheet" href="~/css/create-story.css" />
 <link rel="stylesheet" href="~/css/story-effects.css" />
+<link rel="stylesheet" href="~/css/create-story-genre-search.css" />
 
 <div class="cs-page">
     <div class="cs-card reveal-card is-visible">
@@ -153,10 +154,28 @@
                         <span class="cs-required">*</span>
                         <span class="cs-hint" id="genreCountLabel">Chưa chọn</span>
                     </label>
+
+                    <!-- Tìm kiếm thể loại -->
+                    <div class="cs-input-wrap" style="margin-bottom:10px;">
+                        <i class="bi bi-search cs-input-icon"></i>
+                        <input type="text" id="genreSearchInput" class="cs-input"
+                               placeholder="Tìm thể loại... (VD: Action, Romance)"
+                               autocomplete="off" />
+                        <button type="button" id="genreSearchClear"
+                                class="cs-genre-search-clear d-none"
+                                title="Xóa tìm kiếm"
+                                onclick="clearGenreSearch()">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                    <div id="genreNoResult" class="text-muted small d-none" style="margin:-4px 0 10px 2px;">
+                        <i class="bi bi-emoji-frown"></i> Không tìm thấy thể loại phù hợp.
+                    </div>
+
                     <div class="cs-genre-grid" id="genreGrid">
                         @foreach (var genre in genres)
                         {
-                            <div class="cs-genre-item">
+                            <div class="cs-genre-item" data-name="@genre.Name.ToLower()">
                                 <input class="genre-cb" type="checkbox"
                                        name="SelectedGenreIds"
                                        value="@genre.GenreId"
@@ -251,6 +270,35 @@
                 : count + ' đã chọn';
             lbl.style.color = count > 0 ? '#7c3aed' : '#a78bfa';
         }
+
+        // ── Tìm kiếm thể loại ────────────────────────────────────────────────
+        const genreSearchInput = document.getElementById('genreSearchInput');
+        const genreSearchClear = document.getElementById('genreSearchClear');
+        const genreNoResult    = document.getElementById('genreNoResult');
+        const genreItems       = document.querySelectorAll('#genreGrid .cs-genre-item');
+
+        function filterGenres() {
+            const kw = genreSearchInput.value.trim().toLowerCase();
+            let visibleCount = 0;
+
+            genreItems.forEach(item => {
+                const name = item.dataset.name || item.textContent.toLowerCase();
+                const match = name.includes(kw);
+                item.style.display = match ? '' : 'none';
+                if (match) visibleCount++;
+            });
+
+            genreNoResult.classList.toggle('d-none', visibleCount > 0 || kw === '');
+            genreSearchClear.classList.toggle('d-none', kw === '');
+        }
+
+        function clearGenreSearch() {
+            genreSearchInput.value = '';
+            filterGenres();
+            genreSearchInput.focus();
+        }
+
+        genreSearchInput.addEventListener('input', filterGenres);
 
         // ── Submit validation ──────────────────────────────────────────────
         document.getElementById('storyForm').addEventListener('submit', function(e) {
